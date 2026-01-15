@@ -1,0 +1,231 @@
+<UserControl x:Class="XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable.LayoutCoordinateTableView"
+             Loaded="LayoutCoordinateTableView_Loaded"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions">
+    
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 顶部固定：选择信息 -->
+        <Grid Grid.Row="0" Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 布局选择 -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="布局名称:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+            <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" x:Name="LayoutComboBox" Style="{StaticResource ComboBoxStyle}"/>
+                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" Click="RefreshLayoutsButton_Click" ToolTip="刷新布局列表">
+                    <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"/>
+                </Button>
+            </Grid>
+
+            <!-- 面要素图层选择 -->
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="面要素图层:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+            <Grid Grid.Row="1" Grid.Column="1" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" x:Name="LayerComboBox" Style="{StaticResource ComboBoxStyle}" SelectionChanged="LayerComboBox_SelectionChanged"/>
+                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" Click="RefreshLayersButton_Click" ToolTip="刷新图层列表">
+                    <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"/>
+                </Button>
+            </Grid>
+
+            <!-- 唯一字段 -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="唯一字段:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="UniqueFieldComboBox" Style="{StaticResource ComboBoxStyle}"/>
+        </Grid>
+
+        <!-- 中间可滚动：分组可折叠 -->
+        <Grid Grid.Row="1" Margin="12,0,12,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- 上半：参数分组（可滚动） -->
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+                <StackPanel>
+                    <!-- 基本参数 -->
+                    <Expander Header="基本参数" IsExpanded="False" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="标题文本:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="TitleTextBox" Text="2000国家大地坐标系111°" Style="{StaticResource TextBoxStyle}" Margin="0,0,0,10"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="点号前缀:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="PrefixTextBox" Style="{StaticResource TextBoxStyle}" Margin="0,0,0,10"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="坐标小数位数:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="XYDecimalTextBox" Text="3" Style="{StaticResource TextBoxStyle}" Margin="0,0,0,10"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="生成边长列:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                            <CheckBox Grid.Row="3" Grid.Column="1" x:Name="GenerateEdgeCheckBox" IsChecked="True" Style="{StaticResource CheckBoxStyle}" Margin="0,0,0,10"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="边长小数位数:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="EdgeDecimalTextBox" Text="2" Style="{StaticResource TextBoxStyle}"/>
+
+                            <!-- 坐标显示习惯：按测绘习惯（X为北,Y为东）交换显示顺序 -->
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="坐标显示:" VerticalAlignment="Center" Margin="0,10,10,0"/>
+                            <CheckBox Grid.Row="5" Grid.Column="1" x:Name="SwapXYCheckBox" Content="按测绘习惯显示(X为北,Y为东)" IsChecked="True" Style="{StaticResource CheckBoxStyle}" Margin="0,10,0,0"/>
+                        </Grid>
+                    </Expander>
+
+                    <!-- 列宽与放置 -->
+                    <Expander Header="列宽与放置" IsExpanded="False" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="列宽设置 (单位:毫米)" FontWeight="Bold" Margin="0,0,0,10"/>
+                            <Grid Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="点号列宽:" HorizontalAlignment="Center" Margin="5"/>
+                                <TextBox Grid.Row="1" Grid.Column="0" x:Name="PointColWidthTextBox" Text="10" Style="{StaticResource TextBoxStyle}" Margin="5"/>
+
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="坐标列宽:" HorizontalAlignment="Center" Margin="5"/>
+                                <TextBox Grid.Row="1" Grid.Column="1" x:Name="XYColWidthTextBox" Text="25" Style="{StaticResource TextBoxStyle}" Margin="5"/>
+
+                                <TextBlock Grid.Row="0" Grid.Column="2" Text="边长列宽:" HorizontalAlignment="Center" Margin="5"/>
+                                <TextBox Grid.Row="1" Grid.Column="2" x:Name="EdgeColWidthTextBox" Text="10" Style="{StaticResource TextBoxStyle}" Margin="5"/>
+
+                                <TextBlock Grid.Row="0" Grid.Column="3" Text="行高:" HorizontalAlignment="Center" Margin="5"/>
+                                <TextBox Grid.Row="1" Grid.Column="3" x:Name="RowHeightTextBox" Text="5" Style="{StaticResource TextBoxStyle}" Margin="5"/>
+
+                                <!-- 放置与偏移设置 -->
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="放置位置:" HorizontalAlignment="Center" Margin="5"/>
+                                <ComboBox Grid.Row="2" Grid.Column="1" x:Name="PlacementCornerComboBox" Style="{StaticResource ComboBoxStyle}" Margin="5">
+                                    <ComboBoxItem Content="左下角"/>
+                                    <ComboBoxItem Content="右下角" IsSelected="True"/>
+                                    <ComboBoxItem Content="左上角"/>
+                                    <ComboBoxItem Content="右上角"/>
+                                </ComboBox>
+
+                                <TextBlock Grid.Row="2" Grid.Column="2" Text="离角距(mm):" HorizontalAlignment="Center" Margin="5"/>
+                                <TextBox Grid.Row="2" Grid.Column="3" x:Name="CornerOffsetTextBox" Text="0" Style="{StaticResource TextBoxStyle}" Margin="5"/>
+                            </Grid>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- 面积与分页 -->
+                    <Expander Header="面积与分页" IsExpanded="False" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="面积单位:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                            <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0" x:Name="AreaUnitComboBox" Style="{StaticResource ComboBoxStyle}" MinWidth="90" HorizontalAlignment="Stretch"/>
+                                <TextBlock Grid.Column="1" Text="  小数位数:" VerticalAlignment="Center" Margin="8,0,4,0"/>
+                                <TextBox Grid.Column="2" x:Name="AreaDecimalTextBox" Text="2" Style="{StaticResource TextBoxStyle}" MinWidth="60" HorizontalAlignment="Left"/>
+                            </Grid>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="亩小数位数:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="MuDecimalTextBox" Text="4" Style="{StaticResource TextBoxStyle}" Margin="0,0,0,10"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="每列数据行数:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="RowsPerColumnTextBox" Text="20" Style="{StaticResource TextBoxStyle}"/>
+                        </Grid>
+                    </Expander>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 下半：日志区域（随窗口自动高度） -->
+            <Border Grid.Row="1" BorderBrush="#CDCDCD" BorderThickness="1" Margin="0,8,0,10">
+                <TextBox x:Name="LogTextBox"
+                         Style="{StaticResource LogTextBoxStyle}"
+                         BorderThickness="0"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalAlignment="Stretch"
+                         VerticalScrollBarVisibility="Auto"/>
+            </Border>
+        </Grid>
+
+        <!-- 底部固定：进度与操作按钮 -->
+        <Grid Grid.Row="2" Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 进度条 -->
+            <ProgressBar Grid.Row="0" x:Name="ProgressBar" Style="{StaticResource ProgressBarStyle}" Height="6" Margin="0,0,0,6" Visibility="Collapsed"/>
+
+            <!-- 按钮区域 -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" x:Name="HelpButton" Content="?" Click="HelpButton_Click" Style="{StaticResource HelpButtonStyle}"/>
+
+                <Button Grid.Column="2" x:Name="CreateTemplatesButton" Content="生成/复制模板" Click="CreateTemplatesButton_Click" Style="{StaticResource DefaultButtonStyle}" Margin="0,0,8,0"/>
+
+                <Button Grid.Column="3" x:Name="GenerateButton" Content="生成坐标表" Click="GenerateButton_Click" Style="{StaticResource ExecuteButtonStyle}"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

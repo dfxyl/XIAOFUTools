@@ -1,0 +1,104 @@
+{
+  "type" : "CIMLayerDocument",
+  "version" : "3.1.0",
+  "build" : 41833,
+  "layers" : [
+    "CIMPATH=__/____.json"
+  ],
+  "layerDefinitions" : [
+    {
+      "type" : "CIMGraphicsLayer",
+      "name" : "慎用国外图源！涉及国界请用天地图图层",
+      "uRI" : "CIMPATH=__/____.json",
+      "sourceModifiedTime" : {
+        "type" : "TimeInstant",
+        "start" : 978307200000
+      },
+      "metadataURI" : "CIMPATH=Metadata/e4627b6205bd529c0a490e8d64968d73.xml",
+      "useSourceMetadata" : true,
+      "description" : "界址注记",
+      "layerElevation" : {
+        "type" : "CIMLayerElevationSurface",
+        "elevationSurfaceLayerURI" : "CIMPATH=__1/9c3ff4b20803476ea83475af6b029ff6.json"
+      },
+      "layerType" : "Operational",
+      "showLegends" : true,
+      "visibility" : false,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : true,
+      "elementStorageURI" : "CIMPATH=ObjectReferences/0c7ba8dc8d1a4edfb9313c6751672f1a.json",
+      "barrierWeight" : "High",
+      "snappable" : true,
+      "selectable" : true
+    }
+  ],
+  "binaryReferences" : [
+    {
+      "type" : "CIMBinaryReference",
+      "uRI" : "CIMPATH=Metadata/e4627b6205bd529c0a490e8d64968d73.xml",
+      "data" : "<?xml version=\"1.0\"?>\r\n<metadata xml:lang=\"zh\">\r\n\t<Esri>\r\n\t\t<CreaDate>20240809</CreaDate>\r\n\t\t<CreaTime>17424400</CreaTime>\r\n\t\t<ArcGISFormat>1.0</ArcGISFormat>\r\n\t\t<SyncOnce>TRUE</SyncOnce>\r\n\t</Esri>\r\n\t<dataIdInfo>\r\n\t\t<idCitation>\r\n\t\t\t<resTitle>界址注记</resTitle>\r\n\t\t</idCitation>\r\n\t\t<idAbs>界址注记</idAbs>\r\n\t\t<idCredit>\r\n\t\t</idCredit>\r\n\t\t<idPurp>\r\n\t\t</idPurp>\r\n\t\t<resConst>\r\n\t\t\t<Consts>\r\n\t\t\t\t<useLimit>\r\n\t\t\t\t</useLimit>\r\n\t\t\t</Consts>\r\n\t\t</resConst>\r\n\t</dataIdInfo>\r\n</metadata>\r\n"
+    },
+    {
+      "type" : "CIMBinaryReference",
+      "uRI" : "CIMPATH=ObjectReferences/0c7ba8dc8d1a4edfb9313c6751672f1a.json",
+      "object" : {
+        "type" : "CIMElementStorage",
+        "spatialReference" : {
+          "wkid" : 4525,
+          "latestWkid" : 4525,
+          "xyTolerance" : 0.001,
+          "zTolerance" : 0.001,
+          "mTolerance" : 0.001,
+          "falseX" : 31876800,
+          "falseY" : -10002100,
+          "xyUnits" : 10000,
+          "falseZ" : -100000,
+          "zUnits" : 10000,
+          "falseM" : -100000,
+          "mUnits" : 10000
+        }
+      }
+    }
+  ],
+  "rGBColorProfile" : "sRGB IEC61966-2.1",
+  "cMYKColorProfile" : "U.S. Web Coated (SWOP) v2",
+  "elevationSurfaceLayerDefinitions" : [
+    {
+      "type" : "CIMElevationSurfaceLayer",
+      "name" : "地面",
+      "uRI" : "CIMPATH=__1/9c3ff4b20803476ea83475af6b029ff6.json",
+      "useSourceMetadata" : true,
+      "description" : "地面",
+      "expanded" : true,
+      "layerType" : "Operational",
+      "showLegends" : false,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : true,
+      "elevationMode" : "BaseGlobeSurface",
+      "verticalExaggeration" : 1,
+      "color" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          255,
+          255,
+          255,
+          100
+        ]
+      },
+      "surfaceTINShadingMode" : "Smooth"
+    }
+  ]
+}

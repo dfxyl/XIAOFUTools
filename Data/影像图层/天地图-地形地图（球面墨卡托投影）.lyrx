@@ -1,0 +1,86 @@
+{
+  "type" : "CIMLayerDocument",
+  "version" : "3.1.0",
+  "build" : 41833,
+  "layers" : [
+    "CIMPATH=__/_________________.json"
+  ],
+  "layerDefinitions" : [
+    {
+      "type" : "CIMTiledServiceLayer",
+      "name" : "天地图-地形地图（球面墨卡托投影）",
+      "uRI" : "CIMPATH=__/_________________.json",
+      "sourceModifiedTime" : {
+        "type" : "TimeInstant"
+      },
+      "metadataURI" : "CIMPATH=Metadata/6b584597199d8848cf7f6ce5f52bb560.xml",
+      "useSourceMetadata" : true,
+      "attribution" : " ",
+      "description" : "此图层包含以下来源的数据 https://t0.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=ter&STYLE=default&FORMAT=tiles&TILEMATRIXSET=w&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}&tk=4267820f43926eaf808d61dc07269beb",
+      "layerElevation" : {
+        "type" : "CIMLayerElevationSurface",
+        "elevationSurfaceLayerURI" : "CIMPATH=__/0b9e4dc386d64054b22513319aeecd59.json"
+      },
+      "expanded" : true,
+      "layerType" : "Operational",
+      "showLegends" : true,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : true,
+      "serviceConnection" : {
+        "type" : "CIMStandardServiceConnection",
+        "description" : "此图层包含以下来源的数据 https://t0.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=ter&STYLE=default&FORMAT=tiles&TILEMATRIXSET=w&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}&tk=4267820f43926eaf808d61dc07269beb",
+        "serviceType" : "1",
+        "url" : "https://t0.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetTile&LAYER=ter&STYLE=default&FORMAT=tiles&TILEMATRIXSET=w&TILEMATRIX={level}&TILEROW={row}&TILECOL={col}&tk=4267820f43926eaf808d61dc07269beb"
+      }
+    }
+  ],
+  "binaryReferences" : [
+    {
+      "type" : "CIMBinaryReference",
+      "uRI" : "CIMPATH=Metadata/6b584597199d8848cf7f6ce5f52bb560.xml",
+      "data" : "<?xml version=\"1.0\"?>\r\n<metadata xml:lang=\"zh\"><Esri><CreaDate>20240914</CreaDate><CreaTime>07450900</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce></Esri><dataIdInfo><idCitation><resTitle>天地图-地形地图（球面墨卡托投影）</resTitle></idCitation><idAbs>此图层包含以下来源的数据 https://t0.tianditu.gov.cn/ter_w/wmts?SERVICE=WMTS&amp;VERSION=1.0.0&amp;REQUEST=GetTile&amp;LAYER=ter&amp;STYLE=default&amp;FORMAT=tiles&amp;TILEMATRIXSET=w&amp;TILEMATRIX={level}&amp;TILEROW={row}&amp;TILECOL={col}&amp;tk=4267820f43926eaf808d61dc07269beb</idAbs><idCredit></idCredit><idPurp></idPurp><resConst><Consts><useLimit></useLimit></Consts></resConst></dataIdInfo></metadata>\r\n"
+    }
+  ],
+  "rGBColorProfile" : "sRGB IEC61966-2.1",
+  "cMYKColorProfile" : "U.S. Web Coated (SWOP) v2",
+  "elevationSurfaceLayerDefinitions" : [
+    {
+      "type" : "CIMElevationSurfaceLayer",
+      "name" : "地面",
+      "uRI" : "CIMPATH=__/0b9e4dc386d64054b22513319aeecd59.json",
+      "useSourceMetadata" : true,
+      "description" : "地面",
+      "expanded" : true,
+      "layerType" : "Operational",
+      "showLegends" : false,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : true,
+      "elevationMode" : "BaseGlobeSurface",
+      "verticalExaggeration" : 1,
+      "color" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          255,
+          255,
+          255,
+          100
+        ]
+      },
+      "surfaceTINShadingMode" : "Smooth"
+    }
+  ]
+}

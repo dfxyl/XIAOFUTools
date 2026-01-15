@@ -1,0 +1,26 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="exportLayoutGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景圆角矩形 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" ry="8" fill="url(#exportLayoutGradient)"/>
+  
+  <!-- 文档图标 -->
+  <rect x="6" y="4" width="14" height="18" rx="1" ry="1" fill="white" opacity="0.9"/>
+  <rect x="8" y="7" width="10" height="1" fill="#4facfe" opacity="0.7"/>
+  <rect x="8" y="9" width="8" height="1" fill="#4facfe" opacity="0.7"/>
+  <rect x="8" y="11" width="10" height="1" fill="#4facfe" opacity="0.7"/>
+  <rect x="8" y="13" width="6" height="1" fill="#4facfe" opacity="0.7"/>
+  
+  <!-- 导出箭头 -->
+  <path d="M22 12 L28 16 L22 20 L22 17 L16 17 L16 15 L22 15 Z" fill="white" opacity="0.95"/>
+  
+  <!-- 小装饰点 -->
+  <circle cx="8" cy="18" r="1" fill="#00f2fe" opacity="0.8"/>
+  <circle cx="12" cy="18" r="1" fill="#00f2fe" opacity="0.8"/>
+  <circle cx="16" cy="18" r="1" fill="#00f2fe" opacity="0.8"/>
+</svg>

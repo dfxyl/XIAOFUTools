@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 统一蓝色渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 齿轮渐变 -->
+    <linearGradient id="gearGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:0.9" />
+    </linearGradient>
+
+    <!-- 阴影滤镜 -->
+    <filter id="gearShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 真实齿轮设计 -->
+  <g transform="translate(16,16)">
+    <!-- 齿轮基础圆 -->
+    <circle cx="0" cy="0" r="8" fill="url(#gearGradient)" filter="url(#gearShadow)"/>
+
+    <!-- 齿轮齿 - 8个标准梯形齿 -->
+    <!-- 上齿 -->
+    <path d="M-1.5,-8 L1.5,-8 L2,-11 L-2,-11 Z" fill="url(#gearGradient)"/>
+    <!-- 右上齿 -->
+    <path d="M5.7,-5.7 L8,-8 L11,-6 L8.5,-3.5 Z" fill="url(#gearGradient)"/>
+    <!-- 右齿 -->
+    <path d="M8,-1.5 L8,1.5 L11,2 L11,-2 Z" fill="url(#gearGradient)"/>
+    <!-- 右下齿 -->
+    <path d="M5.7,5.7 L8.5,3.5 L11,6 L8,8 Z" fill="url(#gearGradient)"/>
+    <!-- 下齿 -->
+    <path d="M1.5,8 L-1.5,8 L-2,11 L2,11 Z" fill="url(#gearGradient)"/>
+    <!-- 左下齿 -->
+    <path d="M-5.7,5.7 L-8,8 L-11,6 L-8.5,3.5 Z" fill="url(#gearGradient)"/>
+    <!-- 左齿 -->
+    <path d="M-8,1.5 L-8,-1.5 L-11,-2 L-11,2 Z" fill="url(#gearGradient)"/>
+    <!-- 左上齿 -->
+    <path d="M-5.7,-5.7 L-8.5,-3.5 L-11,-6 L-8,-8 Z" fill="url(#gearGradient)"/>
+
+    <!-- 中心孔 -->
+    <circle cx="0" cy="0" r="3.5" fill="#667eea"/>
+
+    <!-- 中心装饰 -->
+    <circle cx="0" cy="0" r="1.8" fill="#ffffff" opacity="0.9"/>
+
+    <!-- 齿轮表面细节 -->
+    <circle cx="0" cy="0" r="6.5" fill="none" stroke="#667eea" stroke-width="0.5" opacity="0.3"/>
+    <circle cx="0" cy="0" r="5" fill="none" stroke="#667eea" stroke-width="0.5" opacity="0.3"/>
+
+    <!-- 螺丝孔装饰 -->
+    <circle cx="-2.5" cy="-2.5" r="0.6" fill="#667eea" opacity="0.4"/>
+    <circle cx="2.5" cy="-2.5" r="0.6" fill="#667eea" opacity="0.4"/>
+    <circle cx="2.5" cy="2.5" r="0.6" fill="#667eea" opacity="0.4"/>
+    <circle cx="-2.5" cy="2.5" r="0.6" fill="#667eea" opacity="0.4"/>
+  </g>
+</svg>

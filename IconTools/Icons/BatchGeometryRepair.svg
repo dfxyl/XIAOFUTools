@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 统一蓝色渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0984e3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 损坏的几何图形 -->
+  <path d="M6 8 L25 6 L27 16 L23 25 L8 27 L4 18 Z" fill="#ffffff" opacity="0.9" stroke="#e17055" stroke-width="2" stroke-dasharray="3,2"/>
+
+  <!-- 错误标记 -->
+  <path d="M12 12 L20 20 M20 12 L12 20" stroke="#e17055" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- 修复工具 -->
+  <circle cx="23" cy="8" r="3.5" fill="#00b894"/>
+  <path d="M21 6 L25 10 M21 10 L25 6" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- 批量指示点 -->
+  <circle cx="8" cy="6" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="12" cy="4" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="16" cy="6" r="1.5" fill="#ffffff" opacity="0.8"/>
+</svg>

@@ -1,0 +1,170 @@
+using System;
+using System.Windows;
+using ArcGIS.Desktop.Framework.Controls;
+
+namespace XIAOFUTools.Tools.User.AIAssistant
+{
+    /// <summary>
+    /// 模型编辑对话框
+    /// </summary>
+    public partial class ModelEditDialog : ProWindow
+    {
+        private bool _isEdit = false;
+        private string _originalApiKey = null;
+        private bool _isBuiltInKey = false;
+        
+        // 内置密钥占位符
+        private const string BuiltInKeyPlaceholder = "（内置密钥 - 不可修改）";
+        
+        /// <summary>
+        /// 显示名称
+        /// </summary>
+        public string ModelName => txtName.Text.Trim();
+        
+        /// <summary>
+        /// API端点
+        /// </summary>
+        public string ApiEndpoint => txtEndpoint.Text.Trim();
+        
+        /// <summary>
+        /// 模型ID
+        /// </summary>
+        public string ModelId => txtModelId.Text.Trim();
+        
+        /// <summary>
+        /// API密钥
+        /// </summary>
+        public string ApiKey
+        {
+            get
+            {
+                var text = txtApiKey.Text.Trim();
+                // 如果是内置密钥且用户没有修改，返回原始密钥
+                if (_isBuiltInKey && (text == BuiltInKeyPlaceholder || string.IsNullOrEmpty(text)))
+                    return _originalApiKey;
+                return text;
+            }
+        }
+        
+        /// <summary>
+        /// 最大Tokens
+        /// </summary>
+        public int MaxTokens
+        {
+            get
+            {
+                if (int.TryParse(txtMaxTokens.Text.Trim(), out int val))
+                    return val;
+                return 4096;
+            }
+        }
+        
+        /// <summary>
+        /// Temperature
+        /// </summary>
+        public double Temperature
+        {
+            get
+            {
+                if (double.TryParse(txtTemperature.Text.Trim(), out double val))
+                    return val;
+                return 0.7;
+            }
+        }
+        
+        /// <summary>
+        /// 是否支持视觉
+        /// </summary>
+        public bool SupportsVision => chkVision.IsChecked ?? false;
+        
+        /// <summary>
+        /// 新建模式构造函数
+        /// </summary>
+        public ModelEditDialog()
+        {
+            InitializeComponent();
+            txtTitle.Text = "添加模型";
+        }
+        
+        /// <summary>
+        /// 编辑模式构造函数
+        /// </summary>
+        public ModelEditDialog(ModelConfigViewModel model) : this()
+        {
+            _isEdit = true;
+            txtTitle.Text = "编辑模型";
+            
+            txtName.Text = model.Name;
+            txtEndpoint.Text = model.ApiEndpoint;
+            txtModelId.Text = model.ModelName;
+            
+            // 保存原始密钥
+            _originalApiKey = model.ApiKey;
+            _isBuiltInKey = model.IsBuiltIn;
+            
+            // 内置密钥不显示真实值
+            if (model.IsBuiltIn)
+            {
+                txtApiKey.Text = BuiltInKeyPlaceholder;
+                txtApiKey.IsReadOnly = true;
+                txtApiKey.Foreground = new System.Windows.Media.SolidColorBrush(
+                    (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#9ca3af"));
+            }
+            else
+            {
+                txtApiKey.Text = model.ApiKey;
+            }
+            
+            txtMaxTokens.Text = model.MaxTokens.ToString();
+            txtTemperature.Text = model.Temperature.ToString("F1");
+            chkVision.IsChecked = model.SupportsVision;
+        }
+        
+        /// <summary>
+        /// 保存
+        /// </summary>
+        private void BtnSave_Click(object sender, RoutedEventArgs e)
+        {
+            // 验证必填项
+            if (string.IsNullOrWhiteSpace(ModelName))
+            {
+                MessageBox.Show("请输入显示名称", "验证失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtName.Focus();
+                return;
+            }
+            
+            if (string.IsNullOrWhiteSpace(ApiEndpoint))
+            {
+                MessageBox.Show("请输入API端点", "验证失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtEndpoint.Focus();
+                return;
+            }
+            
+            if (string.IsNullOrWhiteSpace(ModelId))
+            {
+                MessageBox.Show("请输入模型ID", "验证失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+                txtModelId.Focus();
+                return;
+            }
+            
+            // API密钥可选（本地模型不需要）
+            // 内置密钥保持不变，非内置密钥为空时设置占位值
+            if (!_isBuiltInKey && string.IsNullOrWhiteSpace(txtApiKey.Text))
+            {
+                txtApiKey.Text = "local-no-key";
+            }
+            
+            DialogResult = true;
+            Close();
+        }
+        
+        /// <summary>
+        /// 取消
+        /// </summary>
+        private void BtnCancel_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+    }
+}

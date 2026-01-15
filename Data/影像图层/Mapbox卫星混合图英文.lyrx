@@ -1,0 +1,56 @@
+{
+  "type" : "CIMLayerDocument",
+  "version" : "3.1.0",
+  "build" : 41833,
+  "layers" : [
+    "CIMPATH=b31df58183f045f0ad308e5fa980067b.json"
+  ],
+  "layerDefinitions" : [
+    {
+      "type" : "CIMTiledServiceLayer",
+      "name" : "Mapbox卫星混合图英文",
+      "uRI" : "CIMPATH=b31df58183f045f0ad308e5fa980067b.json",
+      "sourceModifiedTime" : {
+        "type" : "TimeInstant"
+      },
+      "useSourceMetadata" : true,
+      "attribution" : " ",
+      "description" : "Mapbox卫星混合图英文",
+      "layerType" : "BasemapBackground",
+      "showLegends" : true,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "webMapLayerID" : "WebTiled_3635",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : false,
+      "serviceConnection" : {
+        "type" : "CIMStandardServiceConnection",
+        "description" : "Mapbox卫星混合图英文",
+        "serviceType" : "1",
+        "url" : "https://api.mapbox.com/styles/v1/mapbox-official/ckpqknefy216x17t9b07w8xmf/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94LW9mZmljaWFsIiwiYSI6ImNrcHBnMG5yMDA2eWgyb2s5MDI4NG10OXAifQ.S65o8bcu6oqsp6HQnWYJfw"},
+      "transparentColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          0,
+          0,
+          0,
+          100
+        ]
+      },
+      "backgroundColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          0,
+          0,
+          0,
+          100
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "type" : "CIMLayerDocument",
+  "version" : "3.1.0",
+  "build" : 41833,
+  "layers" : [
+    "CIMPATH=b31df58183f045f0ad308e5fa980067b.json"
+  ],
+  "layerDefinitions" : [
+    {
+      "type" : "CIMTiledServiceLayer",
+      "name" : "Google02",
+      "uRI" : "CIMPATH=b31df58183f045f0ad308e5fa980067b.json",
+      "sourceModifiedTime" : {
+        "type" : "TimeInstant"
+      },
+      "useSourceMetadata" : true,
+      "attribution" : " ",
+      "description" : "Google02",
+      "layerType" : "BasemapBackground",
+      "showLegends" : true,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "webMapLayerID" : "WebTiled_3635",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : false,
+      "serviceConnection" : {
+        "type" : "CIMStandardServiceConnection",
+        "description" : "Google02",
+        "serviceType" : "1",
+        "url" : "https://gac-geo.googlecnapps.club/maps/vt?lyrs=s&x={col}&y={row}&z={level}"
+      },
+      "transparentColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          0,
+          0,
+          0,
+          100
+        ]
+      },
+      "backgroundColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          0,
+          0,
+          0,
+          100
+        ]
+      }
+    }
+  ]
+}

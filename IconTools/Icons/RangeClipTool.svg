@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 统一蓝色渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0984e3;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 阴影滤镜 -->
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 背景图层 -->
+  <path d="M4 6 L27 4 L29 16 L25 27 L6 29 L3 18 Z" fill="#ffffff" opacity="0.9" filter="url(#softShadow)"/>
+
+  <!-- 裁剪框 -->
+  <rect x="8" y="10" width="16" height="12" rx="2" fill="none" stroke="#74b9ff" stroke-width="2.5" stroke-dasharray="4,2"/>
+
+  <!-- 裁剪结果区域 -->
+  <rect x="10" y="12" width="12" height="8" rx="1" fill="#fdcb6e" opacity="0.9" filter="url(#softShadow)"/>
+
+  <!-- 剪刀图标代替文字 -->
+  <g transform="translate(16,16)">
+    <circle cx="-2" cy="-1" r="1.5" fill="#ffffff" opacity="0.9"/>
+    <circle cx="2" cy="-1" r="1.5" fill="#ffffff" opacity="0.9"/>
+    <path d="M-2 -1 L2 -1" stroke="#74b9ff" stroke-width="1.5"/>
+    <path d="M-2.5 -2 L-1.5 0" stroke="#74b9ff" stroke-width="1" stroke-linecap="round"/>
+    <path d="M1.5 -2 L2.5 0" stroke="#74b9ff" stroke-width="1" stroke-linecap="round"/>
+  </g>
+
+  <!-- 控制点 -->
+  <circle cx="8" cy="10" r="1.5" fill="#00b894" filter="url(#softShadow)"/>
+  <circle cx="24" cy="10" r="1.5" fill="#00b894" filter="url(#softShadow)"/>
+  <circle cx="8" cy="22" r="1.5" fill="#00b894" filter="url(#softShadow)"/>
+  <circle cx="24" cy="22" r="1.5" fill="#00b894" filter="url(#softShadow)"/>
+
+  <!-- 工具图标 -->
+  <circle cx="16" cy="4" r="2.5" fill="#ffffff" opacity="0.9" filter="url(#softShadow)"/>
+  <path d="M14.5 4 L17.5 4 M16 2.5 L16 5.5" stroke="#74b9ff" stroke-width="1.5" stroke-linecap="round"/>
+
+  <!-- 装饰元素 -->
+  <circle cx="6" cy="6" r="1" fill="#ffffff" opacity="0.3"/>
+  <circle cx="26" cy="26" r="1" fill="#ffffff" opacity="0.3"/>
+</svg>

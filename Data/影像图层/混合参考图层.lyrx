@@ -1,0 +1,35 @@
+{
+  "type" : "CIMLayerDocument",
+  "version" : "3.0.0",
+  "build" : 36056,
+  "layers" : [
+    "CIMPATH=4f51095c991b43a8bc3ecd1bcce8692b.json"
+  ],
+  "layerDefinitions" : [
+    {
+      "type" : "CIMVectorTileLayer",
+      "name" : "混合参考图层",
+      "uRI" : "CIMPATH=4f51095c991b43a8bc3ecd1bcce8692b.json",
+      "sourceModifiedTime" : {
+        "type" : "TimeInstant"
+      },
+      "useSourceMetadata" : true,
+      "layerType" : "BasemapTopReference",
+      "showLegends" : true,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "webMapLayerID" : "VectorTile_7259",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : true,
+      "dataConnection" : {
+        "type" : "CIMVectorTileDataConnection",
+        "uRI" : "https://cdn.arcgis.com/sharing/rest/content/items/1c62ff85a58e4106a7e6c28d08449384/resources/styles/root.json"
+      }
+    }
+  ]
+}

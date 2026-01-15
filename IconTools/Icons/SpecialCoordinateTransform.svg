@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 计算分析功能深蓝色渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 坐标系渐变 -->
+    <linearGradient id="coordGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:0.9" />
+    </linearGradient>
+
+    <!-- 阴影滤镜 -->
+    <filter id="coordShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 左侧坐标系 -->
+  <g transform="translate(8,16)">
+    <!-- 坐标轴 -->
+    <line x1="-4" y1="0" x2="4" y2="0" stroke="url(#coordGradient)" stroke-width="1.5"/>
+    <line x1="0" y1="-4" x2="0" y2="4" stroke="url(#coordGradient)" stroke-width="1.5"/>
+    
+    <!-- 箭头 -->
+    <path d="M3.5 0 L2.5 -0.5 L2.5 0.5 Z" fill="url(#coordGradient)"/>
+    <path d="M0 -3.5 L-0.5 -2.5 L0.5 -2.5 Z" fill="url(#coordGradient)"/>
+    
+    <!-- 网格点 -->
+    <circle cx="-2" cy="-2" r="0.8" fill="#6c5ce7" opacity="0.6"/>
+    <circle cx="2" cy="-2" r="0.8" fill="#6c5ce7" opacity="0.6"/>
+    <circle cx="-2" cy="2" r="0.8" fill="#6c5ce7" opacity="0.6"/>
+    <circle cx="2" cy="2" r="0.8" fill="#6c5ce7" opacity="0.6"/>
+  </g>
+
+  <!-- 转换箭头 -->
+  <g transform="translate(16,16)">
+    <!-- 弯曲箭头路径 -->
+    <path d="M-2 -3 Q0 -5 2 -3 Q4 -1 2 1 Q0 3 -2 1" 
+          fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    <!-- 箭头头部 -->
+    <path d="M-1 2 L-2 1 L-1 0" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+    
+    <!-- 特殊标识 -->
+    <circle cx="0" cy="0" r="1.5" fill="#ffffff" opacity="0.9"/>
+    <text x="0" y="1" fill="#6c5ce7" font-family="SF Pro, Arial, sans-serif" font-size="4" font-weight="bold" text-anchor="middle">S</text>
+  </g>
+
+  <!-- 右侧坐标系（变换后） -->
+  <g transform="translate(24,16) rotate(15)">
+    <!-- 坐标轴 -->
+    <line x1="-4" y1="0" x2="4" y2="0" stroke="url(#coordGradient)" stroke-width="1.5"/>
+    <line x1="0" y1="-4" x2="0" y2="4" stroke="url(#coordGradient)" stroke-width="1.5"/>
+    
+    <!-- 箭头 -->
+    <path d="M3.5 0 L2.5 -0.5 L2.5 0.5 Z" fill="url(#coordGradient)"/>
+    <path d="M0 -3.5 L-0.5 -2.5 L0.5 -2.5 Z" fill="url(#coordGradient)"/>
+    
+    <!-- 变换后的网格点 -->
+    <circle cx="-1.5" cy="-2.5" r="0.8" fill="#a29bfe" opacity="0.8"/>
+    <circle cx="2.5" cy="-1.5" r="0.8" fill="#a29bfe" opacity="0.8"/>
+    <circle cx="-2.5" cy="1.5" r="0.8" fill="#a29bfe" opacity="0.8"/>
+    <circle cx="1.5" cy="2.5" r="0.8" fill="#a29bfe" opacity="0.8"/>
+  </g>
+
+  <!-- 数学符号装饰 -->
+  <text x="16" y="6" fill="#ffffff" font-family="SF Pro, Arial, sans-serif" font-size="5" font-weight="bold" text-anchor="middle" opacity="0.7">f(x,y)</text>
+  
+  <!-- 坐标系标识 -->
+  <rect x="4" y="26" width="24" height="3" rx="1.5" fill="#ffffff" opacity="0.2"/>
+  <text x="16" y="28.5" fill="#ffffff" font-family="SF Pro, Arial, sans-serif" font-size="4" font-weight="bold" text-anchor="middle">COORD TRANSFORM</text>
+</svg>

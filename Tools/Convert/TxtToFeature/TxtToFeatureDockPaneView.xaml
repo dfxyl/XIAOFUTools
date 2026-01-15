@@ -1,0 +1,188 @@
+<UserControl x:Class="XIAOFUTools.Tools.TxtToFeature.TxtToFeatureDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="350">
+    
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 参数设置区域 -->
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <!-- 输入文件夹 -->
+                <TextBlock Text="输入文件夹:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" Text="{Binding InputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource TextBoxStyle}" 
+                             IsReadOnly="False" ToolTip="选择包含TXT文件的输入文件夹"/>
+                    <Button Grid.Column="1" Content="浏览" 
+                            Command="{Binding SelectInputFolderCommand}"
+                            Style="{StaticResource DefaultButtonStyle}"
+                            Width="60" Height="22" Margin="5,0,0,0"/>
+                </Grid>
+
+                <!-- 保存在TXT源路径选项 -->
+                <CheckBox Content="保存在TXT源路径"
+                          IsChecked="{Binding SaveToSourcePath}"
+                          Style="{StaticResource CheckBoxStyle}"
+                          ToolTip="勾选后输出文件将保存在对应TXT文件所在目录"
+                          Margin="0,0,0,5"/>
+
+                <!-- 输出文件夹 -->
+                <TextBlock Text="输出文件夹:" FontWeight="Bold" Margin="0,0,0,5"
+                           Visibility="{Binding ShowOutputFolder, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <Grid Margin="0,0,0,10"
+                      Visibility="{Binding ShowOutputFolder, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Grid.Column="0" Text="{Binding OutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource TextBoxStyle}" 
+                             IsReadOnly="False" ToolTip="选择输出文件夹"/>
+                    <Button Grid.Column="1" Content="浏览" 
+                            Command="{Binding SelectOutputFolderCommand}"
+                            Style="{StaticResource DefaultButtonStyle}"
+                            Width="60" Height="22" Margin="5,0,0,0"/>
+                </Grid>
+
+                <!-- 坐标系选择 -->
+                <TextBlock Text="坐标系选择:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <Grid Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="#F5F5F5"
+                            BorderBrush="#CDCDCD" BorderThickness="1">
+                        <TextBlock Text="{Binding SelectedCoordinateSystemName}"
+                                  VerticalAlignment="Center" TextWrapping="Wrap"
+                                  Padding="5,3"/>
+                    </Border>
+                    <Button Grid.Column="1" Content="选择" 
+                            Command="{Binding SelectCoordinateSystemCommand}"
+                            Style="{StaticResource DefaultButtonStyle}"
+                            Width="60" Height="22" Margin="5,0,0,0"/>
+                </Grid>
+
+                <!-- 字段名称 -->
+                <TextBlock Text="字段名称:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <TextBox Text="{Binding FieldNames}" 
+                         Style="{StaticResource TextBoxStyle}" 
+                         Height="60" TextWrapping="Wrap" AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         ToolTip="用逗号分隔的字段名称，如：界址点数,地块面积,地块编号,地块名称,图形类型,图幅号,地块用途,地类编码,描述,@"
+                         Margin="0,0,0,10"/>
+
+                <!-- 选项设置 -->
+                <TextBlock Text="选项设置:" FontWeight="Bold" Margin="0,0,0,5"/>
+                <StackPanel Margin="0,0,0,10">
+                    <CheckBox Content="遍历子文件夹"
+                              IsChecked="{Binding IncludeSubfolders}"
+                              Style="{StaticResource CheckBoxStyle}"
+                              ToolTip="搜索输入文件夹及其所有子文件夹中的TXT文件"
+                              Margin="0,3"/>
+                    <CheckBox Content="单独文件夹"
+                              IsChecked="{Binding SeparateFolder}"
+                              Style="{StaticResource CheckBoxStyle}"
+                              ToolTip="为每个输出文件创建单独的文件夹"
+                              Margin="0,3"/>
+                    <CheckBox Content="合并到一个文件"
+                              IsChecked="{Binding MergeToOneFile}"
+                              Style="{StaticResource CheckBoxStyle}"
+                              ToolTip="将所有地块合并到一个Shapefile文件中"
+                              Margin="0,3"/>
+                    <CheckBox Content="XY互换"
+                              IsChecked="{Binding SwapXY}"
+                              Style="{StaticResource CheckBoxStyle}"
+                              ToolTip="交换X和Y坐标的顺序"
+                              Margin="0,3"/>
+                </StackPanel>
+
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 进度和日志区域 -->
+        <Grid Grid.Row="1" Margin="0,10,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- 进度条 -->
+            <ProgressBar Grid.Row="0" 
+                         Value="{Binding Progress}" 
+                         IsIndeterminate="{Binding IsProgressIndeterminate}"
+                         Style="{StaticResource ProgressBarStyle}"
+                         Height="6" Margin="0,0,0,5"/>
+
+            <!-- 日志窗口 -->
+            <Border Grid.Row="1" BorderBrush="#CDCDCD" BorderThickness="1">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <TextBox Text="{Binding LogText}" 
+                             Style="{StaticResource LogTextBoxStyle}"
+                             IsReadOnly="True" 
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Disabled"
+                             HorizontalScrollBarVisibility="Disabled"/>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- 状态信息 -->
+        <TextBlock Grid.Row="2" Text="{Binding StatusText}" 
+                   Margin="0,5,0,5" FontSize="11" 
+                   Foreground="#666666"/>
+
+        <!-- 按钮区域 -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 帮助按钮 -->
+            <Button Grid.Column="0" Content="?" 
+                    Command="{Binding HelpCommand}"
+                    Style="{StaticResource HelpButtonStyle}"
+                    Width="22" Height="22" 
+                    ToolTip="显示帮助信息"/>
+
+            <!-- 停止按钮 -->
+            <Button Grid.Column="2" Content="停止" 
+                    Command="{Binding StopConversionCommand}"
+                    Style="{StaticResource CancelButtonStyle}"
+                    Width="60" Height="22" Margin="5,0"/>
+
+            <!-- 开始按钮 -->
+            <Button Grid.Column="3" Content="开始" 
+                    Command="{Binding StartConversionCommand}"
+                    Style="{StaticResource ExecuteButtonStyle}"
+                    Width="60" Height="22"/>
+        </Grid>
+    </Grid>
+</UserControl>

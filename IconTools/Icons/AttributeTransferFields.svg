@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 统一蓝色渐变背景 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0984e3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 左表（源字段） -->
+  <rect x="5" y="6" width="10" height="20" rx="2" fill="#ffffff" opacity="0.95" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.8"/>
+  <rect x="6.5" y="9" width="7" height="2" rx="1" fill="#0984e3" opacity="0.6"/>
+  <rect x="6.5" y="13" width="7" height="2" rx="1" fill="#0984e3" opacity="0.6"/>
+  <rect x="6.5" y="17" width="7" height="2" rx="1" fill="#0984e3" opacity="0.6"/>
+  <rect x="6.5" y="21" width="7" height="2" rx="1" fill="#0984e3" opacity="0.6"/>
+
+  <!-- 右表（目标字段） -->
+  <rect x="17" y="6" width="10" height="20" rx="2" fill="#ffffff" opacity="0.95" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.8"/>
+  <rect x="18.5" y="9" width="7" height="2" rx="1" fill="#636e72" opacity="0.55"/>
+  <rect x="18.5" y="13" width="7" height="2" rx="1" fill="#636e72" opacity="0.55"/>
+  <rect x="18.5" y="17" width="7" height="2" rx="1" fill="#636e72" opacity="0.55"/>
+  <rect x="18.5" y="21" width="7" height="2" rx="1" fill="#636e72" opacity="0.55"/>
+
+  <!-- 传递箭头（字段映射） -->
+  <path d="M15 10 C17 10, 17 10, 19 10" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <polygon points="19 10 16.5 8.8 16.5 11.2" fill="#ffffff" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.6"/>
+
+  <path d="M15 14 C17 14, 17 14, 19 14" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <polygon points="19 14 16.5 12.8 16.5 15.2" fill="#ffffff" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.6"/>
+
+  <path d="M15 18 C17 18, 17 18, 19 18" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <polygon points="19 18 16.5 16.8 16.5 19.2" fill="#ffffff" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.6"/>
+
+  <path d="M15 22 C17 22, 17 22, 19 22" stroke="#ffffff" stroke-width="2" fill="none"/>
+  <polygon points="19 22 16.5 20.8 16.5 23.2" fill="#ffffff" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.6"/>
+
+  <!-- 强调点 -->
+  <circle cx="15" cy="10" r="1.2" fill="#e17055"/>
+  <circle cx="15" cy="14" r="1.2" fill="#e17055"/>
+  <circle cx="15" cy="18" r="1.2" fill="#e17055"/>
+  <circle cx="15" cy="22" r="1.2" fill="#e17055"/>
+</svg>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 分析工具：紫色渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 两个相交的圆/面（交集概念） -->
+  <circle cx="12" cy="13" r="7" fill="#ffffff" opacity="0.6"/>
+  <circle cx="20" cy="13" r="7" fill="#ffffff" opacity="0.6"/>
+  
+  <!-- 交集区域高亮 -->
+  <path d="M16 7.5 A7 7 0 0 1 16 18.5 A7 7 0 0 1 16 7.5" fill="#ffffff" opacity="0.95"/>
+
+  <!-- 汇总表图标 -->
+  <rect x="6" y="21" width="20" height="8" rx="1" fill="#ffffff" opacity="0.9"/>
+  <line x1="8" y1="24" x2="24" y2="24" stroke="#6c5ce7" stroke-width="1" opacity="0.6"/>
+  <line x1="8" y1="27" x2="20" y2="27" stroke="#6c5ce7" stroke-width="1" opacity="0.6"/>
+  <line x1="13" y1="22" x2="13" y2="28" stroke="#6c5ce7" stroke-width="1" opacity="0.4"/>
+  <line x1="19" y1="22" x2="19" y2="28" stroke="#6c5ce7" stroke-width="1" opacity="0.4"/>
+
+  <!-- Σ 符号（汇总） -->
+  <text x="16" y="15" fill="#6c5ce7" font-family="Arial, sans-serif" font-size="6" font-weight="bold" text-anchor="middle">∩</text>
+</svg>

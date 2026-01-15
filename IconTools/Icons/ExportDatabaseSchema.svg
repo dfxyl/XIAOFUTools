@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 现代背景渐变 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 阴影滤镜 -->
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 数据库图标 (左侧) -->
+  <ellipse cx="10" cy="10" rx="5" ry="2" fill="#ffffff" opacity="0.95" filter="url(#softShadow)"/>
+  <path d="M5 10 L5 18 C5 19.1 7.2 20 10 20 C12.8 20 15 19.1 15 18 L15 10" fill="#ffffff" opacity="0.9"/>
+  <ellipse cx="10" cy="18" rx="5" ry="2" fill="#ffffff" opacity="0.85"/>
+  <ellipse cx="10" cy="13" rx="5" ry="1.5" fill="none" stroke="#4facfe" stroke-width="0.6" opacity="0.6"/>
+  <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="none" stroke="#4facfe" stroke-width="0.6" opacity="0.6"/>
+
+  <!-- 导出箭头 -->
+  <path d="M15 14 L19 14" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
+  <path d="M17 12 L19 14 L17 16" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+
+  <!-- Excel/表格文档 (右侧) -->
+  <rect x="20" y="7" width="8" height="11" rx="1" fill="#ffffff" opacity="0.95" filter="url(#softShadow)"/>
+  <!-- 表格线条 -->
+  <line x1="20" y1="10" x2="28" y2="10" stroke="#4facfe" stroke-width="0.6" opacity="0.8"/>
+  <line x1="20" y1="13" x2="28" y2="13" stroke="#4facfe" stroke-width="0.6" opacity="0.8"/>
+  <line x1="20" y1="16" x2="28" y2="16" stroke="#4facfe" stroke-width="0.6" opacity="0.8"/>
+  <line x1="23" y1="7" x2="23" y2="18" stroke="#4facfe" stroke-width="0.6" opacity="0.8"/>
+  
+  <!-- 表格单元格填充 -->
+  <rect x="20.5" y="7.5" width="2" height="2" fill="#00f2fe" opacity="0.5"/>
+  <rect x="23.5" y="10.5" width="4" height="2" fill="#00f2fe" opacity="0.4"/>
+  <rect x="20.5" y="13.5" width="2" height="2" fill="#00f2fe" opacity="0.3"/>
+
+  <!-- 结构符号 -->
+  <text x="24" y="26" font-family="Arial, sans-serif" font-size="6" font-weight="bold" fill="#ffffff" opacity="0.9" text-anchor="middle">XLS</text>
+
+  <!-- 装饰元素 -->
+  <circle cx="5" cy="5" r="1" fill="#ffffff" opacity="0.3"/>
+  <circle cx="27" cy="27" r="0.8" fill="#ffffff" opacity="0.3"/>
+</svg>

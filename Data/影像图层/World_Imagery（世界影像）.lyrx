@@ -1,0 +1,308 @@
+{
+  "type" : "CIMLayerDocument",
+  "version" : "3.0.0",
+  "build" : 36056,
+  "layers" : [
+    "CIMPATH=__/world_imagery2.json"
+  ],
+  "layerDefinitions" : [
+    {
+      "type" : "CIMTiledServiceLayer",
+      "name" : "World_Imagery",
+      "uRI" : "CIMPATH=__/world_imagery2.json",
+      "sourceModifiedTime" : {
+        "type" : "TimeInstant"
+      },
+      "metadataURI" : "CIMPATH=Metadata/3bf05bcf9d47580f3f36ae817ef7301c.xml",
+      "useSourceMetadata" : true,
+      "attribution" : " ",
+      "description" : "World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (591M down to 72k) and 2.5m SPOT Imagery (288k to 72k) for the world, and USGS 15m Landsat imagery for Antarctica. The map features 0.3m resolution imagery in the continental United States and 0.6m resolution imagery in parts of Western Europe from Digital Globe. Recent 1m USDA NAIP imagery is available in select states of the US. In other parts of the world, 1 meter resolution imagery is available from GeoEye IKONOS, AeroGRID, and IGN Spain. Additionally, imagery at different resolutions has been contributed by the GIS User Community. For more information on this map, including the terms of use, visit us online.",
+      "layerElevation" : {
+        "type" : "CIMLayerElevationSurface",
+        "elevationSurfaceLayerURI" : "CIMPATH=__/c156a020d32a47bb82d5afa68ddc56ff.json"
+      },
+      "layerType" : "Operational",
+      "showLegends" : true,
+      "visibility" : false,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : true,
+      "serviceConnection" : {
+        "type" : "CIMAGSServiceConnection",
+        "description" : "World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (591M down to 72k) and 2.5m SPOT Imagery (288k to 72k) for the world, and USGS 15m Landsat imagery for Antarctica. The map features 0.3m resolution imagery in the continental United States and 0.6m resolution imagery in parts of Western Europe from Digital Globe. Recent 1m USDA NAIP imagery is available in select states of the US. In other parts of the world, 1 meter resolution imagery is available from GeoEye IKONOS, AeroGRID, and IGN Spain. Additionally, imagery at different resolutions has been contributed by the GIS User Community. For more information on this map, including the terms of use, visit us online.",
+        "objectName" : "World_Imagery",
+        "objectType" : "MapServer",
+        "url" : "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer",
+        "capabilities" : "Map,Tilemap,Query,Data",
+        "serverConnection" : {
+          "type" : "CIMInternetServerConnection",
+          "anonymous" : true,
+          "hideUserProperty" : false,
+          "url" : "https://services.arcgisonline.com/ArcGIS/services"
+        }
+      },
+      "subLayers" : [
+        {
+          "type" : "CIMServiceSubLayer",
+          "description" : "World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (~1:591M down to ~1:288k) for the world. The map features Maxar imagery at 0.3m resolution for select metropolitan areas around the world, 0.5m resolution across the United States and parts of Western Europe, and 1m resolution imagery across the rest of the world. In addition to commercial sources, the World Imagery map features high-resolution aerial photography contributed by the GIS User Community. This imagery ranges from 0.3m to 0.03m resolution (down to ~1:280 in select communities). For more information on this map, including the terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Imagery",
+          "name" : "World Imagery",
+          "showLegends" : true,
+          "subLayerID" : "0",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "description" : "World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (~1:591M down to ~1:288k) for the world. The map features Maxar imagery at 0.3m resolution for select metropolitan areas around the world, 0.5m resolution across the United States and parts of Western Europe, and 1m resolution imagery across the rest of the world. In addition to commercial sources, the World Imagery map features high-resolution aerial photography contributed by the GIS User Community. This imagery ranges from 0.3m to 0.03m resolution (down to ~1:280 in select communities). For more information on this map, including the terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Imagery",
+          "name" : "Low Resolution 15m Imagery",
+          "showLegends" : true,
+          "subLayerID" : "1",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "description" : "World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (~1:591M down to ~1:288k) for the world. The map features Maxar imagery at 0.3m resolution for select metropolitan areas around the world, 0.5m resolution across the United States and parts of Western Europe, and 1m resolution imagery across the rest of the world. In addition to commercial sources, the World Imagery map features high-resolution aerial photography contributed by the GIS User Community. This imagery ranges from 0.3m to 0.03m resolution (down to ~1:280 in select communities). For more information on this map, including the terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Imagery",
+          "name" : "High Resolution 60cm Imagery",
+          "showLegends" : true,
+          "subLayerID" : "2",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "description" : "World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (~1:591M down to ~1:288k) for the world. The map features Maxar imagery at 0.3m resolution for select metropolitan areas around the world, 0.5m resolution across the United States and parts of Western Europe, and 1m resolution imagery across the rest of the world. In addition to commercial sources, the World Imagery map features high-resolution aerial photography contributed by the GIS User Community. This imagery ranges from 0.3m to 0.03m resolution (down to ~1:280 in select communities). For more information on this map, including the terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Imagery",
+          "name" : "High Resolution 30cm Imagery",
+          "showLegends" : true,
+          "subLayerID" : "3",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "description" : "World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (~1:591M down to ~1:288k) for the world. The map features Maxar imagery at 0.3m resolution for select metropolitan areas around the world, 0.5m resolution across the United States and parts of Western Europe, and 1m resolution imagery across the rest of the world. In addition to commercial sources, the World Imagery map features high-resolution aerial photography contributed by the GIS User Community. This imagery ranges from 0.3m to 0.03m resolution (down to ~1:280 in select communities). For more information on this map, including the terms of use, visit us online at http://goto.arcgisonline.com/maps/World_Imagery",
+          "name" : "Citations",
+          "showLegends" : true,
+          "subLayerID" : "4",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "1.9cm Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "5",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "3.7cm Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "6",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "7.5cm Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "7",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "15cm Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "8",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "30cm Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "9",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "60cm Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "10",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "1.2m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "11",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "2.4m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "12",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "4.8m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "13",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "9.6m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "14",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "19m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "15",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "38m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "16",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "75m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "17",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        },
+        {
+          "type" : "CIMServiceSubLayer",
+          "name" : "150m Resolution Metadata",
+          "showLegends" : true,
+          "subLayerID" : "18",
+          "visibility" : true,
+          "serviceLayerID" : -1,
+          "timeOffsetUnits" : "esriTimeUnitsUnknown",
+          "showPopups" : true
+        }
+      ],
+      "transparentColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          253,
+          253,
+          253,
+          100
+        ]
+      },
+      "backgroundColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          253,
+          253,
+          253,
+          100
+        ]
+      }
+    }
+  ],
+  "binaryReferences" : [
+    {
+      "type" : "CIMBinaryReference",
+      "uRI" : "CIMPATH=Metadata/3bf05bcf9d47580f3f36ae817ef7301c.xml",
+      "data" : "<?xml version=\"1.0\"?>\r\n<metadata xml:lang=\"zh\"><Esri><CreaDate>20240514</CreaDate><CreaTime>11260500</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce></Esri><dataIdInfo><idCitation><resTitle>World_Imagery</resTitle></idCitation><idAbs>World Imagery provides one meter or better satellite and aerial imagery in many parts of the world and lower resolution satellite imagery worldwide. The map includes 15m TerraColor imagery at small and mid-scales (591M down to 72k) and 2.5m SPOT Imagery (288k to 72k) for the world, and USGS 15m Landsat imagery for Antarctica. The map features 0.3m resolution imagery in the continental United States and 0.6m resolution imagery in parts of Western Europe from Digital Globe. Recent 1m USDA NAIP imagery is available in select states of the US. In other parts of the world, 1 meter resolution imagery is available from GeoEye IKONOS, AeroGRID, and IGN Spain. Additionally, imagery at different resolutions has been contributed by the GIS User Community. For more information on this map, including the terms of use, visit us online.</idAbs><idCredit></idCredit><idPurp></idPurp><resConst><Consts><useLimit></useLimit></Consts></resConst></dataIdInfo></metadata>\r\n"
+    }
+  ],
+  "rGBColorProfile" : "sRGB IEC61966-2.1",
+  "cMYKColorProfile" : "U.S. Web Coated (SWOP) v2",
+  "elevationSurfaceLayerDefinitions" : [
+    {
+      "type" : "CIMElevationSurfaceLayer",
+      "name" : "地面",
+      "uRI" : "CIMPATH=__/c156a020d32a47bb82d5afa68ddc56ff.json",
+      "useSourceMetadata" : true,
+      "description" : "地面",
+      "expanded" : true,
+      "layerType" : "Operational",
+      "showLegends" : false,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : true,
+      "elevationMode" : "BaseGlobeSurface",
+      "verticalExaggeration" : 1,
+      "color" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          255,
+          255,
+          255,
+          100
+        ]
+      },
+      "surfaceTINShadingMode" : "Smooth"
+    }
+  ]
+}

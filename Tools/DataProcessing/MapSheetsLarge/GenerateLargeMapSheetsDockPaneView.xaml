@@ -1,0 +1,124 @@
+<UserControl x:Class="XIAOFUTools.Tools.MapSheetsLarge.GenerateLargeMapSheetsDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d">
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+      </ResourceDictionary.MergedDictionaries>
+      <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </ResourceDictionary>
+  </UserControl.Resources>
+  <Grid Margin="8">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+      <RowDefinition Height="Auto"/>
+    </Grid.RowDefinitions>
+
+    <!-- 输入图层 -->
+    <Grid Margin="0,0,0,6">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="70"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="面图层:" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+      <ComboBox Grid.Column="1" ItemsSource="{Binding PolygonLayers}"
+                SelectedItem="{Binding SelectedPolygonLayer}"
+                DisplayMemberPath="Name" Style="{StaticResource ComboBoxStyle}"/>
+      <Button Grid.Column="2" Content="刷新" Margin="8,0,0,0" MinWidth="60" Command="{Binding RefreshLayersCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+    </Grid>
+
+    <!-- 比例与尺寸 -->
+    <Grid Grid.Row="1" Margin="0,0,0,6">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="70"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="比例/尺寸:" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+      <ComboBox Grid.Column="1" ItemsSource="{Binding ScaleNames}" SelectedItem="{Binding SelectedScaleName}" Style="{StaticResource ComboBoxStyle}"/>
+    </Grid>
+
+    <!-- 自定义尺寸 -->
+    <Grid Grid.Row="2" Margin="0,0,0,6" Visibility="{Binding IsCustomSize, Converter={StaticResource BooleanToVisibilityConverter}}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="70"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="自定义尺寸:" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+      <TextBox Grid.Column="1" Text="{Binding CustomWidth, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}"/>
+      <TextBlock Grid.Column="2" Text="×" VerticalAlignment="Center" Margin="8,0,8,0"/>
+      <TextBox Grid.Column="3" Text="{Binding CustomHeight, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}"/>
+    </Grid>
+
+    <!-- 编号与小数位 -->
+    <Grid Grid.Row="3" Margin="0,0,0,6">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="70"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="120"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="编号格式:" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+      <ComboBox Grid.Column="1" ItemsSource="{Binding NamingConventions}" SelectedItem="{Binding NamingConvention}" Style="{StaticResource ComboBoxStyle}"/>
+      <TextBlock Grid.Column="2" Text="小数位:" VerticalAlignment="Center" Margin="8,0,8,0" Style="{StaticResource FormLabelStyle}"/>
+      <TextBox Grid.Column="3" Text="{Binding DecimalPlaces, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}"/>
+    </Grid>
+
+    <!-- 输出要素类路径 -->
+    <Grid Grid.Row="4" Margin="0,0,0,6">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="70"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="输出要素类:" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+      <TextBox Grid.Column="1" Text="{Binding OutputFeatureClassPath, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}"/>
+      <Button Grid.Column="2" Content="浏览" Margin="8,0,0,0" MinWidth="60" Command="{Binding BrowseOutputPathCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+    </Grid>
+
+    <!-- 范围选择 -->
+    <StackPanel Orientation="Horizontal" Grid.Row="5" Margin="0,0,0,6" >
+      <TextBlock Text="范围选择:" VerticalAlignment="Center" Margin="0,0,12,0" Style="{StaticResource FormLabelStyle}"/>
+      <RadioButton Content="图层范围" GroupName="RangeMode" IsChecked="{Binding IsLayerMode, Mode=TwoWay}" Margin="0,0,12,0"/>
+      <RadioButton Content="当前地图范围" GroupName="RangeMode" IsChecked="{Binding IsMapMode, Mode=TwoWay}" Margin="0,0,12,0"/>
+      <RadioButton Content="自定义范围" GroupName="RangeMode" IsChecked="{Binding IsCustomMode, Mode=TwoWay}"/>
+    </StackPanel>
+
+    <!-- 框选范围 -->
+    <Grid Grid.Row="6" Margin="0,0,0,6" Visibility="{Binding IsCustomMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="70"/>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <TextBlock Grid.Column="0" Text="框选范围:" VerticalAlignment="Center" Style="{StaticResource FormLabelStyle}"/>
+      <TextBlock Grid.Column="1" Text="{Binding DrawnExtentText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+      <Button Grid.Column="2" Content="框选" Margin="8,0,0,0" MinWidth="60" Command="{Binding DrawExtentCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+      <Button Grid.Column="3" Content="清除" Margin="8,0,0,0" MinWidth="60" Command="{Binding ClearExtentCommand}" Style="{StaticResource DefaultButtonStyle}"/>
+    </Grid>
+
+    <!-- 日志/状态 -->
+    <TextBox Grid.Row="7" Text="{Binding LogContent}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
+
+    <!-- 操作 -->
+    <StackPanel Orientation="Horizontal" Grid.Row="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+      <ProgressBar IsIndeterminate="{Binding IsProcessing}" Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}}" Style="{StaticResource ProgressBarStyle}"/>
+      <Button Content="生成" Margin="8,0,0,0" Width="80" Command="{Binding RunCommand}" IsEnabled="{Binding CanRun}" Style="{StaticResource DefaultButtonStyle}"/>
+      <Button Content="取消" Margin="8,0,0,0" Width="80" Command="{Binding CancelCommand}" IsEnabled="{Binding IsProcessing}" Style="{StaticResource DefaultButtonStyle}"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

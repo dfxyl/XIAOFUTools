@@ -1,0 +1,44 @@
+<controls:ProWindow x:Class="XIAOFUTools.Common.CoordinateSystemSelector"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:ArcGIS.Desktop.Framework.Controls;assembly=ArcGIS.Desktop.Framework"
+                    xmlns:mapping="clr-namespace:ArcGIS.Desktop.Mapping.Controls;assembly=ArcGIS.Desktop.Mapping"
+                    Title="选择坐标系"
+                    Height="400"
+                    Width="500"
+                    WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <!-- 定义两行布局 -->
+        <Grid.RowDefinitions>
+            <!-- 第一行用于 CoordinateSystemsControl，占满剩余空间 -->
+            <RowDefinition Height="*"/>
+            <!-- 第二行用于按钮，固定高度 -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- CoordinateSystemsControl 用于选择坐标系 -->
+        <mapping:CoordinateSystemsControl x:Name="coordinateSystemsControl" 
+                                          Grid.Row="0" Margin="0"/>
+
+        <!-- 按钮容器 -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" 
+                    Grid.Row="1" Margin="0">
+            <!-- 确认选择按钮 -->
+            <Button x:Name="btnSelectCoordinateSystem" Content="确认" 
+                    Click="btnSelectCoordinateSystem_Click" 
+                    Width="80" Height="22" Margin="5" Style="{StaticResource ExecuteButtonStyle}"/>
+            <!-- 取消按钮 -->
+            <Button x:Name="btnCancel" Content="取消" 
+                    Click="btnCancel_Click" 
+                    Width="80" Height="22" Margin="5" Style="{StaticResource CancelButtonStyle}"/>
+        </StackPanel>
+    </Grid>
+</controls:ProWindow>

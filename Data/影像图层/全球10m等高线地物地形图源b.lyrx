@@ -1,0 +1,57 @@
+{
+  "type" : "CIMLayerDocument",
+  "version" : "3.1.0",
+  "build" : 41833,
+  "layers" : [
+    "CIMPATH=b31df58183f045f0ad308e5fa980067b.json"
+  ],
+  "layerDefinitions" : [
+    {
+      "type" : "CIMTiledServiceLayer",
+      "name" : "全球10m等高线地物地形图源b",
+      "uRI" : "CIMPATH=b31df58183f045f0ad308e5fa980067b.json",
+      "sourceModifiedTime" : {
+        "type" : "TimeInstant"
+      },
+      "useSourceMetadata" : true,
+      "attribution" : " ",
+      "description" : "全球10m等高线地物地形图源b",
+      "layerType" : "BasemapBackground",
+      "showLegends" : true,
+      "visibility" : true,
+      "displayCacheType" : "Permanent",
+      "maxDisplayCacheAge" : 5,
+      "showPopups" : true,
+      "serviceLayerID" : -1,
+      "refreshRate" : -1,
+      "refreshRateUnit" : "esriTimeUnitsSeconds",
+      "webMapLayerID" : "WebTiled_3635",
+      "blendingMode" : "Alpha",
+      "allowDrapingOnIntegratedMesh" : false,
+      "serviceConnection" : {
+        "type" : "CIMStandardServiceConnection",
+        "description" : "全球10m等高线地物地形图源b",
+        "serviceType" : "1",
+        "url" : "https://b.tile.opentopomap.org/{z}/{x}/{y}.png"
+      },
+      "transparentColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          0,
+          0,
+          0,
+          100
+        ]
+      },
+      "backgroundColor" : {
+        "type" : "CIMRGBColor",
+        "values" : [
+          0,
+          0,
+          0,
+          100
+        ]
+      }
+    }
+  ]
+}

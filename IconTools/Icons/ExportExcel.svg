@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- 统一青蓝渐变（数据/转换类） -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 左侧表格（源：数据表） -->
+  <rect x="4" y="6" width="10" height="14" rx="1" fill="#ffffff" opacity="0.95"/>
+  
+  <!-- 表格线条 -->
+  <line x1="4" y1="9" x2="14" y2="9" stroke="#4facfe" stroke-width="1" opacity="0.7"/>
+  <line x1="4" y1="12" x2="14" y2="12" stroke="#4facfe" stroke-width="1" opacity="0.7"/>
+  <line x1="4" y1="15" x2="14" y2="15" stroke="#4facfe" stroke-width="1" opacity="0.7"/>
+  <line x1="4" y1="18" x2="14" y2="18" stroke="#4facfe" stroke-width="1" opacity="0.7"/>
+  
+  <!-- 垂直分割线 -->
+  <line x1="8" y1="6" x2="8" y2="20" stroke="#4facfe" stroke-width="1" opacity="0.7"/>
+  
+  <!-- 表格数据点 -->
+  <circle cx="6" cy="7.5" r="0.8" fill="#4facfe" opacity="0.8"/>
+  <circle cx="10" cy="7.5" r="0.8" fill="#4facfe" opacity="0.8"/>
+  <circle cx="12" cy="7.5" r="0.8" fill="#4facfe" opacity="0.8"/>
+  
+  <circle cx="6" cy="10.5" r="0.8" fill="#4facfe" opacity="0.8"/>
+  <circle cx="10" cy="10.5" r="0.8" fill="#4facfe" opacity="0.8"/>
+  <circle cx="12" cy="10.5" r="0.8" fill="#4facfe" opacity="0.8"/>
+
+  <!-- 转换箭头 -->
+  <path d="M16 13 L20 13" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <path d="M18 11 L20 13 L18 15" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- 右侧Excel文件卡片 -->
+  <rect x="22" y="8" width="8" height="12" rx="2" fill="#ffffff" opacity="0.95"/>
+  
+  <!-- Excel图标内部（表格网格） -->
+  <rect x="24" y="10" width="4" height="8" fill="none" stroke="#4facfe" stroke-width="1" opacity="0.8"/>
+  <line x1="24" y1="12" x2="28" y2="12" stroke="#4facfe" stroke-width="0.8" opacity="0.7"/>
+  <line x1="24" y1="14" x2="28" y2="14" stroke="#4facfe" stroke-width="0.8" opacity="0.7"/>
+  <line x1="24" y1="16" x2="28" y2="16" stroke="#4facfe" stroke-width="0.8" opacity="0.7"/>
+  <line x1="25.3" y1="10" x2="25.3" y2="18" stroke="#4facfe" stroke-width="0.8" opacity="0.7"/>
+  <line x1="26.6" y1="10" x2="26.6" y2="18" stroke="#4facfe" stroke-width="0.8" opacity="0.7"/>
+
+  <!-- 底部文件类型标签 -->
+  <rect x="23" y="22" width="6" height="2" rx="1" fill="#27ae60"/>
+  <text x="26" y="24" fill="#ffffff" font-family="SF Pro, Arial, sans-serif" font-size="5" font-weight="bold" text-anchor="middle">XLS</text>
+
+  <!-- 细节装饰线 -->
+  <line x1="5" y1="23" x2="9" y2="23" stroke="#4facfe" stroke-width="1.8" opacity="0.6"/>
+  <line x1="6" y1="25" x2="10" y2="25" stroke="#4facfe" stroke-width="1.8" opacity="0.6"/>
+</svg>

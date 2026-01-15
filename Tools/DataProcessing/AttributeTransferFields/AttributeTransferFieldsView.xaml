@@ -1,0 +1,278 @@
+<UserControl x:Class="XIAOFUTools.Tools.AttributeTransferFields.AttributeTransferFieldsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             xmlns:local="clr-namespace:XIAOFUTools.Tools.AttributeTransferFields"
+             mc:Ignorable="d"
+             d:DesignHeight="640" d:DesignWidth="720">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 引用自定义样式 -->
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- 布尔值反转转换器 -->
+            <local:BooleanInverseConverter x:Key="BooleanInverseConverter"/>
+
+            <!-- 本地样式 -->
+            <Style x:Key="FormLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlockStyle}">
+                <Setter Property="Margin" Value="0,2,8,0"/>
+                <Setter Property="HorizontalAlignment" Value="Left"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+            </Style>
+
+            <Style x:Key="CompactComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource ComboBoxStyle}">
+                <Setter Property="Margin" Value="0,1,0,4"/>
+                <Setter Property="MinHeight" Value="22"/>
+            </Style>
+
+            <Style x:Key="ListBoxStyle" TargetType="ListBox">
+                <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+                <Setter Property="Margin" Value="0,2,0,8"/>
+            </Style>
+
+            <Style x:Key="SmallButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+                <Setter Property="Width" Value="52"/>
+                <Setter Property="Height" Value="20"/>
+                <Setter Property="FontSize" Value="10"/>
+                <Setter Property="Margin" Value="1"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Border Background="{StaticResource BackgroundBrush}" BorderBrush="#CDCDCD" BorderThickness="1" CornerRadius="4">
+        <Grid Margin="6">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 主内容：左右数据集 + 中间映射 -->
+            <Grid Grid.Row="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="2"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 顶部：数据集选择（全宽，两列） -->
+                <GroupBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="5" Header="数据集选择" Style="{StaticResource GroupBoxStyle}" Margin="0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="8"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- 左：主数据集 -->
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="主数据:" Style="{StaticResource FormLabelStyle}"/>
+                            <Grid Margin="0,0,0,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0"
+                                          Style="{StaticResource CompactComboBoxStyle}"
+                                          ItemsSource="{Binding PrimaryList}"
+                                          SelectedItem="{Binding SelectedPrimary, Mode=TwoWay}"
+                                          IsEditable="False"
+                                          TextSearch.TextPath="DisplayName"
+                                          IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                
+                                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0"
+                                        Style="{StaticResource DefaultButtonStyle}"
+                                        Command="{Binding RefreshDatasetsCommand}"
+                                        ToolTip="刷新图层/表列表"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="⟲" FontSize="12" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </Grid>
+
+                            <TextBlock Text="主键字段:" Style="{StaticResource FormLabelStyle}"/>
+                            <ComboBox Style="{StaticResource CompactComboBoxStyle}"
+                                      ItemsSource="{Binding PrimaryFieldList}"
+                                      SelectedItem="{Binding SelectedPrimaryKeyField, Mode=TwoWay}"
+                                      IsEditable="False"
+                                      TextSearch.TextPath="DisplayName"
+                                      IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+
+                        <!-- 右：从数据集 -->
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="从数据:" Style="{StaticResource FormLabelStyle}"/>
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ComboBox Grid.Column="0"
+                                          Style="{StaticResource CompactComboBoxStyle}"
+                                          ItemsSource="{Binding SecondaryList}"
+                                          SelectedItem="{Binding SelectedSecondary, Mode=TwoWay}"
+                                          IsEditable="False"
+                                          TextSearch.TextPath="DisplayName"
+                                          IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}"/>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0"
+                                        Style="{StaticResource DefaultButtonStyle}"
+                                        Command="{Binding RefreshDatasetsCommand}"
+                                        ToolTip="刷新图层/表列表"
+                                        VerticalAlignment="Center">
+                                    <TextBlock Text="⟲" FontSize="12" FontWeight="Bold"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Button>
+                            </Grid>
+
+                            <TextBlock Text="从键字段:" Style="{StaticResource FormLabelStyle}"/>
+                            <ComboBox Style="{StaticResource CompactComboBoxStyle}"
+                                      ItemsSource="{Binding SecondaryFieldList}"
+                                      SelectedItem="{Binding SelectedSecondaryKeyField, Mode=TwoWay}"
+                                      IsEditable="False"
+                                      TextSearch.TextPath="DisplayName"
+                                      IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding DisplayName}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <!-- 中：字段映射与方向（全宽） -->
+                <GroupBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5"
+                          Header="字段映射与方向" Style="{StaticResource GroupBoxStyle}"
+                          Margin="0" MinWidth="520">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- 方向选择 -->
+                        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6" HorizontalAlignment="Center">
+                            <TextBlock Text="传递方向:" Style="{StaticResource FormLabelStyle}" Margin="0,0,6,0"/>
+                            <RadioButton Content="主 → 从" Margin="4,0,8,0" GroupName="TransferDir"
+                                         IsChecked="{Binding IsPrimaryToSecondary, Mode=TwoWay}"/>
+                            <RadioButton Content="从 → 主" Margin="4,0,8,0" GroupName="TransferDir"
+                                         IsChecked="{Binding IsSecondaryToPrimary, Mode=TwoWay}"/>
+                        </StackPanel>
+
+                        <!-- 映射表格 -->
+                        <DataGrid Grid.Row="1"
+                                  Style="{StaticResource DataGridStyle}"
+                                  ItemsSource="{Binding FieldMappings}"
+                                  IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False"
+                                  CanUserResizeRows="False"
+                                  CanUserSortColumns="True"
+                                  GridLinesVisibility="Horizontal"
+                                  HeadersVisibility="Column"
+                                  SelectionMode="Extended"
+                                  RowHeight="24"
+                                  Margin="0,0,0,4">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected, Mode=TwoWay}" Width="40"/>
+                                <DataGridComboBoxColumn Header="主字段" SelectedValueBinding="{Binding SourceFieldName, Mode=TwoWay}" SelectedValuePath="Name" DisplayMemberPath="DisplayName" Width="*">
+                                    <DataGridComboBoxColumn.ElementStyle>
+                                        <Style TargetType="ComboBox">
+                                            <Setter Property="ItemsSource" Value="{Binding DataContext.PrimaryFieldList, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                        </Style>
+                                    </DataGridComboBoxColumn.ElementStyle>
+                                    <DataGridComboBoxColumn.EditingElementStyle>
+                                        <Style TargetType="ComboBox">
+                                            <Setter Property="ItemsSource" Value="{Binding DataContext.PrimaryFieldList, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                        </Style>
+                                    </DataGridComboBoxColumn.EditingElementStyle>
+                                </DataGridComboBoxColumn>
+                                <DataGridComboBoxColumn Header="从字段" SelectedValueBinding="{Binding TargetFieldName, Mode=TwoWay}" SelectedValuePath="Name" DisplayMemberPath="DisplayName" Width="*">
+                                    <DataGridComboBoxColumn.ElementStyle>
+                                        <Style TargetType="ComboBox">
+                                            <Setter Property="ItemsSource" Value="{Binding DataContext.SecondaryFieldList, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                        </Style>
+                                    </DataGridComboBoxColumn.ElementStyle>
+                                    <DataGridComboBoxColumn.EditingElementStyle>
+                                        <Style TargetType="ComboBox">
+                                            <Setter Property="ItemsSource" Value="{Binding DataContext.SecondaryFieldList, RelativeSource={RelativeSource AncestorType=DataGrid}}"/>
+                                        </Style>
+                                    </DataGridComboBoxColumn.EditingElementStyle>
+                                </DataGridComboBoxColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!-- 映射操作按钮 + 只填空值开关 -->
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center">
+                            <Button Content="自动匹配" Style="{StaticResource SmallButtonStyle}" Command="{Binding AutoMapCommand}"/>
+                            <Button Content="添加映射" Style="{StaticResource SmallButtonStyle}" Command="{Binding AddMappingCommand}"/>
+                            <Button Content="删除选中" Style="{StaticResource SmallButtonStyle}" Command="{Binding RemoveSelectedMappingsCommand}"/>
+                            <Button Content="清空映射" Style="{StaticResource SmallButtonStyle}" Command="{Binding ClearMappingsCommand}"/>
+                            <Separator Width="8"/> 
+                            <CheckBox Content="只填空值" IsChecked="{Binding OnlyFillEmpty, Mode=TwoWay}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </GroupBox>
+
+                <!-- 右：从数据集 已合并到 顶部“数据集选择”组内 -->
+            </Grid>
+
+            <!-- 日志区域改为按钮弹出，移除常驻日志 -->
+
+            <!-- 底部按钮 -->
+            <Grid Grid.Row="2">
+                <Border BorderBrush="{StaticResource DividerBrush}" BorderThickness="0,1,0,0" Margin="0,4,0,4" Padding="0,6,0,0">
+                    <Grid>
+                        <Button x:Name="HelpButton" Content="?" Style="{StaticResource HelpButtonStyle}"
+                                Command="{Binding ShowHelpCommand}"
+                                ToolTip="查看工具使用说明" HorizontalAlignment="Left"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="查看日志" Style="{StaticResource DefaultButtonStyle}"
+                                    Command="{Binding ShowLogCommand}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <Button Content="停止" Style="{StaticResource CancelButtonStyle}"
+                                    Command="{Binding StopCommand}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <Button Content="开始" Style="{StaticResource ExecuteButtonStyle}"
+                                    Command="{Binding StartCommand}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

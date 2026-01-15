@@ -1,0 +1,140 @@
+<Window x:Class="XIAOFUTools.Tools.Authorization.AuthorizationExpiryDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="授权即将过期" 
+        Height="280" 
+        Width="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        WindowStyle="SingleBorderWindow">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- 标题和图标 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
+            <Image Source="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericInformation32.png" 
+                   Width="32" Height="32" Margin="0,0,10,0"/>
+            <TextBlock Text="授权即将过期" 
+                       FontSize="16" 
+                       FontWeight="Bold" 
+                       VerticalAlignment="Center"/>
+        </StackPanel>
+        
+        <!-- 主要内容 -->
+        <StackPanel Grid.Row="1">
+            <!-- 过期信息 -->
+            <TextBlock Text="您的工具箱授权即将过期！" 
+                       FontSize="12" 
+                       Margin="0,0,0,10"
+                       TextWrapping="Wrap"/>
+            
+            <!-- 过期详情 -->
+            <Border BorderBrush="#FFA500" 
+                    BorderThickness="1" 
+                    CornerRadius="3" 
+                    Padding="10" 
+                    Background="#FFF8DC"
+                    Margin="0,0,0,15">
+                <StackPanel>
+                    <TextBlock Text="{Binding RemainingTimeMessage}" 
+                               FontSize="12" 
+                               FontWeight="Bold"
+                               Foreground="#FF8C00"
+                               Margin="0,0,0,5"/>
+                    
+                    <TextBlock Text="{Binding ExpireTimeMessage}" 
+                               FontSize="11" 
+                               Margin="0,0,0,0"/>
+                </StackPanel>
+            </Border>
+            
+            <!-- 操作建议 -->
+            <TextBlock Text="建议您现在进行以下操作：" 
+                       FontSize="12" 
+                       FontWeight="Bold" 
+                       Margin="0,0,0,8"/>
+            
+            <TextBlock Text="• 点击'打开授权界面'进行续期设置"
+                       FontSize="11"
+                       Margin="10,0,0,3"/>
+
+            <TextBlock Text="• 联系作者获取新的授权码：QQ 1922759464"
+                       FontSize="11"
+                       Margin="10,0,0,3"/>
+
+            <TextBlock Text="• 或点击'稍后提醒'继续使用（过期后将无法使用）"
+                       FontSize="11"
+                       Margin="10,0,0,0"/>
+        </StackPanel>
+        
+        <!-- 按钮区域 -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,15,0,0">
+            
+            <Button Name="OpenAuthButton" 
+                    Content="打开授权界面" 
+                    Width="100" 
+                    Height="28" 
+                    Margin="0,0,10,0"
+                    Click="OpenAuthButton_Click"
+                    IsDefault="True">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#FF8C00"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="BorderBrush" Value="#FF8C00"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="8,4"/>
+                        <Setter Property="FontSize" Value="11"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF7F00"/>
+                                <Setter Property="BorderBrush" Value="#FF7F00"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#FF6600"/>
+                                <Setter Property="BorderBrush" Value="#FF6600"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+            <Button Name="RemindLaterButton" 
+                    Content="稍后提醒" 
+                    Width="80" 
+                    Height="28" 
+                    Click="RemindLaterButton_Click"
+                    IsCancel="True">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#F3F2F1"/>
+                        <Setter Property="Foreground" Value="#323130"/>
+                        <Setter Property="BorderBrush" Value="#8A8886"/>
+                        <Setter Property="BorderThickness" Value="1"/>
+                        <Setter Property="Padding" Value="8,4"/>
+                        <Setter Property="FontSize" Value="11"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#EDEBE9"/>
+                                <Setter Property="BorderBrush" Value="#8A8886"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#E1DFDD"/>
+                                <Setter Property="BorderBrush" Value="#8A8886"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#74b9ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0984e3;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
+
+  <!-- 面要素轮廓 -->
+  <path d="M7 10 L14 7 L24 10 L25 22 L12 25 L7 18 Z" fill="#ffffff" opacity="0.9" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.8"/>
+
+  <!-- 起始点（高亮圆点） -->
+  <circle cx="14" cy="7" r="2.2" fill="#e17055"/>
+  <circle cx="14" cy="7" r="3.2" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.9"/>
+
+  <!-- “查看”之眼形状 -->
+  <g transform="translate(6,14)">
+    <path d="M2 4 C4 -1, 10 -1, 12 4 C10 9, 4 9, 2 4 Z" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+    <circle cx="7" cy="4" r="2.2" fill="#ffffff" stroke="#04336e" stroke-opacity="0.35" stroke-width="0.6"/>
+    <circle cx="7" cy="4" r="1.2" fill="#0984e3"/>
+  </g>
+</svg>

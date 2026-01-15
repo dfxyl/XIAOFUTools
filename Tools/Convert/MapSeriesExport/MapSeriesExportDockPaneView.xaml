@@ -1,0 +1,206 @@
+<UserControl x:Class="XIAOFUTools.Tools.Output.MapSeriesExport.MapSeriesExportDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:XIAOFUTools.Tools.Output.MapSeriesExport"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="320">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 布局选择 -->
+        <Grid Grid.Row="0" Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="24"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0" 
+                      ItemsSource="{Binding Layouts}"
+                      SelectedItem="{Binding SelectedLayout}"
+                      Style="{StaticResource ComboBoxStyle}" 
+                      Height="26" FontSize="12" Margin="0,0,4,0">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" FontSize="12"/>
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button Grid.Column="1" Content="⟲" Width="26" Height="26"
+                    Style="{StaticResource DefaultButtonStyle}"
+                    Command="{Binding RefreshLayoutsCommand}"
+                    ToolTip="刷新布局" FontSize="13" Margin="0"/>
+        </Grid>
+
+        <!-- 页面列表 -->
+        <Grid Grid.Row="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            
+            <!-- 状态和操作按钮 -->
+            <Grid Grid.Row="0" Margin="0,0,0,2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding MapSeriesStatus}" 
+                           Foreground="{Binding MapSeriesStatusColor}"
+                           FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="4,0,0,0">
+                    <Button Content="全" Command="{Binding SelectAllCommand}"
+                            Style="{StaticResource DefaultButtonStyle}" Width="28" Height="22" Margin="0,0,2,0" FontSize="12" ToolTip="全选"/>
+                    <Button Content="反" Command="{Binding InvertSelectionCommand}"
+                            Style="{StaticResource DefaultButtonStyle}" Width="28" Height="22" Margin="0,0,2,0" FontSize="12" ToolTip="反选"/>
+                    <Button Content="⟲" Width="28" Height="22"
+                            Style="{StaticResource DefaultButtonStyle}"
+                            Command="{Binding RefreshMapSeriesCommand}"
+                            ToolTip="刷新地图系列" FontSize="12" Margin="0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- 页面列表 - 双击整行切换页面 -->
+            <Border Grid.Row="1" BorderBrush="#CDCDCD" BorderThickness="1">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- 表头 -->
+                    <Grid Grid.Row="0" Background="#F0F0F0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="36"/>
+                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="选择" FontSize="12" FontWeight="SemiBold" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2"/>
+                        <TextBlock Grid.Column="1" Text="序号" FontSize="12" FontWeight="SemiBold" 
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2"/>
+                        <TextBlock Grid.Column="2" Text="名称" FontSize="12" FontWeight="SemiBold" 
+                                   VerticalAlignment="Center" Padding="4,2"/>
+                    </Grid>
+                    
+                    <!-- 列表 -->
+                    <ListBox Grid.Row="1" x:Name="PageListBox" ItemsSource="{Binding MapSeriesPages}" Background="White"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Padding" Value="0,1"/>
+                                <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="36"/>
+                                        <ColumnDefinition Width="45"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <CheckBox Grid.Column="0" IsChecked="{Binding IsSelected}" 
+                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding PageIndex}" FontSize="12" 
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Grid.Column="2" Text="{Binding PageName}" FontSize="12" 
+                                               VerticalAlignment="Center" Padding="4,0,0,0"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- 导出设置 -->
+        <Grid Grid.Row="2" Margin="0,4,0,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- 输出文件夹 -->
+            <Grid Grid.Row="0" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="50"/>
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding OutputFolder}"
+                         Style="{StaticResource TextBoxStyle}" Height="26" Margin="0,0,4,0" FontSize="12"
+                         VerticalContentAlignment="Center"/>
+                <Button Grid.Column="1" Content="浏览" Height="26" Width="50"
+                        Command="{Binding BrowseFolderCommand}"
+                        Style="{StaticResource DefaultButtonStyle}" FontSize="12" Margin="0" Padding="2,0"/>
+            </Grid>
+
+            <!-- 导出方式和页面范围 -->
+            <Grid Grid.Row="1" Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="85"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" 
+                          ItemsSource="{Binding ExportModes}"
+                          SelectedItem="{Binding SelectedExportMode}"
+                          Style="{StaticResource ComboBoxStyle}" Height="26" Margin="0,0,4,0" FontSize="12"/>
+                <TextBox Grid.Column="1" Text="{Binding PageRange}"
+                         Style="{StaticResource TextBoxStyle}" Height="26"
+                         Visibility="{Binding PageRangeVisibility}"
+                         ToolTip="如: 1,3,5-8" FontSize="12" VerticalContentAlignment="Center" Margin="0"/>
+            </Grid>
+
+            <!-- 格式和分辨率 -->
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" 
+                          ItemsSource="{Binding ExportFormats}"
+                          SelectedItem="{Binding SelectedFormat}"
+                          Style="{StaticResource ComboBoxStyle}" Height="26" Margin="0,0,4,0" FontSize="12"/>
+                <TextBox Grid.Column="1" Text="{Binding Resolution}"
+                         Style="{StaticResource TextBoxStyle}" Height="26" FontSize="12" ToolTip="DPI"
+                         VerticalContentAlignment="Center" Margin="0"/>
+            </Grid>
+        </Grid>
+
+        <!-- 底部按钮 -->
+        <Grid Grid.Row="3" Margin="0,6,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="?" Style="{StaticResource HelpButtonStyle}"
+                    Command="{Binding ShowHelpCommand}" ToolTip="帮助" Width="24" Height="24" FontSize="14"/>
+            <Button Grid.Column="1" Content="⚙" Style="{StaticResource HelpButtonStyle}"
+                    Command="{Binding OpenSettingsCommand}" ToolTip="设置" Width="24" Height="24" Margin="4,0,0,0" FontSize="14"/>
+            <Button Grid.Column="3" Content="停止" Command="{Binding StopCommand}"
+                    Style="{StaticResource CancelButtonStyle}" IsEnabled="{Binding IsRunning}"
+                    Width="60" Height="28" Margin="0,0,4,0" FontSize="13"/>
+            <Button Grid.Column="4" Content="导出" Command="{Binding ExportCommand}"
+                    Style="{StaticResource ExecuteButtonStyle}" Width="60" Height="28" Margin="0" FontSize="13"/>
+        </Grid>
+    </Grid>
+</UserControl>

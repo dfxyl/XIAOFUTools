@@ -1,0 +1,831 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using DuckDB.NET.Data;
+using ArcGIS.Desktop.Framework.Threading.Tasks;
+
+namespace XIAOFUTools.Tools.OvertureLoader.Services
+{
+    /// <summary>
+    /// Utility class for creating and managing Multifile Feature Connections (MFC)
+    /// for Overture Maps data
+    /// </summary>
+    public class MfcUtility
+    {
+        private const string GEOMETRY_COLUMN = "geometry"; // Added class constant
+
+        // C# Models for MFC JSON Structure
+        public class MfcConnectionProps
+        {
+            [JsonPropertyName("path")]
+            public string Path { get; set; }
+        }
+
+        public class MfcConnectionInfo // Renamed from MfcConnection to avoid conflict
+        {
+            [JsonPropertyName("type")]
+            public string Type { get; set; } = "filesystem";
+
+            [JsonPropertyName("properties")]
+            public MfcConnectionProps Properties { get; set; }
+        }
+
+        public class MfcDatasetProperties
+        {
+            [JsonPropertyName("fileformat")]
+            public string FileFormat { get; set; } = "parquet";
+        }
+
+        public class MfcField
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("type")]
+            public string Type { get; set; }
+
+            // Make Visible nullable. It will only be serialized if it has a value.
+            // We'll typically only set this to false for the main geometry field.
+            [JsonPropertyName("visible")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public bool? Visible { get; set; }
+
+            // Add SourceType, to be serialized only if it has a value.
+            [JsonPropertyName("sourceType")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string SourceType { get; set; }
+
+            // Constructor to simplify creation
+            public MfcField(string name, string type, bool? visible = null, string sourceType = null)
+            {
+                Name = name;
+                Type = type;
+                Visible = visible;
+                SourceType = sourceType;
+            }
+        }
+
+        public class MfcGeometryField
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("formats")]
+            public List<string> Formats { get; set; }
+        }
+
+        public class MfcSpatialReference
+        {
+            [JsonPropertyName("wkid")]
+            public int Wkid { get; set; }
+        }
+
+        public class MfcGeometry
+        {
+            [JsonPropertyName("geometryType")]
+            public string GeometryType { get; set; }
+
+            [JsonPropertyName("spatialReference")]
+            public MfcSpatialReference SpatialReference { get; set; }
+
+            [JsonPropertyName("fields")]
+            public List<MfcGeometryField> Fields { get; set; }
+        }
+
+        public class MfcDataset
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+
+            [JsonPropertyName("alias")]
+            public string Alias { get; set; }
+
+            [JsonPropertyName("properties")]
+            public MfcDatasetProperties Properties { get; set; } = new MfcDatasetProperties();
+
+            [JsonPropertyName("fields")]
+            public List<MfcField> FieldsList { get; set; } // Renamed to avoid conflict with MfcGeometry.Fields
+
+            [JsonPropertyName("geometry")]
+            public MfcGeometry Geometry { get; set; }
+        }
+
+        public class MfcRoot
+        {
+            [JsonPropertyName("connection")]
+            public MfcConnectionInfo Connection { get; set; } // Use renamed MfcConnectionInfo
+
+            [JsonPropertyName("datasets")]
+            public List<MfcDataset> Datasets { get; set; } = new List<MfcDataset>();
+        }
+
+        // Helper for sanitizing file names if needed (currently used by DataProcessor)
+        public static string SanitizeFileName(string fileName)
+        {
+            // Basic sanitization, can be expanded
+            return string.Join("_", fileName.Split(Path.GetInvalidFileNameChars()));
+        }
+
+        // Define field exclusion and renaming maps
+        private static readonly Dictionary<string, HashSet<string>> FieldExclusionMap = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "address", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "address_levels", "sources" } },
+            { "building", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources" } },
+            { "building_part", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources" } },
+            { "connector", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources" } },
+            { "division", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources", "local_type", "hierarchies", "capital_division_ids", "capital_of_divisions" } },
+            { "division_area", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources" } },
+            { "infrastructure", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources", "source_tags" } },
+            { "land", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources", "source_tags" } },
+            { "land_cover", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources" } },
+            { "land_use", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources", "source_tags" } },
+            { "place", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "addresses", "brand", "emails", "phones", "socials", "sources", "websites" } },
+            { "segment", new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+                "access_restrictions", "connectors", "destinations", "level_rules",
+                "prohibited_transitions", "road_flags", "road_surface", "routes", "sources",
+                "speed_limits", "subclass_rules", "width_rules"
+              }
+            },
+            { "water", new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "sources", "source_tags" } }
+        };
+
+        private static readonly Dictionary<string, Dictionary<string, string>> FieldRenameMap = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "division", new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "perspectives", "perspectives_mode" },
+                    { "norms", "norms_driving_side" }
+                }
+            }
+            // Add other dataset types and their renames as needed
+            // For "place" and "brand_wikidata" / "brand_names_primary":
+            // We are currently excluding the 'brand' struct. If flattened versions exist in Parquet, 
+            // they should be picked up automatically. If not, they can't be created by the MFC.
+        };
+
+        private static readonly Dictionary<string, List<string>> DatasetFieldOrder = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+        {
+            {
+                "address", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "country", "postcode", "street", "number", "unit", "postal_city",
+                    "version", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "building", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "level", "subtype", "class", "height", "names_primary",
+                    "has_parts", "is_underground", "num_floors", "num_floors_underground",
+                    "min_height", "min_floor", "facade_color", "facade_material",
+                    "roof_material", "roof_shape", "roof_direction", "roof_orientation",
+                    "roof_color", "roof_height", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "building_part", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "level", "height", "names_primary", "is_underground",
+                    "num_floors", "num_floors_underground", "min_height", "min_floor",
+                    "facade_color", "facade_material", "roof_material", "roof_shape",
+                    "roof_direction", "roof_orientation", "roof_color", "roof_height",
+                    "building_id", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "connector", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "division", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "country", "version", "cartography_prominence", "cartography_min_zoom",
+                    "cartography_max_zoom", "cartography_sort_key", "subtype", "class",
+                    "names_primary", "wikidata", "region", "perspectives_mode",
+                    "parent_division_id", "norms_driving_side", "population",
+                    "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "division_area", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "country", "version", "subtype", "class", "names_primary",
+                    "is_land", "is_territorial", "region", "division_id",
+                    "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "infrastructure", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "level", "subtype", "class", "height", "surface",
+                    "names_primary", "wikidata", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "land", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "level", "subtype", "class", "surface", "names_primary",
+                    "wikidata", "elevation", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "land_cover", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "cartography_prominence", "cartography_min_zoom",
+                    "cartography_max_zoom", "cartography_sort_key", "subtype",
+                    "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "land_use", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "level", "subtype", "class", "surface", "names_primary",
+                    "wikidata", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "place", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "names_primary", "categories_primary", "confidence",
+                    "brand_wikidata", "brand_names_primary", "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "segment", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "subtype", "class", "names_primary", "subclass",
+                    "filename", "theme", "type", "geometry"
+                }
+            },
+            {
+                "water", new List<string> {
+                    "id", "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax",
+                    "version", "level", "subtype", "class", "names_primary", "wikidata",
+                    "is_salt", "is_intermittent", "filename", "theme", "type", "geometry"
+                }
+            }
+        };
+
+        public static async Task<bool> GenerateMfcFileAsync(string sourceDataFolder, string outputMfcFilePath, string addinExecutingPath, Action<string> logAction = null)
+        {
+            logAction ??= Console.WriteLine; // Default logger
+
+            try
+            {
+                logAction($"开始生成 MFC。源: {sourceDataFolder}, 输出: {outputMfcFilePath}");
+
+                var mfcRoot = new MfcRoot
+                {
+                    Connection = new MfcConnectionInfo
+                    {
+                        Properties = new MfcConnectionProps
+                        {
+                            Path = sourceDataFolder.Replace('/', '\\')
+                        }
+                    }
+                };
+
+                var datasetDirectories = Directory.GetDirectories(sourceDataFolder);
+                if (!datasetDirectories.Any())
+                {
+                    logAction($"在 {sourceDataFolder} 中未找到数据集子文件夹。无法生成 MFC。");
+                    return false;
+                }
+
+                string extensionsPath = Path.Combine(addinExecutingPath, "Extensions");
+                string normalizedExtensionsPath = extensionsPath.Replace('\\', '/');
+
+                // Execute database operations in background thread using ArcGIS Pro's threading model
+                return await QueuedTask.Run(async () =>
+                {
+                    using (var duckDBConnection = new DuckDBConnection("DataSource=:memory:"))
+                    {
+                        await duckDBConnection.OpenAsync();
+                        using (var setupCmd = duckDBConnection.CreateCommand())
+                        {
+                        bool spatialLoaded = false;
+                        // 1. Prioritize Bundled Extension
+                        try
+                        {
+                            setupCmd.CommandText = $"SET extension_directory='{normalizedExtensionsPath}'; LOAD spatial;";
+                            await setupCmd.ExecuteNonQueryAsync();
+                            logAction("DuckDB 空间扩展已从本地插件目录成功加载。");
+                            spatialLoaded = true;
+                        }
+                        catch (Exception extEx)
+                        {
+                            logAction($"信息: 无法从本地目录 '{normalizedExtensionsPath}' 加载 DuckDB 空间扩展。错误: {extEx.Message}。将尝试其他方法。");
+                        }
+
+                        // 2. Attempt simple LOAD spatial (if Pro 3.5 makes it available globally to .NET DuckDB)
+                        if (!spatialLoaded)
+                        {
+                            try
+                            {
+                                setupCmd.CommandText = "LOAD spatial;";
+                                await setupCmd.ExecuteNonQueryAsync();
+                                logAction("DuckDB 空间扩展已使用简单的 'LOAD spatial' 成功加载。（可能来自 ArcGIS Pro 默认环境）");
+                                spatialLoaded = true;
+                            }
+                            catch (Exception loadEx)
+                            {
+                                logAction($"信息: 简单的 'LOAD spatial' 失败。错误: {loadEx.Message}。将尝试强制安装作为最后手段。");
+                            }
+                        }
+
+                        // 3. Try Force Install and Load (if others fail)
+                        if (!spatialLoaded)
+                        {
+                            try
+                            {
+                                setupCmd.CommandText = "FORCE INSTALL spatial; LOAD spatial;";
+                                await setupCmd.ExecuteNonQueryAsync();
+                                logAction("DuckDB 空间扩展已强制安装并成功加载。");
+
+                                // Diagnostic check for spatial functions
+                                using (var checkCmd = duckDBConnection.CreateCommand())
+                                {
+                                    checkCmd.CommandText = "SELECT function_name FROM duckdb_functions() WHERE function_name ILIKE 'st_srid' OR function_name ILIKE 'st_geometrytype' ORDER BY function_name;";
+                                    logAction($"Executing diagnostic query: {checkCmd.CommandText}");
+                                    using (var reader = await checkCmd.ExecuteReaderAsync())
+                                    {
+                                        bool foundSrid = false;
+                                        bool foundGeomType = false;
+                                        while (await reader.ReadAsync())
+                                        {
+                                            string funcName = reader.GetString(0);
+                                            logAction($"Found function via diagnostic query: {funcName}");
+                                            if (funcName.ToLowerInvariant() == "st_srid") foundSrid = true;
+                                            if (funcName.ToLowerInvariant() == "st_geometrytype") foundGeomType = true;
+                                        }
+                                        if (foundSrid && foundGeomType)
+                                        {
+                                            logAction("Diagnostic check: ST_SRID and ST_GeometryType ARE listed in duckdb_functions().");
+                                        }
+                                        else if (foundSrid)
+                                        {
+                                            logAction("Diagnostic check: ST_SRID IS listed, but ST_GeometryType IS NOT.");
+                                        }
+                                        else if (foundGeomType)
+                                        {
+                                            logAction("Diagnostic check: ST_GeometryType IS listed, but ST_SRID IS NOT.");
+                                        }
+                                        else
+                                        {
+                                            logAction("Diagnostic check: NEITHER ST_SRID NOR ST_GeometryType are listed in duckdb_functions(). This is the core issue.");
+                                        }
+                                    }
+                                }
+                                spatialLoaded = true;
+                            }
+                            catch (Exception forceEx)
+                            {
+                                logAction($"CRITICAL ERROR: All attempts to load DuckDB spatial extension failed (bundled, simple load, force install/load). Error during FORCE INSTALL/LOAD: {forceEx.Message}. MFC generation will likely fail or produce incorrect geometry types. Please ensure 'spatial.duckdb_extension' is in '{normalizedExtensionsPath}' or that network access allows DuckDB to download it.");
+                                spatialLoaded = false; // Explicitly false
+                            }
+                        }
+
+                        if (!spatialLoaded)
+                        {
+                            logAction("CRITICAL ERROR: Spatial extension could not be loaded after all attempts. Cannot proceed with MFC generation.");
+                            return false;
+                        }
+                    }
+
+                    foreach (var dirPath in datasetDirectories)
+                    {
+                        string datasetName = new DirectoryInfo(dirPath).Name;
+                        logAction($"Processing dataset: {datasetName}");
+
+                        string detectedGeometryType = null;
+                        string detectedWkid = "4326"; // Default SRID
+                        bool geometryColumnExistsInSchema = false;
+                        // Keep track of field names we've added to avoid duplicates if Parquet has both struct and flattened
+                        HashSet<string> addedFieldNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                        var parquetFiles = Directory.GetFiles(dirPath, "*.parquet")
+                                            .OrderBy(f => f) // Consistent order
+                                            .ToList();
+
+                        if (!parquetFiles.Any())
+                        {
+                            logAction($"No .parquet files found in {dirPath} for dataset {datasetName}. Skipping.");
+                            continue;
+                        }
+
+                        string firstParquetFileForSchema = parquetFiles.First().Replace('\\', '/');
+                        logAction($"Using sample file for general schema: {firstParquetFileForSchema}");
+
+                        var dataset = new MfcDataset
+                        {
+                            Name = datasetName,
+                            Alias = datasetName,
+                            FieldsList = new List<MfcField>()
+                        };
+
+                        var columns = new List<MfcField>();
+
+                        try
+                        {
+                            using (var schemaCmd = duckDBConnection.CreateCommand())
+                            {
+                                schemaCmd.CommandText = $"DESCRIBE SELECT * FROM read_parquet('{firstParquetFileForSchema.Replace("'", "''")}') LIMIT 0;";
+                                using (var reader = await schemaCmd.ExecuteReaderAsync())
+                                {
+                                    var tempFieldList = new List<Tuple<string, string>>();
+                                    while (await reader.ReadAsync())
+                                    {
+                                        string colName = reader.GetString(0);
+                                        string colType = reader.GetString(1).ToUpper();
+                                        tempFieldList.Add(Tuple.Create(colName, colType));
+                                    }
+
+                                    foreach (var fieldTuple in tempFieldList)
+                                    {
+                                        string columnName = fieldTuple.Item1;
+                                        string duckDbType = fieldTuple.Item2;
+
+                                        logAction($"MFC Generation: Dataset '{datasetName}' - Schema Column: '{columnName}', DuckDB Type: '{duckDbType}'");
+
+                                        if (columnName.StartsWith("__duckdb_internal")) continue;
+
+                                        // Apply Exclusions
+                                        if (FieldExclusionMap.TryGetValue(datasetName, out var exclusions) && exclusions.Contains(columnName))
+                                        {
+                                            logAction($"MFC Generation: Excluding field '{columnName}' for dataset '{datasetName}' as per exclusion rules.");
+                                            continue;
+                                        }
+
+                                        // Apply Renames
+                                        if (FieldRenameMap.TryGetValue(datasetName, out var renames) && renames.TryGetValue(columnName, out var newName))
+                                        {
+                                            logAction($"MFC Generation: Renaming field '{columnName}' to '{newName}' for dataset '{datasetName}'.");
+                                            columnName = newName;
+                                        }
+
+                                        var knownBooleanFields = new HashSet<string> {
+                                            "has_parts", "is_underground", "is_land", "is_territorial", "is_salt", "is_intermittent"
+                                        };
+                                        string mfcType;
+                                        string sourceType = null;
+
+                                        if (columnName.ToLower() == GEOMETRY_COLUMN.ToLower())
+                                        {
+                                            geometryColumnExistsInSchema = true;
+                                            // Add geometry to main fields list without "visible: false"
+                                            if (addedFieldNames.Add(columnName))
+                                            {
+                                                columns.Add(new MfcField(columnName, "Binary"));
+                                            }
+                                            logAction($"MFC Generation: Found '{GEOMETRY_COLUMN}' field for '{datasetName}'. Will be added to main field list.");
+                                            continue;
+                                        }
+
+                                        // Handle specific bbox_xmin, etc. fields if they exist directly
+                                        if (columnName.ToLower() == "bbox_xmin" || columnName.ToLower() == "bbox_xmax" ||
+                                            columnName.ToLower() == "bbox_ymin" || columnName.ToLower() == "bbox_ymax")
+                                        {
+                                            if (addedFieldNames.Add(columnName))
+                                            {
+                                                columns.Add(new MfcField(columnName, "Float32"));
+                                            }
+                                            continue;
+                                        }
+
+                                        // If we encounter a 'bbox' struct, we IGNORE it for the main field list.
+                                        // The individual bbox_xmin, etc., fields will be added ensured later.
+                                        if (columnName.ToLower() == "bbox")
+                                        {
+                                            logAction($"MFC Generation: Encountered 'bbox' struct for dataset '{datasetName}'. It will be skipped in main field list. Flattened versions will be ensured.");
+                                            continue;
+                                        }
+
+                                        if ((columnName.ToLower() == "names" || columnName.ToLower() == "categories") && duckDbType.StartsWith("STRUCT"))
+                                        {
+                                            string primaryFieldName = $"{columnName}_primary";
+                                            if (addedFieldNames.Add(primaryFieldName))
+                                            {
+                                                columns.Add(new MfcField(primaryFieldName, "String"));
+                                            }
+                                            continue;
+                                        }
+
+                                        if (columnName.ToLower() == "cartography" && duckDbType.StartsWith("STRUCT"))
+                                        {
+                                            var cartoSubFields = new Dictionary<string, string>
+                                            {
+                                                { "prominence", "Int32" }, { "min_zoom", "Int32" },
+                                                { "max_zoom", "Int32" }, { "sort_key", "Int32" }
+                                            };
+                                            foreach (var subField in cartoSubFields)
+                                            {
+                                                string fullSubFieldName = $"cartography_{subField.Key}";
+                                                if (addedFieldNames.Add(fullSubFieldName))
+                                                {
+                                                    columns.Add(new MfcField(fullSubFieldName, subField.Value));
+                                                }
+                                            }
+                                            continue;
+                                        }
+
+                                        mfcType = ConvertDuckDbTypeToMfcType(duckDbType, columnName, logAction);
+                                        if (knownBooleanFields.Contains(columnName.ToLower()))
+                                        {
+                                            mfcType = "String";
+                                            sourceType = "Boolean";
+                                        }
+
+                                        if (addedFieldNames.Add(columnName))
+                                        {
+                                            columns.Add(new MfcField(columnName, mfcType, null, sourceType));
+                                        }
+                                    }
+                                }
+
+                                // Ensure the four specific bbox fields are present
+                                string[] requiredBboxFields = { "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax" };
+                                foreach (var bboxField in requiredBboxFields)
+                                {
+                                    if (addedFieldNames.Add(bboxField)) // If not already added (e.g., directly from Parquet schema)
+                                    {
+                                        columns.Add(new MfcField(bboxField, "Float32"));
+                                        logAction($"MFC Generation: Ensured '{bboxField}' (Float32) is added to dataset '{datasetName}'.");
+                                    }
+                                }
+
+                                // For 'place' dataset, ensure brand_wikidata and brand_names_primary exist
+                                if (datasetName.Equals("place", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    if (addedFieldNames.Add("brand_wikidata"))
+                                    {
+                                        columns.Add(new MfcField("brand_wikidata", "String"));
+                                        logAction($"MFC Generation: Ensured 'brand_wikidata' (String) is added to dataset 'place'.");
+                                    }
+                                    if (addedFieldNames.Add("brand_names_primary"))
+                                    {
+                                        columns.Add(new MfcField("brand_names_primary", "String"));
+                                        logAction($"MFC Generation: Ensured 'brand_names_primary' (String) is added to dataset 'place'.");
+                                    }
+                                }
+
+                                // Reorder fields based on DatasetFieldOrder or default if not specified
+                                List<MfcField> finalOrderedFieldsList;
+                                if (DatasetFieldOrder.TryGetValue(datasetName, out var specificOrder))
+                                {
+                                    finalOrderedFieldsList = new List<MfcField>();
+                                    var availableFields = columns.ToDictionary(f => f.Name, f => f, StringComparer.OrdinalIgnoreCase);
+
+                                    // Add fields according to specificOrder
+                                    foreach (var fieldNameInOrder in specificOrder)
+                                    {
+                                        if (availableFields.TryGetValue(fieldNameInOrder, out var field))
+                                        {
+                                            finalOrderedFieldsList.Add(field);
+                                            availableFields.Remove(fieldNameInOrder);
+                                        }
+                                        else
+                                        {
+                                            logAction($"Warning: Field '{fieldNameInOrder}' specified in order for dataset '{datasetName}' was not found in available fields. It might be excluded, not present in Parquet, or not yet handled (e.g. complex structs).");
+                                        }
+                                    }
+
+                                    // Add any remaining fields from 'columns' that were not in specificOrder.
+                                    // These are fields present in the Parquet but not in the target MFC's defined order.
+                                    // They will be added alphabetically, with 'geometry' (if remaining and not in specificOrder) last among them.
+                                    var stillAvailableFields = availableFields.Values.ToList();
+                                    MfcField geomFieldFromAvailable = stillAvailableFields.FirstOrDefault(f => f.Name.Equals(GEOMETRY_COLUMN, StringComparison.OrdinalIgnoreCase));
+
+                                    foreach (var field in stillAvailableFields
+                                        .Where(f => !f.Name.Equals(GEOMETRY_COLUMN, StringComparison.OrdinalIgnoreCase))
+                                        .OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase))
+                                    {
+                                        finalOrderedFieldsList.Add(field);
+                                        logAction($"MFC Generation: Adding field '{field.Name}' to dataset '{datasetName}' (was in Parquet but not in specific order).");
+                                    }
+
+                                    // Add geometry field if it was in availableFields and not already added by specificOrder
+                                    if (geomFieldFromAvailable != null && !specificOrder.Contains(GEOMETRY_COLUMN, StringComparer.OrdinalIgnoreCase))
+                                    {
+                                        finalOrderedFieldsList.Add(geomFieldFromAvailable);
+                                        logAction($"MFC Generation: Adding field '{GEOMETRY_COLUMN}' to dataset '{datasetName}' (was in Parquet but not in specific order, placed last among extras).");
+                                    }
+                                }
+                                else
+                                {
+                                    // Reorder fields: id, bbox_*, other fields alphabetically, geometry
+                                    var defaultOrderedFields = new List<MfcField>();
+                                    MfcField idField = columns.FirstOrDefault(f => f.Name.Equals("id", StringComparison.OrdinalIgnoreCase));
+                                    if (idField != null)
+                                    {
+                                        defaultOrderedFields.Add(idField);
+                                        columns.Remove(idField); // Remove to avoid re-adding
+                                    }
+
+                                    var bboxMfcFieldsSource = columns.Where(f => f.Name.StartsWith("bbox_", StringComparison.OrdinalIgnoreCase)).ToList();
+                                    var bboxOrderedFields = new List<MfcField>();
+                                    foreach (string bboxName in new[] { "bbox_xmin", "bbox_xmax", "bbox_ymin", "bbox_ymax" })
+                                    {
+                                        MfcField field = bboxMfcFieldsSource.FirstOrDefault(f => f.Name.Equals(bboxName, StringComparison.OrdinalIgnoreCase));
+                                        if (field != null)
+                                        {
+                                            bboxOrderedFields.Add(field);
+                                            columns.Remove(field); // Remove from original list to avoid re-adding
+                                        }
+                                    }
+                                    defaultOrderedFields.AddRange(bboxOrderedFields);
+
+                                    MfcField geomField = columns.FirstOrDefault(f => f.Name.Equals(GEOMETRY_COLUMN, StringComparison.OrdinalIgnoreCase));
+                                    if (geomField != null) columns.Remove(geomField); // Remove to add last
+
+                                    var otherFields = columns.OrderBy(f => f.Name, StringComparer.OrdinalIgnoreCase).ToList(); // Alphabetical for others
+                                    defaultOrderedFields.AddRange(otherFields);
+
+                                    if (geomField != null) defaultOrderedFields.Add(geomField); // Add geometry last
+
+                                    finalOrderedFieldsList = defaultOrderedFields; // Assign the result of default ordering
+                                }
+
+                                dataset.FieldsList = finalOrderedFieldsList;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logAction($"Error describing schema for {firstParquetFileForSchema} in dataset {datasetName}: {ex.Message}");
+                            continue;
+                        }
+
+                        if (geometryColumnExistsInSchema)
+                        {
+                            logAction($"Starting geometry type/SRID detection for dataset '{datasetName}'...");
+                            foreach (var parquetFile in parquetFiles)
+                            {
+                                string currentFileForGeomCheck = parquetFile.Replace('\\', '/');
+                                logAction($"  Checking file: {currentFileForGeomCheck}");
+                                try
+                                {
+                                    using (var geomCmd = duckDBConnection.CreateCommand())
+                                    {
+                                        // Query only for ST_GeometryType as ST_SRID is problematic
+                                        string query = $"SELECT ST_GeometryType({GEOMETRY_COLUMN}) FROM read_parquet('{currentFileForGeomCheck.Replace("'", "''")}') WHERE {GEOMETRY_COLUMN} IS NOT NULL LIMIT 1;";
+                                        geomCmd.CommandText = query;
+                                        logAction($"    Executing query: {query}");
+
+                                        using (var geomReader = await geomCmd.ExecuteReaderAsync())
+                                        {
+                                            if (await geomReader.ReadAsync())
+                                            {
+                                                logAction("    Successfully read a row for geometry info.");
+                                                object rawGeomTypeObj = geomReader.GetValue(0);
+                                                // SRID will be assumed as 4326 (default)
+
+                                                logAction($"    Raw ST_GeometryType: {(rawGeomTypeObj == DBNull.Value ? "DBNull" : rawGeomTypeObj?.ToString())}");
+                                                // No longer trying to read SRID from query
+                                                // logAction($"    Raw ST_SRID: {(rawSridObj == DBNull.Value ? "DBNull" : rawSridObj?.ToString())}"); 
+
+                                                if (rawGeomTypeObj != DBNull.Value && rawGeomTypeObj != null)
+                                                {
+                                                    detectedGeometryType = rawGeomTypeObj.ToString();
+                                                    // detectedWkid remains the default "4326"
+                                                    logAction($"MFC Generation: Detected geometry type '{detectedGeometryType}' for dataset '{datasetName}' using file '{currentFileForGeomCheck}'. SRID assumed as {detectedWkid}.");
+                                                    break;
+                                                }
+                                                else
+                                                {
+                                                    logAction("    ST_GeometryType was DBNull or null. Trying next file.");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                logAction("    No rows returned for geometry info from this file. Trying next file.");
+                                            }
+                                        }
+                                    }
+                                }
+                                catch (Exception geomEx)
+                                {
+                                    logAction($"    Warning: Error executing geometry detection query on '{currentFileForGeomCheck}' for dataset '{datasetName}': {geomEx.Message}. Trying next file if available.");
+                                }
+                                if (!string.IsNullOrEmpty(detectedGeometryType)) break;
+                            }
+
+                            if (string.IsNullOrEmpty(detectedGeometryType))
+                            {
+                                logAction($"Warning: Could not detect a specific geometry type for dataset '{datasetName}' after checking all files. Defaulting geometry definition.");
+                            }
+                        }
+
+                        // Populate dataset.Geometry section
+                        if (geometryColumnExistsInSchema && !string.IsNullOrEmpty(detectedGeometryType))
+                        {
+                            dataset.Geometry = new MfcGeometry
+                            {
+                                GeometryType = MapDuckDbGeomTypeToEsriGeomType(detectedGeometryType.ToUpperInvariant(), logAction),
+                                SpatialReference = new MfcSpatialReference { Wkid = int.Parse(detectedWkid) },
+                                Fields = new List<MfcGeometryField> { new MfcGeometryField { Name = GEOMETRY_COLUMN, Formats = new List<string> { "WKB" } } }
+                            };
+                            logAction($"MFC Generation: Added geometry definition for '{datasetName}' with type '{dataset.Geometry.GeometryType}' and SRID '{detectedWkid}'.");
+                        }
+                        else if (geometryColumnExistsInSchema) // Geometry column was in schema, but type detection failed
+                        {
+                            logAction($"Warning: Dataset '{datasetName}' has a '{GEOMETRY_COLUMN}' field, but its type could not be robustly determined. Using default 'esriGeometryAny' and SRID '{detectedWkid}'.");
+                            dataset.Geometry = new MfcGeometry
+                            {
+                                GeometryType = "esriGeometryAny",
+                                SpatialReference = new MfcSpatialReference { Wkid = int.Parse(detectedWkid) },
+                                Fields = new List<MfcGeometryField> { new MfcGeometryField { Name = GEOMETRY_COLUMN, Formats = new List<string> { "WKB" } } }
+                            };
+                        }
+                        // If no geometry column in schema, dataset.Geometry remains null, and will be omitted by JsonSerializerOptions if DefaultIgnoreCondition is WhenWritingNull.
+
+                            mfcRoot.Datasets.Add(dataset);
+                        }
+                    }
+
+                    var options = new JsonSerializerOptions
+                    {
+                        WriteIndented = true,
+                        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull // Or WhenWritingDefault if prefer
+                    };
+                    string jsonString = JsonSerializer.Serialize(mfcRoot, options);
+
+                    await File.WriteAllTextAsync(outputMfcFilePath, jsonString);
+                    logAction($"MFC 文件已成功生成于 {outputMfcFilePath}");
+                    return true;
+                });
+            }
+            catch (Exception ex)
+            {
+                logAction($"生成 MFC 文件时出错: {ex.Message}\n{ex.StackTrace}");
+                return false;
+            }
+        }
+
+        private static string ConvertDuckDbTypeToMfcType(string duckDbType, string columnNameForContext, Action<string> logAction)
+        {
+            if (duckDbType.StartsWith("DECIMAL")) return "Float64";
+            if (duckDbType.StartsWith("VARCHAR") || duckDbType.Contains("CHAR") || duckDbType == "TEXT") return "String";
+
+            switch (duckDbType)
+            {
+                case "BOOLEAN":
+                    logAction($"Converting DuckDB BOOLEAN type for column '{columnNameForContext}' to String. Consider adding to knownBooleanFields for SourceType.");
+                    return "String";
+                case "TINYINT": return "Int8";
+                case "SMALLINT": return "Int16";
+                case "INTEGER": return "Int32";
+                case "BIGINT": return "Int64";
+                case "HUGEINT": return "String";
+                case "FLOAT4":
+                case "REAL":
+                case "FLOAT":
+                    return "Float32";
+                case "FLOAT8":
+                case "DOUBLE PRECISION":
+                case "DOUBLE":
+                    return "Float64";
+                case "DATE": return "Date";
+                case "TIMESTAMP": return "String";
+                case "TIMESTAMPTZ": return "String";
+                case "TIME": return "String";
+                case "INTERVAL": return "String";
+                case "BLOB": return "Binary";
+                case "BYTEA": return "Binary";
+                default:
+                    if (duckDbType.StartsWith("STRUCT") || duckDbType.StartsWith("LIST") || duckDbType.StartsWith("ARRAY") || duckDbType.StartsWith("MAP"))
+                    {
+                        logAction($"Warning: Converting complex DuckDB type '{duckDbType}' for column '{columnNameForContext}' to String. Data may be stringified.");
+                        return "String";
+                    }
+                    logAction($"Warning: Unknown DuckDB type for column '{columnNameForContext}': '{duckDbType}'. Defaulting to String.");
+                    return "String";
+            }
+        }
+
+        private static string MapDuckDbGeomTypeToEsriGeomType(string duckDbGeomType, Action<string> logAction)
+        {
+            switch (duckDbGeomType)
+            {
+                case "POINT":
+                case "MULTIPOINT":
+                    return "esriGeometryPoint";
+                case "LINESTRING":
+                case "MULTILINESTRING":
+                    return "esriGeometryPolyline";
+                case "POLYGON":
+                case "MULTIPOLYGON":
+                    return "esriGeometryPolygon";
+                default:
+                    logAction($"Unmapped DuckDB geometry type: {duckDbGeomType}. Defaulting to esriGeometryPoint.");
+                    return "esriGeometryPoint";
+            }
+        }
+
+        // Removed the old CreateMfcAsync stub and RefreshMfcAsync method
+    }
+}

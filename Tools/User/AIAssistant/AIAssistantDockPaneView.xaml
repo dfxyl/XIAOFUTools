@@ -1,0 +1,47 @@
+<UserControl x:Class="XIAOFUTools.Tools.User.AIAssistant.AIAssistantDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"   
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="400">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <extensions:DesignOnlyResourceDictionary Source="pack://application:,,,/ArcGIS.Desktop.Framework;component\Themes\Default.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <!-- WebView2控件用于显示HTML界面 -->
+        <wv2:WebView2 x:Name="webView" 
+                      Grid.Row="0"
+                      Source=""
+                      DefaultBackgroundColor="White"/>
+        
+        <!-- 加载指示器 -->
+        <Border x:Name="loadingIndicator" 
+                Grid.Row="0"
+                Background="White"
+                Visibility="Visible">
+            <StackPanel HorizontalAlignment="Center" 
+                       VerticalAlignment="Center">
+                <TextBlock Text="🤖" 
+                          FontSize="48" 
+                          HorizontalAlignment="Center"
+                          Margin="0,0,0,20"/>
+                <TextBlock Text="AI助手加载中..." 
+                          FontSize="16" 
+                          HorizontalAlignment="Center"
+                          Foreground="#667eea"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
