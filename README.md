@@ -96,8 +96,7 @@ dotnet build -c Release
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | 用户使用手册 |
 | [docs/FAQ.md](docs/FAQ.md) | 常见问题解答 |
 | [AGENTS.md](AGENTS.md) | 开发规范与架构指南 |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南 |
-| [RELEASE.md](RELEASE.md) | 版本发布指南 |
+| [RELEASE.md](RELEASE.md) | 版本发布指南（Gitee） |
 | [CHANGELOG.md](CHANGELOG.md) | 版本更新日志 |
 
 ## 项目结构
@@ -128,7 +127,7 @@ XIAOFUTools/
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。
+本项目为私有项目，保留所有权利。
 
 ---
 
