@@ -1,44 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <!-- 现代背景渐变 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    <linearGradient id="dbGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F6"/>
     </linearGradient>
-
-    <!-- 阴影滤镜 -->
-    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.15"/>
-    </filter>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 左侧数据库 (源) -->
-  <ellipse cx="10" cy="9" rx="5" ry="2" fill="#ffffff" opacity="0.95" filter="url(#softShadow)"/>
-  <path d="M5 9 L5 19 C5 20.1 7.2 21 10 21 C12.8 21 15 20.1 15 19 L15 9" fill="#ffffff" opacity="0.9"/>
-  <ellipse cx="10" cy="19" rx="5" ry="2" fill="#ffffff" opacity="0.85"/>
-  <ellipse cx="10" cy="13" rx="5" ry="1.5" fill="none" stroke="#4facfe" stroke-width="0.6" opacity="0.6"/>
-  <ellipse cx="10" cy="16" rx="5" ry="1.5" fill="none" stroke="#4facfe" stroke-width="0.6" opacity="0.6"/>
-
-  <!-- 右侧数据库 (镜像) -->
-  <ellipse cx="22" cy="9" rx="5" ry="2" fill="#ffffff" opacity="0.95" filter="url(#softShadow)"/>
-  <path d="M17 9 L17 19 C17 20.1 19.2 21 22 21 C24.8 21 27 20.1 27 19 L27 9" fill="#ffffff" opacity="0.9"/>
-  <ellipse cx="22" cy="19" rx="5" ry="2" fill="#ffffff" opacity="0.85"/>
-  <ellipse cx="22" cy="13" rx="5" ry="1.5" fill="none" stroke="#4facfe" stroke-width="0.6" opacity="0.6"/>
-  <ellipse cx="22" cy="16" rx="5" ry="1.5" fill="none" stroke="#4facfe" stroke-width="0.6" opacity="0.6"/>
-
-  <!-- 镜像箭头 -->
-  <path d="M12 24 L20 24" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" opacity="0.9"/>
-  <path d="M18 22 L20 24 L18 26" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
-  <path d="M14 22 L12 24 L14 26" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
-
-  <!-- 镜像符号 -->
-  <line x1="16" y1="6" x2="16" y2="21" stroke="#00f2fe" stroke-width="1" stroke-dasharray="2,1" opacity="0.7"/>
-
-  <!-- 装饰元素 -->
-  <circle cx="5" cy="5" r="1" fill="#ffffff" opacity="0.3"/>
-  <circle cx="27" cy="27" r="1" fill="#ffffff" opacity="0.3"/>
+  <ellipse cx="10" cy="8" rx="7" ry="3" fill="#FFFFFF" stroke="#2F3A45" stroke-width="1"/>
+  <path d="M3 8v10c0 1.7 3.2 3 7 3s7-1.3 7-3V8" fill="url(#dbGrad)" stroke="#2F3A45" stroke-width="1"/>
+  <path d="M3 13c0 1.7 3.2 3 7 3s7-1.3 7-3" fill="none" stroke="#1F6FEB" stroke-width="0.5" opacity="0.4"/>
+  <path d="M12 24h8" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14 22l-2 2 2 2M18 22l2 2-2 2" fill="none" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <ellipse cx="22" cy="8" rx="7" ry="3" fill="#FFFFFF" stroke="#2F3A45" stroke-width="1" opacity="0.6"/>
+  <path d="M15 8v10c0 1.7 3.2 3 7 3s7-1.3 7-3V8" fill="url(#dbGrad)" stroke="#2F3A45" stroke-width="1" opacity="0.6"/>
+  <path d="M16 6v14" stroke="#1F6FEB" stroke-width="1" stroke-dasharray="2,2"/>
 </svg>

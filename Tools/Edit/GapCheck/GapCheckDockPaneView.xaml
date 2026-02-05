@@ -170,8 +170,10 @@
         <Style x:Key="TextBoxStyle" TargetType="TextBox">
             <Setter Property="BorderBrush" Value="#CCCCCC"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Padding" Value="4,2"/>
+            <Setter Property="Padding" Value="4,0"/>
             <Setter Property="Background" Value="White"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
         
         <!-- 进度条样式 -->
@@ -211,7 +213,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="0" Height="22"
+            <ComboBox Grid.Column="0" Height="24"
                     ItemsSource="{Binding PolygonLayers}"
                     SelectedItem="{Binding SelectedPolygonLayer}"
                     DisplayMemberPath="Name"
@@ -233,7 +235,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding Tolerance}" VerticalAlignment="Center" Height="22"
+            <TextBox Grid.Column="0" Text="{Binding Tolerance}" VerticalAlignment="Center" Height="24"
                     Style="{StaticResource TextBoxStyle}"/>
             <TextBlock Grid.Column="1" Text="m" VerticalAlignment="Center" Margin="5,0,0,0"/>
         </Grid>
@@ -245,7 +247,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding OutputPath}" VerticalAlignment="Center" Height="22"
+            <TextBox Grid.Column="0" Text="{Binding OutputPath}" VerticalAlignment="Center" Height="24"
                     Style="{StaticResource TextBoxStyle}"/>
             <Button Grid.Column="1" Content="浏览..." Height="22" Margin="5,0,0,0" Command="{Binding BrowseOutputCommand}"
                     Style="{StaticResource BasicButtonStyle}" VerticalAlignment="Center"/>

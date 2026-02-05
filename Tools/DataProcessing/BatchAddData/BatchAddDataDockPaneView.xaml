@@ -43,7 +43,7 @@
 
             <TextBlock Grid.Column="0" Text="路径:" VerticalAlignment="Center" Margin="0,0,5,0"/>
             <TextBox Grid.Column="1" Text="{Binding SearchPath}"
-                     Style="{StaticResource TextBoxStyle}" Height="22"
+                     Style="{StaticResource TextBoxStyle}" Height="24"
                      ToolTip="输入文件夹路径，支持驱动器根目录（如 E:\）"/>
             <Button Grid.Column="2" Content="浏览" Height="22" Margin="3,0,0,0" Width="45"
                     Command="{Binding BrowseFolderCommand}"
@@ -82,7 +82,7 @@
                       Style="{StaticResource CheckBoxStyle}" Margin="0,0,10,0"/>
 
             <TextBox Grid.Column="1" Text="{Binding Keyword}"
-                     Style="{StaticResource TextBoxStyle}" Height="22"
+                     Style="{StaticResource TextBoxStyle}" Height="24"
                      ToolTip="关键字过滤，空白表示全部"/>
 
             <Button Grid.Column="2" Content="搜索" Command="{Binding SearchCommand}"
@@ -155,7 +155,7 @@
 
             <TextBlock Grid.Column="0" Text="图层组:" VerticalAlignment="Center" Margin="0,0,5,0"/>
             <TextBox Grid.Column="1" Text="{Binding GroupName}"
-                     Style="{StaticResource TextBoxStyle}" Height="22"
+                     Style="{StaticResource TextBoxStyle}" Height="24"
                      ToolTip="输入名称将创建图层组，空白则直接添加到地图"/>
             <Button Grid.Column="2" Content="添加数据" Command="{Binding AddDataCommand}"
                     Style="{StaticResource ExecuteButtonStyle}" Height="22" Width="60" Margin="3,0,0,0"

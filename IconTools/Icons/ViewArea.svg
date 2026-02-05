@@ -1,32 +1,18 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <!-- 统一蓝色渐变 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:1" />
+    <linearGradient id="chartGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F6"/>
+    </linearGradient>
+    <linearGradient id="areaGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F6"/>
     </linearGradient>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 区域多边形 -->
-  <path d="M4 8 L27 6 L29 16 L23 25 L8 27 L3 18 Z" fill="#ffffff" opacity="0.9"/>
-
-  <!-- 图表区域 -->
-  <rect x="8" y="10" width="16" height="12" rx="2" fill="#ffffff" opacity="0.9"/>
-
-  <!-- 柱状图 -->
-  <rect x="10" y="16" width="3" height="4" rx="1" fill="#fdcb6e"/>
-  <rect x="14" y="14" width="3" height="6" rx="1" fill="#e17055"/>
-  <rect x="18" y="17" width="3" height="3" rx="1" fill="#74b9ff"/>
-
-  <!-- 眼睛图标 -->
-  <ellipse cx="16" cy="4" rx="4" ry="2" fill="#ffffff" opacity="0.9"/>
-  <circle cx="16" cy="4" r="1.5" fill="#6c5ce7"/>
-  <circle cx="16" cy="4" r="0.5" fill="#ffffff"/>
-
-  <!-- 面积数值 -->
-  <text x="16" y="26" fill="#ffffff" font-family="SF Pro, Arial, sans-serif" font-size="6" font-weight="bold" text-anchor="middle">1234m²</text>
+  <path d="M4 8l20-2 2 10-4 10-16 2-4-10z" fill="url(#areaGrad)" stroke="#2F3A45" stroke-width="1"/>
+  <rect x="9" y="9" width="14" height="14" rx="1" fill="#FFFFFF" stroke="#1F6FEB" stroke-width="1.2"/>
+  <path d="M11 20h2v-4h-2zm3 0h2v-7h-2zm3 0h2v-5h-2z" fill="#1F6FEB"/>
+  <path d="M16 4c-4 0-7 3-7 3s3 3 7 3 7-3 7-3-3-3-7-3z" fill="none" stroke="#1F6FEB" stroke-width="1.5"/>
+  <circle cx="16" cy="7" r="2" fill="#1F6FEB" stroke="#FFFFFF" stroke-width="1"/>
+  <path d="M10 21h12" stroke="#2F3A45" stroke-width="0.5"/>
 </svg>

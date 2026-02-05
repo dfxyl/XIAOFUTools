@@ -82,7 +82,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding CheckDistance}" VerticalAlignment="Center" Height="22"
+            <TextBox Grid.Column="0" Text="{Binding CheckDistance}" VerticalAlignment="Center" Height="24"
                     Style="{StaticResource TextBoxStyle}"/>
             <TextBlock Grid.Column="1" Text="m" VerticalAlignment="Center" Margin="5,0,0,0"/>
         </Grid>
@@ -94,7 +94,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding OutputPath}" VerticalAlignment="Center" Height="22"
+            <TextBox Grid.Column="0" Text="{Binding OutputPath}" VerticalAlignment="Center" Height="24"
                     Style="{StaticResource TextBoxStyle}"/>
             <Button Grid.Column="1" Content="浏览..." Height="22" Margin="5,0,0,0" Command="{Binding BrowseOutputCommand}"
                     Style="{StaticResource DefaultButtonStyle}" VerticalAlignment="Center"/>

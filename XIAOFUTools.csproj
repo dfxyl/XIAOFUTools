@@ -21,6 +21,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Config.daml" />
+    <None Remove="Images\AddInDesktop_16.png" />
+    <None Remove="Images\AddInDesktop_32.png" />
 
     <None Remove="Images\AreaCalculator_16.png" />
     <None Remove="Images\AreaCalculator_32.png" />
@@ -40,6 +42,8 @@
     <None Remove="Images\BoundaryPointLineGenerator_32.png" />
     <None Remove="Images\ChineseNumbering_16.png" />
     <None Remove="Images\ChineseNumbering_32.png" />
+    <None Remove="Images\DevZoneCheck_16.png" />
+    <None Remove="Images\DevZoneCheck_32.png" />
     <None Remove="Images\DownloadHistoricalImagery_16.png" />
     <None Remove="Images\DownloadHistoricalImagery_32.png" />
     <None Remove="Images\ExportCAD_16.png" />
@@ -49,6 +53,8 @@
     <None Remove="Images\FieldCopyTool_16.png" />
     <None Remove="Images\FieldCopyTool_32.png" />
     <None Remove="Images\Globe16.png" />
+    <None Remove="Images\Globe_16.png" />
+    <None Remove="Images\Globe_32.png" />
     <None Remove="Images\GroupNumbering_16.png" />
     <None Remove="Images\GroupNumbering_32.png" />
     <None Remove="Images\HistoricalImagery_16.png" />
@@ -57,6 +63,8 @@
     <None Remove="Images\IntersectSummary_32.png" />
     <None Remove="Images\LayoutCoordinateTable_16.png" />
     <None Remove="Images\LayoutCoordinateTable_32.png" />
+    <None Remove="Images\LayoutTextReplace_16.png" />
+    <None Remove="Images\LayoutTextReplace_32.png" />
     <None Remove="Images\MapBoundaryPointLineGenerator_16.png" />
     <None Remove="Images\MapBoundaryPointLineGenerator_32.png" />
     <None Remove="Images\MapSeriesExport_16.png" />
@@ -65,6 +73,8 @@
     <None Remove="Images\MatchSymbology_32.png" />
     <None Remove="Images\MirrorDatabase_16.png" />
     <None Remove="Images\MirrorDatabase_32.png" />
+    <None Remove="Images\MultiOverlaySummary_16.png" />
+    <None Remove="Images\MultiOverlaySummary_32.png" />
     <None Remove="Images\NodeDistanceCheck_16.png" />
     <None Remove="Images\NodeDistanceCheck_32.png" />
     <None Remove="Images\PasteSymbology_16.png" />
@@ -75,8 +85,12 @@
     <None Remove="Images\PolygonToDxfWithFill_32.png" />
     <None Remove="Images\PresetLayers_16.png" />
     <None Remove="Images\PresetLayers_32.png" />
+    <None Remove="Images\ProtocolLineExtract_16.png" />
+    <None Remove="Images\ProtocolLineExtract_32.png" />
     <None Remove="Images\RangeClipTool_16.png" />
     <None Remove="Images\RangeClipTool_32.png" />
+    <None Remove="Images\RotateGeometry_16.png" />
+    <None Remove="Images\RotateGeometry_32.png" />
     <None Remove="Images\SpecialCoordinateTransform_16.png" />
     <None Remove="Images\SpecialCoordinateTransform_32.png" />
     <None Remove="Images\Toolbox.png" />
@@ -108,6 +122,8 @@
     <None Remove="Images\ImagesToPdf_32.png" />
     <None Remove="Images\ExcelToPdf_16.png" />
     <None Remove="Images\ExcelToPdf_32.png" />
+    <None Remove="Images\ExportToKml_16.png" />
+    <None Remove="Images\ExportToKml_32.png" />
     <None Remove="Images\WordToPdf_16.png" />
     <None Remove="Images\WordToPdf_32.png" />
     <None Remove="Images\AIAssistant_16.png" />
@@ -119,6 +135,8 @@
     <Content Include="Config.daml" />
     <Content Include="Images\AddInDesktop16.png" />
     <Content Include="Images\AddInDesktop32.png" />
+    <Content Include="Images\AddInDesktop_16.png" />
+    <Content Include="Images\AddInDesktop_32.png" />
     <Content Include="Images\AreaCalculator_16.png" />
     <Content Include="Images\AreaCalculator_32.png" />
     <Content Include="Images\AreaSplit_16.png" />
@@ -137,15 +155,21 @@
     <Content Include="Images\BoundaryPointLineGenerator_32.png" />
     <Content Include="Images\ChineseNumbering_16.png" />
     <Content Include="Images\ChineseNumbering_32.png" />
+    <Content Include="Images\DevZoneCheck_16.png" />
+    <Content Include="Images\DevZoneCheck_32.png" />
     <Content Include="Images\DownloadHistoricalImagery_16.png" />
     <Content Include="Images\DownloadHistoricalImagery_32.png" />
     <Content Include="Images\ExportCAD_16.png" />
     <Content Include="Images\ExportCAD_32.png" />
     <Content Include="Images\ExportExcel_16.png" />
     <Content Include="Images\ExportExcel_32.png" />
+    <Content Include="Images\ExportToKml_16.png" />
+    <Content Include="Images\ExportToKml_32.png" />
     <Content Include="Images\FieldCopyTool_16.png" />
     <Content Include="Images\FieldCopyTool_32.png" />
     <Content Include="Images\Globe16.png" />
+    <Content Include="Images\Globe_16.png" />
+    <Content Include="Images\Globe_32.png" />
     <Content Include="Images\GroupNumbering_16.png" />
     <Content Include="Images\GroupNumbering_32.png" />
     <Content Include="Images\HistoricalImagery_16.png" />
@@ -154,6 +178,8 @@
     <Content Include="Images\IntersectSummary_32.png" />
     <Content Include="Images\LayoutCoordinateTable_16.png" />
     <Content Include="Images\LayoutCoordinateTable_32.png" />
+    <Content Include="Images\LayoutTextReplace_16.png" />
+    <Content Include="Images\LayoutTextReplace_32.png" />
     <Content Include="Images\MapBoundaryPointLineGenerator_16.png" />
     <Content Include="Images\MapBoundaryPointLineGenerator_32.png" />
     <Content Include="Images\MapSeriesExport_16.png" />
@@ -162,6 +188,8 @@
     <Content Include="Images\MatchSymbology_32.png" />
     <Content Include="Images\MirrorDatabase_16.png" />
     <Content Include="Images\MirrorDatabase_32.png" />
+    <Content Include="Images\MultiOverlaySummary_16.png" />
+    <Content Include="Images\MultiOverlaySummary_32.png" />
     <Content Include="Images\NodeDistanceCheck_16.png" />
     <Content Include="Images\NodeDistanceCheck_32.png" />
     <Content Include="Images\PasteSymbology_16.png" />
@@ -172,8 +200,12 @@
     <Content Include="Images\PolygonToDxfWithFill_32.png" />
     <Content Include="Images\PresetLayers_16.png" />
     <Content Include="Images\PresetLayers_32.png" />
+    <Content Include="Images\ProtocolLineExtract_16.png" />
+    <Content Include="Images\ProtocolLineExtract_32.png" />
     <Content Include="Images\RangeClipTool_16.png" />
     <Content Include="Images\RangeClipTool_32.png" />
+    <Content Include="Images\RotateGeometry_16.png" />
+    <Content Include="Images\RotateGeometry_32.png" />
     <Content Include="Images\SpecialCoordinateTransform_16.png" />
     <Content Include="Images\SpecialCoordinateTransform_32.png" />
     <Content Include="Images\Toolbox_16.png" />

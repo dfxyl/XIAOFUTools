@@ -91,7 +91,7 @@
                           Foreground="#2c3e50"
                           Margin="0,0,0,2"/>
                 <TextBlock x:Name="VersionText"
-                          Text="版本 1.2.2"
+                          Text="版本 1.2.4"
                           FontSize="12" FontWeight="SemiBold"
                           Foreground="#3498db"/>
             </StackPanel>
@@ -107,7 +107,7 @@
                           Style="{StaticResource WarningTextStyle}"/>
                 <!-- 当前版本号 -->
                 <TextBlock Text="当前版本号:" Style="{StaticResource InfoLabelStyle}"/>
-                <TextBlock x:Name="CurrentVersionText" Text="1.2.2" Style="{StaticResource InfoContentStyle}"/>
+                <TextBlock x:Name="CurrentVersionText" Text="1.2.4" Style="{StaticResource InfoContentStyle}"/>
 
                 <!-- 开发环境 -->
                 <TextBlock Text="开发环境:" Style="{StaticResource InfoLabelStyle}"/>
@@ -118,7 +118,7 @@
                 <!-- 版本更新信息 -->
                 <TextBlock Text="版本更新信息:" Style="{StaticResource InfoLabelStyle}"/>
                 <TextBlock x:Name="UpdateInfoText"
-                          Text="v1.2.2 更新：&#x0a;• 新增多图层压盖汇总：主图层与多个压盖图层交集面积统计，可按唯一字段分组，支持导出Excel/导出结果&#x0a;• 新增地图生成界址点线：在布局图形图层生成界址点/界址线/点号/边长标注，支持按唯一字段分组&#x0a;• 优化交集汇总表：红线与类图层交集面积统计，支持多字段与Excel导出&#x0a;• 修复TXT转SHP“保存在txt源路径”选项报错"
+                          Text="v1.2.4 更新：&#x0a;• 新增要素图层分组导出KML/KMZ工具，支持按字段分组、自动读取符号样式、生成独立文字标注层&#x0a;• 驱动制图页面加载性能优化，加载速度提升10-100倍"
                           Style="{StaticResource InfoContentStyle}"/>
 
                 <!-- 作者信息 -->

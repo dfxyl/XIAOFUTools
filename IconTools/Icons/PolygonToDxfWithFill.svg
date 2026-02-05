@@ -1,33 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <!-- 数据/转换：青蓝渐变，与 DWG 同系 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    <linearGradient id="dxfGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#5B6776"/>
+      <stop offset="100%" stop-color="#2F3A45"/>
     </linearGradient>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 左侧源面 -->
-  <path d="M4 11 L12 6 L14 14 L8 18 L6 12 Z" fill="#ffffff" opacity="0.9"/>
-
-  <!-- 转换箭头 -->
-  <path d="M15 16 L19 16" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-  <path d="M17 14 L19 16 L17 18" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- 右侧 DXF 文件卡片（双折角语言） -->
-  <path d="M20 9 h5 l3 3 v8 a2 2 0 0 1 -2 2 h-6 a2 2 0 0 1 -2 -2 v-9 a2 2 0 0 1 2 -2 z" fill="#ffffff" opacity="0.95"/>
-  <!-- 内部示意填充的多边形 -->
-  <path d="M22 12 L26 11 L27 14 L24.5 16 L22 13 Z" fill="#4facfe" opacity="0.9" stroke="#ffffff" stroke-width="0.6"/>
-
-  <!-- 底部类型条形标签 + DXF 文字（与 DWG 图标保持一致风格） -->
-  <rect x="21" y="22" width="6" height="2" rx="1" fill="#e17055"/>
-  <text x="24" y="24" fill="#ffffff" font-family="SF Pro, Arial, sans-serif" font-size="5" font-weight="bold" text-anchor="middle">DXF</text>
-
-  <!-- 装饰线条，增强层次 -->
-  <line x1="6" y1="21" x2="12" y2="21" stroke="#4facfe" stroke-width="1.6" opacity="0.55"/>
-  <line x1="10" y1="23.5" x2="14" y2="23.5" stroke="#4facfe" stroke-width="1.6" opacity="0.55"/>
+  <path d="M4 10l8-4 2 8-6 4-4-6z" fill="#FFFFFF" stroke="#2F3A45" stroke-width="1"/>
+  <path d="M4 10l8-4 2 8-6 4z" fill="#1F6FEB" opacity="0.15"/>
+  <path d="M15 14h4" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round"/>
+  <path d="M17 12l2 2-2 2" fill="none" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="18" y="6" width="11" height="16" rx="1" fill="#FFFFFF" stroke="#2F3A45" stroke-width="1"/>
+  <rect x="18" y="6" width="11" height="4" rx="1" fill="url(#dxfGrad)"/>
+  <path d="M20 12l7 6M27 12l-7 6" stroke="#1F6FEB" stroke-width="1.5" stroke-linecap="round"/>
+  <text x="23.5" y="27" fill="#2F3A45" font-family="Segoe UI, Arial" font-size="7" font-weight="bold" text-anchor="middle">DXF</text>
 </svg>

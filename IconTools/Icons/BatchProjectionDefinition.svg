@@ -1,38 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- ArcGIS Pro Premium Style: Batch Projection -->
   <defs>
-    <!-- 简洁背景渐变 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#6c5ce7;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#a29bfe;stop-opacity:1" />
+    <linearGradient id="globeFill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F6"/>
     </linearGradient>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 地球 -->
-  <circle cx="10" cy="16" r="6" fill="#ffffff" opacity="0.9"/>
-  <circle cx="10" cy="16" r="4" fill="#6c5ce7" opacity="0.3"/>
-  <path d="M6 16 L14 16 M10 12 L10 20" stroke="#6c5ce7" stroke-width="1" opacity="0.6"/>
-
-  <!-- 转换箭头 -->
-  <path d="M17 16 L21 16 M19 14 L21 16 L19 18" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- 投影平面 -->
-  <rect x="21" y="8" width="6" height="16" rx="1" fill="#ffffff" opacity="0.9"/>
-  <line x1="22" y1="10" x2="26" y2="10" stroke="#6c5ce7" stroke-width="1" opacity="0.5"/>
-  <line x1="22" y1="14" x2="26" y2="14" stroke="#6c5ce7" stroke-width="1" opacity="0.5"/>
-  <line x1="22" y1="18" x2="26" y2="18" stroke="#6c5ce7" stroke-width="1" opacity="0.5"/>
-  <line x1="22" y1="22" x2="26" y2="22" stroke="#6c5ce7" stroke-width="1" opacity="0.5"/>
-  <line x1="24" y1="9" x2="24" y2="23" stroke="#6c5ce7" stroke-width="1" opacity="0.5"/>
-
-  <!-- CRS标识 -->
-  <rect x="12" y="4" width="8" height="4" rx="2" fill="#a29bfe"/>
-  <text x="16" y="7" fill="#ffffff" font-family="SF Pro, Arial, sans-serif" font-size="6" font-weight="bold" text-anchor="middle">CRS</text>
-
-  <!-- 批量指示点 -->
-  <circle cx="6" cy="27" r="1.5" fill="#ffffff" opacity="0.8"/>
-  <circle cx="16" cy="27" r="1.5" fill="#ffffff" opacity="0.8"/>
-  <circle cx="25" cy="27" r="1.5" fill="#ffffff" opacity="0.8"/>
+  <circle cx="10" cy="16" r="8" fill="url(#globeFill)" stroke="#2F3A45" stroke-width="1"/>
+  <path d="M10 8v16M2 16h16" stroke="#1F6FEB" stroke-width="0.5" opacity="0.4"/>
+  <ellipse cx="10" cy="16" rx="8" ry="3" fill="none" stroke="#1F6FEB" stroke-width="0.5" opacity="0.4"/>
+  <path d="M18 16h4" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round"/>
+  <path d="M20 14l2 2-2 2" fill="none" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="23" y="8" width="7" height="16" rx="1" fill="#FFFFFF" stroke="#2F3A45" stroke-width="1"/>
+  <path d="M23 12h7M23 16h7M23 20h7M26.5 8v16" stroke="#D6DDE5" stroke-width="0.5"/>
+  <circle cx="10" cy="16" r="1.5" fill="#1F6FEB"/>
 </svg>

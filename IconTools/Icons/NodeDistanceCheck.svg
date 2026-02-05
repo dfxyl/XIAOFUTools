@@ -1,25 +1,15 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <!-- 统一蓝色渐变背景，与现有图标一致 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    <linearGradient id="nodeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F6"/>
     </linearGradient>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 两个节点 -->
-  <circle cx="9" cy="12" r="3" fill="#ffffff" opacity="0.95"/>
-  <circle cx="23" cy="20" r="3" fill="#ffffff" opacity="0.95"/>
-
-  <!-- 测量连线（双向） -->
-  <line x1="9" y1="12" x2="23" y2="20" stroke="#ffffff" stroke-opacity="0.95" stroke-width="2" stroke-linecap="round"/>
-  <!-- 箭头提示 -->
-  <path d="M11 11 L9 13 M21 19 L23 21" stroke="#ffffff" stroke-opacity="0.95" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- 距离标识 -->
-  <text x="16" y="16.5" fill="#004d7a" opacity="0.65" font-family="SF Pro, Arial, sans-serif" font-size="7" font-weight="bold" text-anchor="middle" dominant-baseline="middle">d</text>
+  <circle cx="8" cy="10" r="4" fill="url(#nodeGrad)" stroke="#2F3A45" stroke-width="1"/>
+  <circle cx="24" cy="22" r="4" fill="url(#nodeGrad)" stroke="#2F3A45" stroke-width="1"/>
+  <path d="M11 12l10 7" stroke="#1F6FEB" stroke-width="2" stroke-dasharray="3,2"/>
+  <path d="M12 10l-2 2 2 2M20 22l2-2-2-2" fill="none" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="16" y="16" fill="#1F6FEB" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" text-anchor="middle" filter="url(#dropShadow)">d</text>
+  <circle cx="8" cy="10" r="1" fill="#1F6FEB"/>
+  <circle cx="24" cy="22" r="1" fill="#1F6FEB"/>
 </svg>

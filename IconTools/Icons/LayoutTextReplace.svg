@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="layoutGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F6"/>
+    </linearGradient>
+  </defs>
+  <!-- 布局页面背景 -->
+  <rect x="2" y="2" width="18" height="22" rx="1" fill="url(#layoutGrad)" stroke="#2F3A45" stroke-width="1.2"/>
+  <!-- 文本行 -->
+  <rect x="4" y="5" width="10" height="2" rx="0.5" fill="#1F6FEB" opacity="0.8"/>
+  <rect x="4" y="9" width="14" height="1.5" rx="0.5" fill="#2F3A45" opacity="0.3"/>
+  <rect x="4" y="12" width="12" height="1.5" rx="0.5" fill="#2F3A45" opacity="0.3"/>
+  <rect x="4" y="15" width="14" height="1.5" rx="0.5" fill="#2F3A45" opacity="0.3"/>
+  <rect x="4" y="18" width="8" height="1.5" rx="0.5" fill="#2F3A45" opacity="0.3"/>
+  <!-- 放大镜 -->
+  <circle cx="24" cy="12" r="5" fill="none" stroke="#1F6FEB" stroke-width="2"/>
+  <line x1="27.5" y1="15.5" x2="30" y2="18" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round"/>
+  <!-- 替换箭头 -->
+  <path d="M20 22h10" stroke="#E85D04" stroke-width="2" stroke-linecap="round"/>
+  <path d="M27 19.5l2.5 2.5-2.5 2.5" fill="none" stroke="#E85D04" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- A→B 替换符号 -->
+  <text x="21.5" y="28" font-family="Arial" font-size="5" font-weight="bold" fill="#E85D04">A→B</text>
+</svg>

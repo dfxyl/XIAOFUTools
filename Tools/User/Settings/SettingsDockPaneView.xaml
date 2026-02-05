@@ -56,7 +56,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="默认小数位数:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11"/>
                             <TextBox Grid.Column="1" Text="{Binding DefaultDecimalPlaces}" Style="{StaticResource TextBoxStyle}"
-                                     ToolTip="设置面积和长度计算结果的默认小数位数（0-10）" Height="20"/>
+                                     ToolTip="设置面积和长度计算结果的默认小数位数（0-10）" Height="24"/>
                             <TextBlock Grid.Column="2" Text="（0-10位）" VerticalAlignment="Center" Margin="5,0,0,0"
                                        Foreground="{StaticResource TextSecondaryBrush}" FontSize="10"/>
                         </Grid>
@@ -139,7 +139,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="检查间隔:" VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11"/>
                             <TextBox Grid.Column="1" Text="{Binding CheckInterval}" Style="{StaticResource TextBoxStyle}"
-                                     ToolTip="设置自动检查更新的间隔天数（0=每次启动都检查，1=每天，7=每周）" Height="20"/>
+                                     ToolTip="设置自动检查更新的间隔天数（0=每次启动都检查，1=每天，7=每周）" Height="24"/>
                             <TextBlock Grid.Column="2" Text="天 (0=每次启动都检查)" VerticalAlignment="Center" Margin="5,0,0,0"
                                        Foreground="{StaticResource TextSecondaryBrush}" FontSize="10"/>
                         </Grid>

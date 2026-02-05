@@ -83,7 +83,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding OutputFolder}" VerticalAlignment="Center" Height="22"
+                <TextBox Grid.Column="0" Text="{Binding OutputFolder}" VerticalAlignment="Center" Height="24"
                         Style="{StaticResource TextBoxStyle}"/>
                 <Button Grid.Column="1" Content="浏览..." Height="22" Margin="5,0,0,0" Command="{Binding BrowseFolderCommand}"
                         Style="{StaticResource DefaultButtonStyle}" VerticalAlignment="Center"/>

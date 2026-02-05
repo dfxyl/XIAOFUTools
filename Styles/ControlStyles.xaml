@@ -90,11 +90,11 @@
     <!-- 下拉菜单样式 -->
     <Style x:Key="ComboBoxStyle" TargetType="ComboBox">
         <Setter Property="Margin" Value="0,3,0,6"/>
-        <Setter Property="Padding" Value="8,2"/>
+        <Setter Property="Padding" Value="6,0"/>
         <Setter Property="BorderBrush" Value="#ADADAD"/>
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Height" Value="22"/>
+        <Setter Property="Height" Value="24"/>
         <Setter Property="ItemContainerStyle" Value="{StaticResource ComboBoxItemStyle}"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -176,11 +176,11 @@
     <!-- 文本框样式 -->
     <Style x:Key="TextBoxStyle" TargetType="TextBox">
         <Setter Property="Margin" Value="0,3,0,6"/>
-        <Setter Property="Padding" Value="2,2"/>
+        <Setter Property="Padding" Value="4,0"/>
         <Setter Property="BorderBrush" Value="#ADADAD"/>
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Height" Value="22"/>
+        <Setter Property="Height" Value="24"/>
         <Setter Property="VerticalContentAlignment" Value="Center"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -191,7 +191,8 @@
                             CornerRadius="4">
                         <ScrollViewer x:Name="PART_ContentHost" 
                                       Margin="{TemplateBinding Padding}"
-                                      VerticalAlignment="Center"/>
+                                      VerticalAlignment="Center"
+                                      VerticalContentAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">

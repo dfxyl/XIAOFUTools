@@ -1,32 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <!-- 统一蓝色渐变 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    <linearGradient id="copyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1F6FEB"/>
+      <stop offset="100%" stop-color="#0B4B8A"/>
     </linearGradient>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 源表格 -->
-  <rect x="4" y="8" width="8" height="16" rx="2" fill="#ffffff" opacity="0.9"/>
-  <rect x="5" y="10" width="6" height="2" rx="1" fill="#4facfe" opacity="0.8"/>
-  <rect x="5" y="14" width="6" height="2" rx="1" fill="#4facfe" opacity="0.6"/>
-  <rect x="5" y="18" width="6" height="2" rx="1" fill="#4facfe" opacity="0.6"/>
-
-  <!-- 目标表格 -->
-  <rect x="20" y="8" width="8" height="16" rx="2" fill="#ffffff" opacity="0.9"/>
-  <rect x="21" y="10" width="6" height="2" rx="1" fill="#00f2fe" opacity="0.6"/>
-  <rect x="21" y="14" width="6" height="2" rx="1" fill="#00f2fe" opacity="0.8"/>
-  <rect x="21" y="18" width="6" height="2" rx="1" fill="#00f2fe" opacity="0.6"/>
-
-  <!-- 复制箭头 -->
-  <path d="M13 16 L19 16 M17 14 L19 16 L17 18" stroke="#4facfe" stroke-width="2" stroke-linecap="round" fill="none"/>
-
-  <!-- 复制图标 -->
-  <rect x="14" y="10" width="4" height="4" rx="1" fill="#4facfe" opacity="0.8"/>
-  <text x="16" y="13" fill="#ffffff" font-family="SF Pro, Arial, sans-serif" font-size="6" font-weight="bold" text-anchor="middle">C</text>
+  <rect x="3" y="6" width="11" height="20" rx="1" fill="#FFFFFF" stroke="#2F3A45" stroke-width="1"/>
+  <rect x="3" y="6" width="11" height="4" rx="1" fill="#1F6FEB"/>
+  <rect x="18" y="6" width="11" height="20" rx="1" fill="#FFFFFF" stroke="#2F3A45" stroke-width="1"/>
+  <rect x="18" y="6" width="11" height="4" rx="1" fill="#1F6FEB" opacity="0.6"/>
+  <path d="M4 14h9M4 18h9M4 22h9M19 14h9M19 18h9M19 22h9" stroke="#D6DDE5" stroke-width="1"/>
+  <path d="M14 16h4" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round"/>
+  <path d="M16 14l2 2-2 2" fill="none" stroke="#1F6FEB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="23" y="13" width="4" height="6" fill="url(#copyGrad)" opacity="0.8"/>
+  <path d="M23 13h4v1h-4z" fill="#FFFFFF" opacity="0.5"/>
 </svg>

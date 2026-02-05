@@ -45,7 +45,7 @@
                       ItemsSource="{Binding FeatureLayers}"
                       SelectedItem="{Binding SelectedFeatureLayer}"
                       DisplayMemberPath="Name"
-                      Style="{StaticResource ComboBoxStyle}" Height="20"
+                      Style="{StaticResource ComboBoxStyle}" Height="24"
                       ToolTip="选择用于确定下载范围的要素图层"/>
             <Button Grid.Column="2" Width="22" Height="20" Margin="5,0,0,0"
                     Style="{StaticResource DefaultButtonStyle}"
@@ -67,7 +67,7 @@
 
             <TextBlock Grid.Column="0" Text="输出文件夹:" VerticalAlignment="Center"/>
             <TextBox Grid.Column="1" Text="{Binding OutputFolder}"
-                     Style="{StaticResource TextBoxStyle}" Height="20" Margin="0,0,3,0"
+                     Style="{StaticResource TextBoxStyle}" Height="24" Margin="0,0,3,0"
                      ToolTip="选择影像输出文件夹"/>
             <Button Grid.Column="2" Content="浏览" Height="20" Margin="0" Width="45"
                     Command="{Binding BrowseOutputFolderCommand}"
@@ -87,7 +87,7 @@
             <ComboBox Grid.Column="1"
                       ItemsSource="{Binding DownloadLevels}"
                       SelectedItem="{Binding SelectedDownloadLevel}"
-                      Style="{StaticResource ComboBoxStyle}" Height="20"
+                      Style="{StaticResource ComboBoxStyle}" Height="24"
                       ToolTip="选择影像下载级别（9-21级）"/>
             <CheckBox Grid.Column="2" Content="合并影像" IsChecked="{Binding MergeImages}"
                       Style="{StaticResource CheckBoxStyle}" Margin="10,0,0,0"

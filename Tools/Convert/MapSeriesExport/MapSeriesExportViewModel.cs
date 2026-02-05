@@ -106,7 +106,12 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             set { _mapSeriesStatusColor = value; OnPropertyChanged(); }
         }
 
-        public ObservableCollection<MapSeriesPageItem> MapSeriesPages { get; } = new ObservableCollection<MapSeriesPageItem>();
+        private ObservableCollection<MapSeriesPageItem> _mapSeriesPages = new ObservableCollection<MapSeriesPageItem>();
+        public ObservableCollection<MapSeriesPageItem> MapSeriesPages
+        {
+            get => _mapSeriesPages;
+            set { _mapSeriesPages = value; OnPropertyChanged(); }
+        }
 
         public string OutputFolder
         {
@@ -266,27 +271,104 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                     }
 
                     var pageCount = mapSeries.PageCount;
-                    // 获取所有页面名称
                     var pageNames = new List<string>();
-                    var currentPage = mapSeries.CurrentPageNumber;
-                    for (int i = 1; i <= pageCount; i++)
+                    
+                    // 优化：直接从索引图层批量查询页面名称，避免逐页切换
+                    var spatialMapSeries = mapSeries as SpatialMapSeries;
+                    var smsDefinition = mapSeries.GetDefinition() as CIMSpatialMapSeries;
+                    
+                    if (spatialMapSeries != null && smsDefinition != null)
                     {
-                        mapSeries.SetCurrentPageNumber(i.ToString());
-                        pageNames.Add(mapSeries.CurrentPageName ?? $"页面 {i}");
+                        var indexLayer = spatialMapSeries.IndexLayer as FeatureLayer;
+                        string nameField = smsDefinition.NameField;
+                        string sortField = smsDefinition.SortField;
+                        bool sortAscending = smsDefinition.SortAscending;
+                        
+                        if (indexLayer != null && !string.IsNullOrEmpty(nameField))
+                        {
+                            using (var table = indexLayer.GetTable())
+                            {
+                                // 构建排序查询
+                                var queryFilter = new QueryFilter
+                                {
+                                    SubFields = string.IsNullOrEmpty(sortField) ? nameField : $"{nameField},{sortField}"
+                                };
+                                
+                                // 使用临时列表存储结果
+                                var pageData = new List<(string Name, object SortValue)>();
+                                
+                                using (var cursor = table.Search(queryFilter))
+                                {
+                                    while (cursor.MoveNext())
+                                    {
+                                        using (var row = cursor.Current)
+                                        {
+                                            var name = row[nameField]?.ToString() ?? "";
+                                            object sortValue = null;
+                                            if (!string.IsNullOrEmpty(sortField))
+                                            {
+                                                try { sortValue = row[sortField]; }
+                                                catch { sortValue = name; }
+                                            }
+                                            else
+                                            {
+                                                sortValue = name;
+                                            }
+                                            pageData.Add((name, sortValue));
+                                        }
+                                    }
+                                }
+                                
+                                // 根据排序字段排序
+                                IEnumerable<(string Name, object SortValue)> sorted;
+                                if (sortAscending)
+                                    sorted = pageData.OrderBy(p => p.SortValue?.ToString() ?? "");
+                                else
+                                    sorted = pageData.OrderByDescending(p => p.SortValue?.ToString() ?? "");
+                                
+                                pageNames = sorted.Select(p => string.IsNullOrEmpty(p.Name) ? "未命名" : p.Name).ToList();
+                            }
+                        }
                     }
-                    // 恢复当前页
-                    if (!string.IsNullOrEmpty(currentPage))
-                        mapSeries.SetCurrentPageNumber(currentPage);
+                    
+                    // 如果批量查询失败或结果为空，回退到传统方法（仅当页数较少时）
+                    if (pageNames.Count == 0)
+                    {
+                        if (pageCount <= 100)
+                        {
+                            // 页数较少时使用传统方法
+                            var currentPage = mapSeries.CurrentPageNumber;
+                            for (int i = 1; i <= pageCount; i++)
+                            {
+                                mapSeries.SetCurrentPageNumber(i.ToString());
+                                pageNames.Add(mapSeries.CurrentPageName ?? $"页面 {i}");
+                            }
+                            if (!string.IsNullOrEmpty(currentPage))
+                                mapSeries.SetCurrentPageNumber(currentPage);
+                        }
+                        else
+                        {
+                            // 页数较多时只显示页码
+                            for (int i = 1; i <= pageCount; i++)
+                            {
+                                pageNames.Add($"页面 {i}");
+                            }
+                        }
+                    }
 
+                    // 先在后台线程准备好所有数据项（新集合）
+                    var newPages = new ObservableCollection<MapSeriesPageItem>();
+                    for (int i = 0; i < pageNames.Count; i++)
+                    {
+                        newPages.Add(new MapSeriesPageItem { PageIndex = i + 1, PageName = pageNames[i], IsSelected = true });
+                    }
+                    
+                    // 在UI线程上直接替换集合，只触发一次UI更新
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        MapSeriesStatus = $"地图系列已启用，共 {pageCount} 页";
+                        MapSeriesStatus = $"地图系列已启用，共 {pageNames.Count} 页";
                         MapSeriesStatusColor = new SolidColorBrush(Colors.Green);
-                        MapSeriesPages.Clear();
-                        for (int i = 0; i < pageNames.Count; i++)
-                        {
-                            MapSeriesPages.Add(new MapSeriesPageItem { PageIndex = i + 1, PageName = pageNames[i], IsSelected = true });
-                        }
+                        MapSeriesPages = newPages;
                     });
                 }
                 catch (Exception ex)

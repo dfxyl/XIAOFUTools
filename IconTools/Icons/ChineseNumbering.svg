@@ -1,53 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- ArcGIS Pro Premium Style: Chinese Numbering -->
   <defs>
-    <!-- 统一蓝色渐变 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#55a3ff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#003d82;stop-opacity:1" />
+    <linearGradient id="numCard" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#EEF2F6"/>
     </linearGradient>
-
-    <!-- 卡片渐变 -->
-    <linearGradient id="cardGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
-      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:0.9" />
-    </linearGradient>
-
-    <!-- 阴影滤镜 -->
-    <filter id="cardShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.1"/>
-    </filter>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 装饰圆点 -->
-  <circle cx="6" cy="6" r="1.5" fill="#ffffff" opacity="0.3"/>
-  <circle cx="26" cy="6" r="1" fill="#ffffff" opacity="0.2"/>
-  <circle cx="6" cy="26" r="1" fill="#ffffff" opacity="0.2"/>
-  <circle cx="26" cy="26" r="1.5" fill="#ffffff" opacity="0.3"/>
-
-  <!-- 地块1 - 圆形设计 -->
-  <circle cx="10" cy="12" r="4.5" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
-  <text x="10" y="15" fill="#55a3ff" font-family="PingFang SC, Microsoft YaHei, SimSun, serif" font-size="7" font-weight="bold" text-anchor="middle">一</text>
-
-  <!-- 地块2 - 六边形设计 -->
-  <path d="M22 8.5 L25 10.5 L25 13.5 L22 15.5 L19 13.5 L19 10.5 Z" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
-  <text x="22" y="13" fill="#55a3ff" font-family="PingFang SC, Microsoft YaHei, SimSun, serif" font-size="7" font-weight="bold" text-anchor="middle">二</text>
-
-  <!-- 地块3 - 菱形设计 -->
-  <path d="M10 18 L13 21 L10 24 L7 21 Z" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
-  <text x="10" y="23" fill="#55a3ff" font-family="PingFang SC, Microsoft YaHei, SimSun, serif" font-size="7" font-weight="bold" text-anchor="middle">三</text>
-
-  <!-- 地块4 - 圆角矩形设计 -->
-  <rect x="18" y="19" width="8" height="6" rx="3" fill="url(#cardGradient)" filter="url(#cardShadow)"/>
-  <text x="22" y="23" fill="#55a3ff" font-family="PingFang SC, Microsoft YaHei, SimSun, serif" font-size="7" font-weight="bold" text-anchor="middle">四</text>
-
-  <!-- 连接线装饰 -->
-  <path d="M13 12 Q16 14 19 12" stroke="#ffffff" stroke-width="1" opacity="0.4" fill="none"/>
-  <path d="M13 21 Q16 19 19 21" stroke="#ffffff" stroke-width="1" opacity="0.4" fill="none"/>
-
-  <!-- 标题 -->
-  <text x="16" y="5" fill="#ffffff" font-family="PingFang SC, Microsoft YaHei, SF Pro, Arial, sans-serif" font-size="5" font-weight="600" text-anchor="middle">中文编号</text>
+  <rect x="3" y="4" width="26" height="24" rx="2" fill="#EEF2F6" stroke="#2F3A45" stroke-width="1" opacity="0.3"/>
+  <g transform="translate(5, 6)">
+    <circle cx="6" cy="6" r="6" fill="url(#numCard)" stroke="#2F3A45" stroke-width="1"/>
+    <text x="6" y="9" fill="#1F6FEB" font-family="Microsoft YaHei, Segoe UI" font-size="9" font-weight="bold" text-anchor="middle">一</text>
+  </g>
+  <g transform="translate(18, 6)">
+    <path d="M6 0l6 3v6l-6 3-6-3v-6z" fill="url(#numCard)" stroke="#2F3A45" stroke-width="1"/>
+    <text x="6" y="8" fill="#1F6FEB" font-family="Microsoft YaHei, Segoe UI" font-size="8" font-weight="bold" text-anchor="middle">二</text>
+  </g>
+  <g transform="translate(5, 18)">
+    <path d="M6 0l6 6-6 6-6-6z" fill="url(#numCard)" stroke="#2F3A45" stroke-width="1"/>
+    <text x="6" y="8" fill="#1F6FEB" font-family="Microsoft YaHei, Segoe UI" font-size="8" font-weight="bold" text-anchor="middle">三</text>
+  </g>
+  <g transform="translate(18, 18)">
+    <rect x="1" y="1" width="10" height="10" rx="1" fill="url(#numCard)" stroke="#2F3A45" stroke-width="1"/>
+    <text x="6" y="9" fill="#1F6FEB" font-family="Microsoft YaHei, Segoe UI" font-size="8" font-weight="bold" text-anchor="middle">四</text>
+  </g>
 </svg>

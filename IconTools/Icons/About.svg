@@ -1,51 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <defs>
-    <!-- 核心功能蓝色渐变 -->
-    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    <linearGradient id="infoCircle" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1F6FEB"/>
+      <stop offset="100%" stop-color="#0B4B8A"/>
     </linearGradient>
-
-    <!-- 信息图标渐变 -->
-    <linearGradient id="infoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.95" />
-      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:0.9" />
-    </linearGradient>
-
-    <!-- 阴影滤镜 -->
-    <filter id="infoShadow" x="-50%" y="-50%" width="200%" height="200%">
-      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.1"/>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="0.5"/>
+      <feOffset dx="0.5" dy="0.5" result="offsetblur"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-
-  <!-- 背景 -->
-  <rect x="0" y="0" width="32" height="32" rx="8" fill="url(#bgGradient)"/>
-
-  <!-- 信息圆圈 -->
-  <circle cx="16" cy="16" r="10" fill="url(#infoGradient)" filter="url(#infoShadow)"/>
-  
-  <!-- 圆圈边框 -->
-  <circle cx="16" cy="16" r="10" fill="none" stroke="#667eea" stroke-width="0.5" opacity="0.3"/>
-
-  <!-- 信息符号 "i" -->
-  <g transform="translate(16,16)">
-    <!-- i 的点 -->
-    <circle cx="0" cy="-4" r="1.5" fill="#667eea"/>
-    
-    <!-- i 的竖线 -->
-    <rect x="-1" y="-1" width="2" height="6" rx="1" fill="#667eea"/>
-    
-    <!-- 装饰性底线 -->
-    <rect x="-2.5" y="4" width="5" height="1" rx="0.5" fill="#667eea" opacity="0.6"/>
-  </g>
-
-  <!-- 装饰元素 -->
-  <circle cx="16" cy="16" r="12" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.2"/>
-  
-  <!-- 角落装饰点 -->
-  <circle cx="6" cy="6" r="1" fill="#ffffff" opacity="0.4"/>
-  <circle cx="26" cy="6" r="1" fill="#ffffff" opacity="0.4"/>
-  <circle cx="6" cy="26" r="1" fill="#ffffff" opacity="0.4"/>
-  <circle cx="26" cy="26" r="1" fill="#ffffff" opacity="0.4"/>
+  <circle cx="16" cy="16" r="13" fill="url(#infoCircle)" stroke="#0B3D6B" stroke-width="1" filter="url(#dropShadow)"/>
+  <path d="M16 11a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM14 13h3v10h-3v-1h1v-8h-1v-1z" fill="#FFFFFF"/>
+  <circle cx="16" cy="16" r="11" fill="none" stroke="#FFFFFF" stroke-width="0.5" opacity="0.3"/>
 </svg>

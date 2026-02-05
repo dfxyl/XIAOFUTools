@@ -1,7 +1,7 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <ArcGIS defaultAssembly="XIAOFUTools.dll" defaultNamespace="XIAOFUTools" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///D:/RUANJIAN/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <!-- 插件基本信息 -->
-  <AddInInfo id="{c1ef0bf8-3aaa-4583-9176-c77c409d3e5d}" version="1.2.2" desktopVersion="3.6.59527" product="ArcGISPro">
+  <AddInInfo id="{c1ef0bf8-3aaa-4583-9176-c77c409d3e5d}" version="1.2.4" desktopVersion="3.6.59527" product="ArcGISPro">
     <Name>XIAOFU工具箱</Name>
     <Description>
 		XIAOFU工具箱 - ArcGIS Pro扩展工具集。
@@ -10,7 +10,7 @@
     <Image>Images\Toolbox_32.png</Image>
     <Author>XIAOFU</Author>
     <Company>Acme</Company>
-    <Date>2025/12/26 15:30:00</Date>
+    <Date>2026/02/04</Date>
     <Subject>Framework</Subject>
     <!--
     可选主题: Content, Framework, Editing, Geodatabase, Geometry,
@@ -130,16 +130,18 @@
           <!-- 在此添加转换工具按钮引用 -->
         </buttonPalette>
         <!-- 坐标转换按钮面板 -->
-        <buttonPalette id="XIAOFUTools_CoordinateButtonPalette" caption="坐标" dropDown="true" menuStyle="false">
+        <buttonPalette id="XIAOFUTools_CoordinateButtonPalette" caption="坐标/KML" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_SpecialCoordinateTransformButton" />
+          <button refID="XIAOFUTools_ExportToKmlButton" />
           <!-- 在此添加坐标转换工具按钮引用 -->
         </buttonPalette>
-        <!-- 输出工具按钮面板 -->
-        <buttonPalette id="XIAOFUTools_OutputButtonPalette" caption="输出" dropDown="true" menuStyle="false">
+        <!-- 制图相关按钮面板 -->
+        <buttonPalette id="XIAOFUTools_OutputButtonPalette" caption="制图相关" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_DownloadOnlineImageryButton" />
           <button refID="XIAOFUTools_ExportLayoutButton" />
           <button refID="XIAOFUTools_MapSeriesExportButton" />
-          <!-- 在此添加输出工具按钮引用 -->
+          <button refID="XIAOFUTools_LayoutTextReplaceButton" />
+          <!-- 在此添加制图相关工具按钮引用 -->
         </buttonPalette>
         <!-- CAD相关按钮面板 -->
         <buttonPalette id="XIAOFUTools_DwgButtonPalette" caption="CAD相关" dropDown="true" menuStyle="false">
@@ -188,7 +190,7 @@
           <button refID="XIAOFUTools_AboutButton" />
           <!-- 在此添加用户配置工具按钮引用 -->
         </buttonPalette>
-        </palettes>
+      </palettes>
       <!-- ============================== 图库定义 ============================== -->
       <galleries>
         <!-- 添加预设图层图库 -->
@@ -244,6 +246,8 @@
         <dockPane id="XIAOFUTools_TxtToFeatureDockPane" caption="TXT转SHP" className="XIAOFUTools.Tools.TxtToFeature.TxtToFeatureDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 特殊坐标转换停靠窗格 -->
         <dockPane id="XIAOFUTools_SpecialCoordinateTransformDockPane" caption="特殊坐标转换" className="XIAOFUTools.Tools.SpecialCoordinateTransform.SpecialCoordinateTransformDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 要素图层分组导出KML/KMZ停靠窗格 -->
+        <dockPane id="XIAOFUTools_ExportToKmlDockPane" caption="要素图层分组导出KML/KMZ" className="XIAOFUTools.Tools.ExportToKml.ExportToKmlDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 节点距离检查工具停靠窗格 -->
         <dockPane id="XIAOFUTools_NodeDistanceCheckDockPane" caption="节点距离检查工具" className="XIAOFUTools.Tools.NodeDistanceCheck.NodeDistanceCheckDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 图形重叠检查工具停靠窗格 -->
@@ -294,6 +298,8 @@
         <dockPane id="XIAOFUTools_ExportDatabaseSchemaDockPane" caption="输出数据库属性结构表" className="XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema.ExportDatabaseSchemaDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 驱动制图停靠窗格 -->
         <dockPane id="XIAOFUTools_MapSeriesExportDockPane" caption="驱动制图" className="XIAOFUTools.Tools.Output.MapSeriesExport.MapSeriesExportDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 布局元素查找替换停靠窗格 -->
+        <dockPane id="XIAOFUTools_LayoutTextReplaceDockPane" caption="布局元素查找替换" className="XIAOFUTools.Tools.LayoutTools.LayoutTextReplace.LayoutTextReplaceDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 开发区整合优化核查停靠窗格 -->
         <dockPane id="XIAOFUTools_DevZoneCheckDockPane" caption="开发区整合优化核查(定制)" className="XIAOFUTools.Tools.User.Custom.DevZoneCheck.DevZoneCheckDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
       </dockPanes>
@@ -431,6 +437,12 @@
             批量导出布局为PDF、TIF、JPG、PNG等格式
             <disabledText>无权限使用导出布局工具</disabledText></tooltip>
         </button>
+        <!-- 布局元素查找替换按钮 -->
+        <button id="XIAOFUTools_LayoutTextReplaceButton" caption="布局元素查找替换" className="XIAOFUTools.Tools.LayoutTools.LayoutTextReplace.LayoutTextReplaceButton" loadOnClick="true" smallImage="Images\LayoutTextReplace_16.png" largeImage="Images\LayoutTextReplace_32.png">
+          <tooltip heading="布局元素查找替换">
+            批量查找和替换布局中的文本元素内容，类似Excel的查找替换功能
+            <disabledText>无权限使用布局元素查找替换工具</disabledText></tooltip>
+        </button>
         <!-- 面要素图层转dwg[带填充]按钮 -->
         <button id="XIAOFUTools_PolygonToDwgWithFillButton" caption="面转DWG[带填充]" className="XIAOFUTools.Tools.PolygonToDwgWithFill.PolygonToDwgWithFillButton" loadOnClick="true" smallImage="Images\PolygonToDwgWithFill_16.png" largeImage="Images\PolygonToDwgWithFill_32.png">
           <tooltip heading="面要素图层转DWG[带填充]">
@@ -448,6 +460,12 @@
           <tooltip heading="特殊坐标转换">
             支持WGS84、GCJ02、BD09坐标系之间的相互转换
             <disabledText>无权限使用特殊坐标转换工具</disabledText></tooltip>
+        </button>
+        <!-- 要素图层分组导出KML/KMZ按钮 -->
+        <button id="XIAOFUTools_ExportToKmlButton" caption="要素图层分组导出KML/KMZ" className="XIAOFUTools.Tools.ExportToKml.ExportToKmlButton" loadOnClick="true" smallImage="Images\ExportToKml_16.png" largeImage="Images\ExportToKml_32.png">
+          <tooltip heading="要素图层分组导出KML/KMZ">
+            将要素图层按分组字段导出为KML或KMZ格式文件
+            <disabledText>无权限使用要素图层分组导出KML/KMZ工具</disabledText></tooltip>
         </button>
         <!-- PDF批量转图片按钮 -->
         <button id="XIAOFUTools_PdfToImagesButton" caption="PDF批量转图片" className="XIAOFUTools.Tools.PdfToImages.PdfToImagesButton" loadOnClick="true" smallImage="Images\PdfToImages_16.png" largeImage="Images\PdfToImages_32.png">
@@ -587,9 +605,7 @@
             将选中的要素图层或独立表快速导出为Excel格式
             <disabledText>无权限使用导出Excel功能</disabledText></tooltip>
         </button>
-        
         <!-- ============================== 匹配符号按钮组 ============================== -->
-        
         <!-- 匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyButton" caption="匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="匹配符号">
@@ -644,7 +660,6 @@
             根据YDYHFLMC字段匹配国空符号
             <disabledText>无权限使用YDYHFLMC匹配国空符号功能</disabledText></tooltip>
         </button>
-        
         <!-- 属性表建库按钮 -->
         <button id="XIAOFUTools_DatabaseBuilderButton" caption="属性表建库" className="XIAOFUTools.Tools.DataProcessing.DatabaseBuilder.DatabaseBuilderButton" loadOnClick="true" smallImage="Images\DatabaseBuilder_16.png" largeImage="Images\DatabaseBuilder_32.png">
           <tooltip heading="属性表建库">

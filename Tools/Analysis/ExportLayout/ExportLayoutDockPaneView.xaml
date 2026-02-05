@@ -38,7 +38,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="输出文件夹:" VerticalAlignment="Center"/>
                         <TextBox Grid.Column="1" Text="{Binding OutputFolder}"
-                                 Style="{StaticResource TextBoxStyle}" Height="20" Margin="0,0,3,0"/>
+                                 Style="{StaticResource TextBoxStyle}" Height="24" Margin="0,0,3,0"/>
                         <Button Grid.Column="2" Content="浏览" Height="20" Margin="0" Width="45"
                                 Command="{Binding BrowseFolderCommand}"
                                 Style="{StaticResource DefaultButtonStyle}"/>
@@ -53,7 +53,7 @@
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text="分辨率 (DPI):" VerticalAlignment="Center"/>
                         <TextBox Grid.Column="1" Text="{Binding Resolution}"
-                                 Style="{StaticResource TextBoxStyle}" Height="20"/>
+                                 Style="{StaticResource TextBoxStyle}" Height="24"/>
                     </Grid>
 
                     <!-- 导出格式 -->
@@ -66,7 +66,7 @@
                         <TextBlock Grid.Column="0" Text="导出格式:" VerticalAlignment="Center"/>
                         <ComboBox Grid.Column="1" SelectedItem="{Binding SelectedFormat}"
                                   ItemsSource="{Binding ExportFormats}"
-                                  Style="{StaticResource ComboBoxStyle}" Height="20"/>
+                                  Style="{StaticResource ComboBoxStyle}" Height="24"/>
                     </Grid>
                 </StackPanel>
             </GroupBox>
