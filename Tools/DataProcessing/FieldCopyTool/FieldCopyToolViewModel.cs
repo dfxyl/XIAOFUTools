@@ -315,37 +315,44 @@ namespace XIAOFUTools.Tools.FieldCopyTool
         /// </summary>
         private async void LoadLayers()
         {
-            await QueuedTask.Run(() =>
+            try
             {
-                try
+                await QueuedTask.Run(() =>
                 {
-                    var map = MapView.Active?.Map;
-                    if (map == null) return;
-
-                    var featureLayers = map.GetLayersAsFlattenedList().OfType<FeatureLayer>().ToList();
-
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    try
                     {
-                        // 加载源图层列表
-                        SourceLayerList.Clear();
-                        foreach (var layer in featureLayers)
-                        {
-                            SourceLayerList.Add(layer);
-                        }
+                        var map = MapView.Active?.Map;
+                        if (map == null) return;
 
-                        // 加载目标图层列表
-                        TargetLayerList.Clear();
-                        foreach (var layer in featureLayers)
+                        var featureLayers = map.GetLayersAsFlattenedList().OfType<FeatureLayer>().ToList();
+
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
                         {
-                            TargetLayerList.Add(new LayerInfo { Layer = layer });
-                        }
-                    });
-                }
-                catch (Exception ex)
-                {
-                    LogError($"加载图层时出错: {ex.Message}");
-                }
-            });
+                            // 加载源图层列表
+                            SourceLayerList.Clear();
+                            foreach (var layer in featureLayers)
+                            {
+                                SourceLayerList.Add(layer);
+                            }
+
+                            // 加载目标图层列表
+                            TargetLayerList.Clear();
+                            foreach (var layer in featureLayers)
+                            {
+                                TargetLayerList.Add(new LayerInfo { Layer = layer });
+                            }
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        LogError($"加载图层时出错: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -362,56 +369,63 @@ namespace XIAOFUTools.Tools.FieldCopyTool
         /// </summary>
         private async void LoadFields()
         {
-            if (SelectedSourceLayer == null)
+            try
             {
-                FieldList.Clear();
-                return;
-            }
-
-            await QueuedTask.Run(() =>
-            {
-                try
+                if (SelectedSourceLayer == null)
                 {
-                    using (var table = SelectedSourceLayer.GetTable())
+                    FieldList.Clear();
+                    return;
+                }
+
+                await QueuedTask.Run(() =>
+                {
+                    try
                     {
-                        var tableDefinition = table.GetDefinition();
-                        var fields = tableDefinition.GetFields();
-
-                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        using (var table = SelectedSourceLayer.GetTable())
                         {
-                            FieldList.Clear();
-                            foreach (var field in fields)
+                            var tableDefinition = table.GetDefinition();
+                            var fields = tableDefinition.GetFields();
+
+                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
                             {
-                                // 排除系统字段（按名称）
-                                if (field.Name.ToUpper() == "OBJECTID" ||
-                                    field.Name.ToUpper() == "SHAPE" ||
-                                    field.Name.ToUpper() == "SHAPE_LENGTH" ||
-                                    field.Name.ToUpper() == "SHAPE_AREA")
-                                    continue;
-
-                                // 排除不支持的字段类型
-                                if (field.FieldType == FieldType.Geometry ||
-                                    field.FieldType == FieldType.OID ||
-                                    field.FieldType == FieldType.GlobalID)
-                                    continue;
-
-                                FieldList.Add(new FieldInfo
+                                FieldList.Clear();
+                                foreach (var field in fields)
                                 {
-                                    Name = field.Name,
-                                    Alias = field.AliasName,
-                                    FieldType = field.FieldType,
-                                    Length = field.Length,
-                                    IsSelected = false
-                                });
-                            }
-                        });
+                                    // 排除系统字段（按名称）
+                                    if (field.Name.ToUpper() == "OBJECTID" ||
+                                        field.Name.ToUpper() == "SHAPE" ||
+                                        field.Name.ToUpper() == "SHAPE_LENGTH" ||
+                                        field.Name.ToUpper() == "SHAPE_AREA")
+                                        continue;
+
+                                    // 排除不支持的字段类型
+                                    if (field.FieldType == FieldType.Geometry ||
+                                        field.FieldType == FieldType.OID ||
+                                        field.FieldType == FieldType.GlobalID)
+                                        continue;
+
+                                    FieldList.Add(new FieldInfo
+                                    {
+                                        Name = field.Name,
+                                        Alias = field.AliasName,
+                                        FieldType = field.FieldType,
+                                        Length = field.Length,
+                                        IsSelected = false
+                                    });
+                                }
+                            });
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    LogError($"加载字段时出错: {ex.Message}");
-                }
-            });
+                    catch (Exception ex)
+                    {
+                        LogError($"加载字段时出错: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
 
         /// <summary>

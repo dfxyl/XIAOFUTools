@@ -376,6 +376,7 @@ namespace XIAOFUTools.Tools.DownloadOnlineImagery
             Progress = 0;
 
             // 创建取消令牌
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new System.Threading.CancellationTokenSource();
 
             try

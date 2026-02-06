@@ -16,6 +16,7 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 using Microsoft.Win32;
 using XIAOFUTools.Common;
 
@@ -91,6 +92,8 @@ namespace XIAOFUTools.Tools.FeatureToTxt
     /// </summary>
     internal class FeatureToTxtDockPaneViewModel : PropertyChangedBase
     {
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
 
         // 取消操作标志
@@ -620,7 +623,7 @@ namespace XIAOFUTools.Tools.FeatureToTxt
                 // 订阅地图选择变化事件
                 try
                 {
-                    MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+                    _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
                 }
                 catch (Exception ex)
                 {
@@ -1299,6 +1302,18 @@ namespace XIAOFUTools.Tools.FeatureToTxt
             {
                 LogError($"打开字段配置对话框失败: {ex.Message}");
                 StatusMessage = $"打开字段配置对话框失败: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// 清理事件订阅
+        /// </summary>
+        public void Cleanup()
+        {
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
             }
         }
 
@@ -2819,7 +2834,6 @@ namespace XIAOFUTools.Tools.FeatureToTxt
                 }
 
                 // 获取字段值 - 按固定顺序：点数,地块面积,地块编号,地块名称,图形类型,图幅号,地块用途,地类编码
-                var pointCount = 0;
                 var fieldValues = new List<string>();
 
                 // 1. 点数 - 稍后计算
@@ -3225,6 +3239,7 @@ namespace XIAOFUTools.Tools.FeatureToTxt
             catch (Exception ex)
             {
                 // 如果高性能方法失败，回退到原方法
+                System.Diagnostics.Debug.WriteLine($"高性能方法失败，回退到原方法: {ex.Message}");
                 WriteFeatureCoordinates(geometry, content, fieldValues, featureIndex);
             }
         }

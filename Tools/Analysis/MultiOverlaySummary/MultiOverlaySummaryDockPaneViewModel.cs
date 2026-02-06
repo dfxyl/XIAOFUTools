@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ArcGIS.Core.Data;
@@ -828,65 +829,139 @@ namespace XIAOFUTools.Tools.MultiOverlaySummary
             }
         }
 
+        /// <summary>
+        /// 设置单元格值并释放 COM 对象
+        /// </summary>
+        private void SetCellValue(Excel.Worksheet ws, int row, int col, object value)
+        {
+            Excel.Range cell = null;
+            try
+            {
+                cell = (Excel.Range)ws.Cells[row, col];
+                cell.Value2 = value;
+            }
+            finally
+            {
+                if (cell != null) Marshal.ReleaseComObject(cell);
+            }
+        }
+
+        /// <summary>
+        /// 设置单元格值和数字格式并释放 COM 对象
+        /// </summary>
+        private void SetCellValueWithFormat(Excel.Worksheet ws, int row, int col, object value, string numberFormat)
+        {
+            Excel.Range cell = null;
+            try
+            {
+                cell = (Excel.Range)ws.Cells[row, col];
+                cell.Value2 = value;
+                cell.NumberFormat = numberFormat;
+            }
+            finally
+            {
+                if (cell != null) Marshal.ReleaseComObject(cell);
+            }
+        }
+
         private void ExportToExcel(string filePath)
         {
             Excel.Application excelApp = null;
+            Excel.Workbooks workbooks = null;
             Excel.Workbook workbook = null;
+            Excel.Sheets sheets = null;
             Excel.Worksheet worksheet = null;
+            Excel.Range headerRange = null;
+            Excel.Range headerCell1 = null;
+            Excel.Range headerCell2 = null;
+            Excel.Range totalRowRange = null;
+            Excel.Range totalCell1 = null;
+            Excel.Range totalCell2 = null;
+            Excel.Range columns = null;
+            Excel.Range dataRange = null;
+            Excel.Range dataCell1 = null;
+            Excel.Range dataCell2 = null;
+            Excel.Borders borders = null;
 
             try
             {
                 excelApp = new Excel.Application { Visible = false, DisplayAlerts = false };
-                workbook = excelApp.Workbooks.Add();
-                worksheet = (Excel.Worksheet)workbook.Sheets[1];
+                workbooks = excelApp.Workbooks;
+                workbook = workbooks.Add();
+                sheets = workbook.Sheets;
+                worksheet = (Excel.Worksheet)sheets[1];
                 worksheet.Name = "多图层压盖汇总表";
 
+                // 写入表头
                 for (int col = 0; col < ResultTable.Columns.Count; col++)
-                    worksheet.Cells[1, col + 1] = ResultTable.Columns[col].ColumnName;
+                    SetCellValue(worksheet, 1, col + 1, ResultTable.Columns[col].ColumnName);
 
-                Excel.Range headerRange = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[1, ResultTable.Columns.Count]];
+                // 设置表头样式
+                headerCell1 = (Excel.Range)worksheet.Cells[1, 1];
+                headerCell2 = (Excel.Range)worksheet.Cells[1, ResultTable.Columns.Count];
+                headerRange = worksheet.Range[headerCell1, headerCell2];
                 headerRange.Font.Bold = true;
                 headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.FromArgb(79, 129, 189));
                 headerRange.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.White);
                 headerRange.HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter;
 
+                // 写入数据行
+                string numberFormat = DecimalPlaces > 0 ? $"0.{new string('0', DecimalPlaces)}" : "0";
                 for (int row = 0; row < ResultTable.Rows.Count; row++)
                 {
                     for (int col = 0; col < ResultTable.Columns.Count; col++)
                     {
                         var value = ResultTable.Rows[row][col];
                         if (value is double d)
-                        {
-                            worksheet.Cells[row + 2, col + 1] = Math.Round(d, DecimalPlaces);
-                            ((Excel.Range)worksheet.Cells[row + 2, col + 1]).NumberFormat = DecimalPlaces > 0 ? $"0.{new string('0', DecimalPlaces)}" : "0";
-                        }
+                            SetCellValueWithFormat(worksheet, row + 2, col + 1, Math.Round(d, DecimalPlaces), numberFormat);
                         else
-                            worksheet.Cells[row + 2, col + 1] = value?.ToString() ?? "";
+                            SetCellValue(worksheet, row + 2, col + 1, value?.ToString() ?? "");
                     }
                 }
 
+                // 设置合计行样式
                 if (ResultTable.Rows.Count > 0)
                 {
-                    Excel.Range totalRowRange = worksheet.Range[
-                        worksheet.Cells[ResultTable.Rows.Count + 1, 1],
-                        worksheet.Cells[ResultTable.Rows.Count + 1, ResultTable.Columns.Count]];
+                    totalCell1 = (Excel.Range)worksheet.Cells[ResultTable.Rows.Count + 1, 1];
+                    totalCell2 = (Excel.Range)worksheet.Cells[ResultTable.Rows.Count + 1, ResultTable.Columns.Count];
+                    totalRowRange = worksheet.Range[totalCell1, totalCell2];
                     totalRowRange.Font.Bold = true;
                     totalRowRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.FromArgb(221, 235, 247));
                 }
 
-                worksheet.Columns.AutoFit();
+                // 自动列宽
+                columns = worksheet.Columns;
+                columns.AutoFit();
 
-                Excel.Range dataRange = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[ResultTable.Rows.Count + 1, ResultTable.Columns.Count]];
-                dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-                dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+                // 设置边框
+                dataCell1 = (Excel.Range)worksheet.Cells[1, 1];
+                dataCell2 = (Excel.Range)worksheet.Cells[ResultTable.Rows.Count + 1, ResultTable.Columns.Count];
+                dataRange = worksheet.Range[dataCell1, dataCell2];
+                borders = dataRange.Borders;
+                borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                borders.Weight = Excel.XlBorderWeight.xlThin;
 
                 workbook.SaveAs(filePath, Excel.XlFileFormat.xlOpenXMLWorkbook);
             }
             finally
             {
-                if (workbook != null) { workbook.Close(false); System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook); }
-                if (excelApp != null) { excelApp.Quit(); System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp); }
-                if (worksheet != null) System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
+                // 按从子到父的顺序释放 COM 对象，每个都有独立 try-catch
+                try { if (borders != null) Marshal.ReleaseComObject(borders); } catch { }
+                try { if (dataCell2 != null) Marshal.ReleaseComObject(dataCell2); } catch { }
+                try { if (dataCell1 != null) Marshal.ReleaseComObject(dataCell1); } catch { }
+                try { if (dataRange != null) Marshal.ReleaseComObject(dataRange); } catch { }
+                try { if (columns != null) Marshal.ReleaseComObject(columns); } catch { }
+                try { if (totalCell2 != null) Marshal.ReleaseComObject(totalCell2); } catch { }
+                try { if (totalCell1 != null) Marshal.ReleaseComObject(totalCell1); } catch { }
+                try { if (totalRowRange != null) Marshal.ReleaseComObject(totalRowRange); } catch { }
+                try { if (headerCell2 != null) Marshal.ReleaseComObject(headerCell2); } catch { }
+                try { if (headerCell1 != null) Marshal.ReleaseComObject(headerCell1); } catch { }
+                try { if (headerRange != null) Marshal.ReleaseComObject(headerRange); } catch { }
+                try { if (worksheet != null) Marshal.ReleaseComObject(worksheet); } catch { }
+                try { if (sheets != null) Marshal.ReleaseComObject(sheets); } catch { }
+                try { if (workbook != null) { workbook.Close(false); Marshal.ReleaseComObject(workbook); } } catch { }
+                try { if (workbooks != null) Marshal.ReleaseComObject(workbooks); } catch { }
+                try { if (excelApp != null) { excelApp.Quit(); Marshal.ReleaseComObject(excelApp); } } catch { }
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }

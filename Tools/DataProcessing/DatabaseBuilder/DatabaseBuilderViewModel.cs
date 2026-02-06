@@ -340,6 +340,7 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
         {
             IsProcessing = true;
             LogText = "";
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
 
             var startTime = DateTime.Now;

@@ -18,7 +18,7 @@ namespace XIAOFUTools.Tools.PdfToImages
     /// <summary>
     /// PDF批量转图片停靠窗格视图模型
     /// </summary>
-    internal class PdfToImagesDockPaneViewModel : DockPane, INotifyPropertyChanged
+    internal class PdfToImagesDockPaneViewModel : INotifyPropertyChanged
     {
         #region 属性
 
@@ -364,6 +364,7 @@ namespace XIAOFUTools.Tools.PdfToImages
             }
 
             IsProcessing = true;
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
             Progress = 0;
             IsProgressIndeterminate = false;

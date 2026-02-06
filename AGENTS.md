@@ -25,7 +25,7 @@ XIAOFUTools 是基于 ArcGIS Pro SDK 的 C# 扩展工具箱，采用 .NET 8.0 �
 - **框架**: .NET 8.0 + WPF
 - **架构**: MVVM
 - **目标平台**: ArcGIS Pro 3.6+
-- **当前版本**: 1.2.2
+- **当前版本**: 1.2.4
 
 ---
 

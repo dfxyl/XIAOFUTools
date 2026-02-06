@@ -80,7 +80,11 @@ namespace XIAOFUTools.Tools.Edit.Boundary.ViewStartPoint
             ClearGraphics(); // 清除现有图形
             if (AutoSelectFeature(clickPoint))
             {
-                var selectedSet = MapView.Active.Map.GetSelection();
+                var mapView = MapView.Active;
+                if (mapView == null) return;
+                var map = mapView.Map;
+                if (map == null) return;
+                var selectedSet = map.GetSelection();
                 var layer = selectedSet.ToDictionary().FirstOrDefault();
                 FeatureLayer featureLayer = layer.Key as FeatureLayer;
 
@@ -111,7 +115,10 @@ namespace XIAOFUTools.Tools.Edit.Boundary.ViewStartPoint
         private void HandleViewingMode(MapPoint clickPoint)
         {
             ClearGraphics(); // 清除现有图形
-            var map = MapView.Active.Map;
+            var mapView = MapView.Active;
+            if (mapView == null) return;
+            var map = mapView.Map;
+            if (map == null) return;
 
             var layers = map.GetLayersAsFlattenedList().OfType<FeatureLayer>()
                 .Where(l => IsLayerSelectable(l) && l.ShapeType == esriGeometryType.esriGeometryPolygon);

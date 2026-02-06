@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -1682,12 +1683,13 @@ namespace XIAOFUTools.Tools.User.Custom.DevZoneCheck
                 {
                     Excel.Application excelApp = null;
                     Excel.Workbook workbook = null;
+                    Excel.Worksheet worksheet = null;
 
                     try
                     {
                         excelApp = new Excel.Application { Visible = false };
                         workbook = excelApp.Workbooks.Add();
-                        var worksheet = (Excel.Worksheet)workbook.Sheets[1];
+                        worksheet = (Excel.Worksheet)workbook.Sheets[1];
                         worksheet.Name = "核查报告";
 
                         // 表头
@@ -1827,20 +1829,26 @@ namespace XIAOFUTools.Tools.User.Custom.DevZoneCheck
                         }
 
                         // 设置格式
-                        var headerRange = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[1, headers.Count]];
-                        headerRange.Font.Bold = true;
-                        headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
+                        Excel.Range headerRange = null;
+                        try
+                        {
+                            headerRange = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[1, headers.Count]];
+                            headerRange.Font.Bold = true;
+                            headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
+                        }
+                        finally
+                        {
+                            try { if (headerRange != null) Marshal.ReleaseComObject(headerRange); } catch { }
+                        }
                         
                         worksheet.Columns.AutoFit();
                         workbook.SaveAs(saveDialog.FileName);
                     }
                     finally
                     {
-                        workbook?.Close(false);
-                        excelApp?.Quit();
-                        
-                        if (workbook != null) System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
-                        if (excelApp != null) System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
+                        try { if (worksheet != null) Marshal.ReleaseComObject(worksheet); } catch { }
+                        try { if (workbook != null) { workbook.Close(false); Marshal.ReleaseComObject(workbook); } } catch { }
+                        try { if (excelApp != null) { excelApp.Quit(); Marshal.ReleaseComObject(excelApp); } } catch { }
                     }
                 });
 

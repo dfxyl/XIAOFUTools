@@ -11,13 +11,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Docs\GEHistoricalImagery-master\**" />
-    <Compile Remove="Tools\新文件夹\**" />
     <EmbeddedResource Remove="Docs\GEHistoricalImagery-master\**" />
-    <EmbeddedResource Remove="Tools\新文件夹\**" />
     <None Remove="Docs\GEHistoricalImagery-master\**" />
-    <None Remove="Tools\新文件夹\**" />
     <Page Remove="Docs\GEHistoricalImagery-master\**" />
-    <Page Remove="Tools\新文件夹\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Config.daml" />
@@ -386,7 +382,7 @@
       <Lcid>0</Lcid>
       <WrapperTool>primary</WrapperTool>
       <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
     <COMReference Include="Microsoft.Office.Interop.Word">
       <Guid>{00020905-0000-0000-C000-000000000046}</Guid>
@@ -395,7 +391,7 @@
       <Lcid>0</Lcid>
       <WrapperTool>primary</WrapperTool>
       <Isolated>False</Isolated>
-      <EmbedInteropTypes>False</EmbedInteropTypes>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
   </ItemGroup>
   <ItemGroup>
@@ -498,7 +494,7 @@
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="System.Management" Version="10.0.0" />
+    <PackageReference Include="System.Management" Version="8.0.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
     <PackageReference Include="netDxf" Version="2023.11.10" />
     <PackageReference Include="PDFtoImage" Version="5.2.0" />

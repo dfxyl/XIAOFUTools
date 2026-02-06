@@ -216,36 +216,45 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
 
         private async void LoadLayouts()
         {
-            await QueuedTask.Run(() =>
+            try
             {
-                var project = Project.Current;
-                if (project == null) return;
-                var layouts = project.GetItems<LayoutProjectItem>().ToList();
-                Application.Current.Dispatcher.Invoke(() =>
+                await QueuedTask.Run(() =>
                 {
-                    Layouts.Clear();
-                    foreach (var layout in layouts) Layouts.Add(layout);
-                    if (Layouts.Count > 0) SelectedLayout = Layouts[0];
+                    var project = Project.Current;
+                    if (project == null) return;
+                    var layouts = project.GetItems<LayoutProjectItem>().ToList();
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        Layouts.Clear();
+                        foreach (var layout in layouts) Layouts.Add(layout);
+                        if (Layouts.Count > 0) SelectedLayout = Layouts[0];
+                    });
                 });
-            });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
 
         private void RefreshLayouts() => LoadLayouts();
 
         private async void LoadMapSeriesPages()
         {
-            if (SelectedLayout == null)
+            try
             {
-                MapSeriesStatus = "请选择布局";
-                MapSeriesStatusColor = new SolidColorBrush(Colors.Gray);
-                Application.Current.Dispatcher.Invoke(() => MapSeriesPages.Clear());
-                return;
-            }
-
-            await QueuedTask.Run(() =>
-            {
-                try
+                if (SelectedLayout == null)
                 {
+                    MapSeriesStatus = "请选择布局";
+                    MapSeriesStatusColor = new SolidColorBrush(Colors.Gray);
+                    Application.Current.Dispatcher.Invoke(() => MapSeriesPages.Clear());
+                    return;
+                }
+
+                await QueuedTask.Run(() =>
+                {
+                    try
+                    {
                     var layout = SelectedLayout.GetLayout();
                     if (layout == null)
                     {
@@ -273,7 +282,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                     var pageCount = mapSeries.PageCount;
                     var pageNames = new List<string>();
                     
-                    // 优化：直接从索引图层批量查询页面名称，避免逐页切换
+                    // 优化：直接从索引图层批量查询页面名称，使用与地图系列相同的排序
                     var spatialMapSeries = mapSeries as SpatialMapSeries;
                     var smsDefinition = mapSeries.GetDefinition() as CIMSpatialMapSeries;
                     
@@ -284,92 +293,98 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                         string sortField = smsDefinition.SortField;
                         bool sortAscending = smsDefinition.SortAscending;
                         
+                        System.Diagnostics.Debug.WriteLine($"[驱动制图] 索引图层: {indexLayer?.Name}, 名称字段: {nameField}, 排序字段: {sortField}, 页数: {pageCount}");
+                        
                         if (indexLayer != null && !string.IsNullOrEmpty(nameField))
                         {
-                            using (var table = indexLayer.GetTable())
+                            try
                             {
-                                // 构建排序查询
-                                var queryFilter = new QueryFilter
+                                using (var table = indexLayer.GetTable())
                                 {
-                                    SubFields = string.IsNullOrEmpty(sortField) ? nameField : $"{nameField},{sortField}"
-                                };
-                                
-                                // 使用临时列表存储结果
-                                var pageData = new List<(string Name, object SortValue)>();
-                                
-                                using (var cursor = table.Search(queryFilter))
-                                {
-                                    while (cursor.MoveNext())
+                                    // 先尝试带排序的查询
+                                    QueryFilter queryFilter;
+                                    var sortFieldName = !string.IsNullOrEmpty(sortField) ? sortField : nameField;
+                                    var sortOrder = sortAscending ? "ASC" : "DESC";
+                                    
+                                    try
                                     {
-                                        using (var row = cursor.Current)
+                                        // 尝试使用 ORDER BY（某些数据源可能不支持）
+                                        queryFilter = new QueryFilter
                                         {
-                                            var name = row[nameField]?.ToString() ?? "";
-                                            object sortValue = null;
-                                            if (!string.IsNullOrEmpty(sortField))
+                                            SubFields = nameField,
+                                            PostfixClause = $"ORDER BY {sortFieldName} {sortOrder}"
+                                        };
+                                        
+                                        using (var cursor = table.Search(queryFilter))
+                                        {
+                                            while (cursor.MoveNext())
                                             {
-                                                try { sortValue = row[sortField]; }
-                                                catch { sortValue = name; }
+                                                using (var row = cursor.Current)
+                                                {
+                                                    var name = row[nameField]?.ToString() ?? "";
+                                                    pageNames.Add(string.IsNullOrEmpty(name) ? "未命名" : name);
+                                                }
                                             }
-                                            else
-                                            {
-                                                sortValue = name;
-                                            }
-                                            pageData.Add((name, sortValue));
                                         }
+                                        System.Diagnostics.Debug.WriteLine($"[驱动制图] 批量查询成功，获取 {pageNames.Count} 条记录");
+                                    }
+                                    catch (Exception orderEx)
+                                    {
+                                        // ORDER BY 不支持，使用无排序查询
+                                        System.Diagnostics.Debug.WriteLine($"[驱动制图] ORDER BY 不支持: {orderEx.Message}，使用无排序查询");
+                                        queryFilter = new QueryFilter { SubFields = nameField };
+                                        
+                                        using (var cursor = table.Search(queryFilter))
+                                        {
+                                            while (cursor.MoveNext())
+                                            {
+                                                using (var row = cursor.Current)
+                                                {
+                                                    var name = row[nameField]?.ToString() ?? "";
+                                                    pageNames.Add(string.IsNullOrEmpty(name) ? "未命名" : name);
+                                                }
+                                            }
+                                        }
+                                        System.Diagnostics.Debug.WriteLine($"[驱动制图] 无排序查询成功，获取 {pageNames.Count} 条记录");
                                     }
                                 }
-                                
-                                // 根据排序字段排序
-                                IEnumerable<(string Name, object SortValue)> sorted;
-                                if (sortAscending)
-                                    sorted = pageData.OrderBy(p => p.SortValue?.ToString() ?? "");
-                                else
-                                    sorted = pageData.OrderByDescending(p => p.SortValue?.ToString() ?? "");
-                                
-                                pageNames = sorted.Select(p => string.IsNullOrEmpty(p.Name) ? "未命名" : p.Name).ToList();
+                            }
+                            catch (Exception queryEx)
+                            {
+                                System.Diagnostics.Debug.WriteLine($"[驱动制图] 批量查询失败: {queryEx.Message}");
                             }
                         }
                     }
                     
-                    // 如果批量查询失败或结果为空，回退到传统方法（仅当页数较少时）
+                    // 如果批量查询失败或结果为空，直接用页码显示（不遍历，避免卡死）
                     if (pageNames.Count == 0)
                     {
-                        if (pageCount <= 100)
+                        System.Diagnostics.Debug.WriteLine($"[驱动制图] 批量查询无结果，使用页码显示 {pageCount} 页");
+                        for (int i = 1; i <= pageCount; i++)
                         {
-                            // 页数较少时使用传统方法
-                            var currentPage = mapSeries.CurrentPageNumber;
-                            for (int i = 1; i <= pageCount; i++)
-                            {
-                                mapSeries.SetCurrentPageNumber(i.ToString());
-                                pageNames.Add(mapSeries.CurrentPageName ?? $"页面 {i}");
-                            }
-                            if (!string.IsNullOrEmpty(currentPage))
-                                mapSeries.SetCurrentPageNumber(currentPage);
-                        }
-                        else
-                        {
-                            // 页数较多时只显示页码
-                            for (int i = 1; i <= pageCount; i++)
-                            {
-                                pageNames.Add($"页面 {i}");
-                            }
+                            pageNames.Add($"页面 {i}");
                         }
                     }
 
-                    // 先在后台线程准备好所有数据项（新集合）
-                    var newPages = new ObservableCollection<MapSeriesPageItem>();
+                    // 先在后台线程准备好所有数据项（使用 List 而非 ObservableCollection，性能更好）
+                    System.Diagnostics.Debug.WriteLine($"[驱动制图] 开始创建 {pageNames.Count} 个页面项...");
+                    var newPages = new List<MapSeriesPageItem>(pageNames.Count);
                     for (int i = 0; i < pageNames.Count; i++)
                     {
                         newPages.Add(new MapSeriesPageItem { PageIndex = i + 1, PageName = pageNames[i], IsSelected = true });
                     }
+                    System.Diagnostics.Debug.WriteLine($"[驱动制图] 页面项创建完成，准备更新UI...");
                     
-                    // 在UI线程上直接替换集合，只触发一次UI更新
-                    Application.Current.Dispatcher.Invoke(() =>
+                    // 在UI线程上异步更新，避免阻塞
+                    Application.Current.Dispatcher.BeginInvoke(new Action(() =>
                     {
+                        System.Diagnostics.Debug.WriteLine($"[驱动制图] UI更新开始...");
                         MapSeriesStatus = $"地图系列已启用，共 {pageNames.Count} 页";
                         MapSeriesStatusColor = new SolidColorBrush(Colors.Green);
-                        MapSeriesPages = newPages;
-                    });
+                        // 直接替换为新的 ObservableCollection
+                        MapSeriesPages = new ObservableCollection<MapSeriesPageItem>(newPages);
+                        System.Diagnostics.Debug.WriteLine($"[驱动制图] UI更新完成");
+                    }), System.Windows.Threading.DispatcherPriority.Background);
                 }
                 catch (Exception ex)
                 {
@@ -381,6 +396,11 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                     });
                 }
             });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
 
         private void RefreshMapSeries()
@@ -394,41 +414,48 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
 
         private async void NavigateToPage(MapSeriesPageItem page)
         {
-            if (page == null || SelectedLayout == null) return;
-            
-            // 避免重复切换同一页面
-            if (_lastNavigatedPageIndex == page.PageIndex) return;
-            _lastNavigatedPageIndex = page.PageIndex;
-            
-            await QueuedTask.Run(async () =>
+            try
             {
-                try
+                if (page == null || SelectedLayout == null) return;
+                
+                // 避免重复切换同一页面
+                if (_lastNavigatedPageIndex == page.PageIndex) return;
+                _lastNavigatedPageIndex = page.PageIndex;
+                
+                await QueuedTask.Run(async () =>
                 {
-                    var layout = SelectedLayout.GetLayout();
-                    var mapSeries = layout?.MapSeries;
-                    if (mapSeries != null && mapSeries.Enabled && page.PageIndex >= 1 && page.PageIndex <= mapSeries.PageCount)
+                    try
                     {
-                        // 切换页面前先清除之前的坐标表
-                        if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                        var layout = SelectedLayout.GetLayout();
+                        var mapSeries = layout?.MapSeries;
+                        if (mapSeries != null && mapSeries.Enabled && page.PageIndex >= 1 && page.PageIndex <= mapSeries.PageCount)
                         {
-                            ClearCoordinateTableElements(layout);
-                        }
-                        
-                        // 切换地图系列页面
-                        mapSeries.SetCurrentPageNumber(page.PageIndex.ToString());
-                        
-                        // 如果启用了坐标表生成，则生成新的坐标表
-                        if (_coordinateTableSettings?.EnableCoordinateTable == true)
-                        {
-                            GenerateCoordinateTableForCurrentPage(layout, mapSeries);
+                            // 切换页面前先清除之前的坐标表
+                            if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                            {
+                                ClearCoordinateTableElements(layout);
+                            }
+                            
+                            // 切换地图系列页面
+                            mapSeries.SetCurrentPageNumber(page.PageIndex.ToString());
+                            
+                            // 如果启用了坐标表生成，则生成新的坐标表
+                            if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                            {
+                                GenerateCoordinateTableForCurrentPage(layout, mapSeries);
+                            }
                         }
                     }
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"导航页面失败: {ex.Message}");
-                }
-            });
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"导航页面失败: {ex.Message}");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
 
         private void BrowseFolder()
@@ -672,29 +699,30 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         {
             try
             {
-                // 多次清除确保所有元素都被删除（组和子组可能需要多轮删除）
-                for (int round = 0; round < 3; round++)
+                System.Diagnostics.Debug.WriteLine("[驱动制图] 开始清除坐标表元素...");
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                
+                // 只清除一轮，使用更精确的名称匹配
+                var allElements = layout.GetElements().ToList();
+                System.Diagnostics.Debug.WriteLine($"[驱动制图] 布局共有 {allElements.Count} 个元素");
+                
+                var elementsToDelete = allElements
+                    .Where(e => e.Name != null && (
+                        e.Name.StartsWith("MapSeries_CoordTable_") ||
+                        e.Name.StartsWith("Group_") ||
+                        e.Name.StartsWith("Title_") ||
+                        e.Name.StartsWith("Header_") ||
+                        e.Name.StartsWith("Data_") ||
+                        e.Name.StartsWith("Edge_") ||
+                        e.Name.StartsWith("Area_") ||
+                        e.Name.StartsWith("EdgePad")))
+                    .ToList();
+                
+                System.Diagnostics.Debug.WriteLine($"[驱动制图] 需要删除 {elementsToDelete.Count} 个元素");
+                
+                if (elementsToDelete.Count > 0)
                 {
-                    var allElements = layout.GetElements().ToList();
-                    var elementsToDelete = allElements
-                        .Where(e => e.Name != null && (
-                            e.Name.StartsWith("MapSeries_CoordTable_") ||
-                            e.Name.StartsWith("Group_") ||
-                            e.Name.StartsWith("Title_") ||
-                            e.Name.StartsWith("Header_") ||
-                            e.Name.StartsWith("Data_") ||
-                            e.Name.StartsWith("Edge_") ||
-                            e.Name.StartsWith("Area_") ||
-                            e.Name.StartsWith("EdgePad")))
-                        .ToList();
-                    
-                    if (elementsToDelete.Count == 0) break;
-                    
-                    // 使用批量删除，减少Undo历史累积
-                    if (elementsToDelete.Count > 0)
-                    {
-                        layout.DeleteElements(elementsToDelete);
-                    }
+                    layout.DeleteElements(elementsToDelete);
                 }
                 
                 _currentCoordinateTableGroupName = null;
@@ -707,14 +735,8 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                     ClearBoundaryPointsFromMap(layout);
                 }
                 
-                // 强制同步布局状态
-                var _ = layout.GetElements().ToList();
-                
-                var layoutView = LayoutView.Active;
-                if (layoutView != null && layoutView.Layout == layout)
-                {
-                    layoutView.Refresh();
-                }
+                sw.Stop();
+                System.Diagnostics.Debug.WriteLine($"[驱动制图] 清除完成，耗时 {sw.ElapsedMilliseconds}ms");
             }
             catch (Exception ex)
             {
@@ -1473,7 +1495,6 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                         var candidatePositions = GetCandidateLabelPositions8Dir(points, i, pointLabelDistanceInMapUnits, geometry.SpatialReference);
                         
                         MapPoint bestPosition = candidatePositions[0];
-                        bool foundNonOverlap = false;
                         
                         // 压盖处理（检测与已有点号和边长的重叠）
                         if (settings.PointLabelOverlapMode == "压盖隐藏")
@@ -1515,7 +1536,6 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                                 if (!overlaps)
                                 {
                                     bestPosition = candidate;
-                                    foundNonOverlap = true;
                                     break;
                                 }
                             }
@@ -1559,7 +1579,6 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                         var edgeCandidates = GetEdgeLabelCandidatePositions(p1, p2, edgeLabelDistanceInMapUnits, points, geometry.SpatialReference);
                         
                         MapPoint bestEdgePos = edgeCandidates[0];
-                        bool edgeFoundNonOverlap = false;
                         
                         // 压盖处理（检测与已有点号和边长的重叠）
                         if (settings.EdgeLabelOverlapMode == "压盖隐藏")
@@ -1599,7 +1618,6 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                                 if (!overlaps)
                                 {
                                     bestEdgePos = candidate;
-                                    edgeFoundNonOverlap = true;
                                     break;
                                 }
                             }

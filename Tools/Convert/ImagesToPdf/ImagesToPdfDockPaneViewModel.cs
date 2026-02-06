@@ -19,7 +19,7 @@ namespace XIAOFUTools.Tools.ImagesToPdf
     /// <summary>
     /// 图片批量转PDF停靠窗格视图模型
     /// </summary>
-    internal class ImagesToPdfDockPaneViewModel : DockPane, INotifyPropertyChanged
+    internal class ImagesToPdfDockPaneViewModel : INotifyPropertyChanged
     {
         #region 属性
 
@@ -340,6 +340,7 @@ namespace XIAOFUTools.Tools.ImagesToPdf
             }
 
             IsProcessing = true;
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
             Progress = 0;
             IsProgressIndeterminate = false;
@@ -771,7 +772,7 @@ namespace XIAOFUTools.Tools.ImagesToPdf
 
         #region INotifyPropertyChanged
 
-        public new event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

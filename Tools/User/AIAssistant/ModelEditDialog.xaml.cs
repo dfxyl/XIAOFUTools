@@ -9,7 +9,6 @@ namespace XIAOFUTools.Tools.User.AIAssistant
     /// </summary>
     public partial class ModelEditDialog : ProWindow
     {
-        private bool _isEdit = false;
         private string _originalApiKey = null;
         private bool _isBuiltInKey = false;
         
@@ -91,7 +90,6 @@ namespace XIAOFUTools.Tools.User.AIAssistant
         /// </summary>
         public ModelEditDialog(ModelConfigViewModel model) : this()
         {
-            _isEdit = true;
             txtTitle.Text = "编辑模型";
             
             txtName.Text = model.Name;

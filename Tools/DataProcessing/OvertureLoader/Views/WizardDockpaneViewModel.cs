@@ -213,6 +213,16 @@ namespace XIAOFUTools.Tools.OvertureLoader.Views
         // Add CancellationTokenSource for cancelling operations
         private CancellationTokenSource _cts;
 
+        private static readonly HttpClient _httpClient = new HttpClient()
+        {
+            Timeout = TimeSpan.FromSeconds(30)
+        };
+
+        static WizardDockpaneViewModel()
+        {
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "ArcGIS-Pro-Overture-Plugin/1.0");
+        }
+
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
@@ -1198,12 +1208,7 @@ https://github.com/COF-RyLopez/ArcGISPro-GeoParquet-Addin
                 {
                     return await RetryAsync(async () =>
                     {
-                        using var client = new HttpClient();
-                        // Configure HttpClient for better performance
-                        client.Timeout = TimeSpan.FromSeconds(30);
-                        client.DefaultRequestHeaders.Add("User-Agent", "ArcGIS-Pro-Overture-Plugin/1.0");
-
-                        var response = await client.GetStringAsync(RELEASE_URL);
+                        var response = await _httpClient.GetStringAsync(RELEASE_URL);
                         System.Diagnostics.Debug.WriteLine($"Release API Response: {response}");
 
                         // UI updates must be dispatched back to UI thread

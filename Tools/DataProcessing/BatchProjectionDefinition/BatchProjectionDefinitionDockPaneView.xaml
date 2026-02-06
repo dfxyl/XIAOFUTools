@@ -15,16 +15,7 @@
                 <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             
-            <!-- 帮助按钮样式 -->
-            <Style x:Key="HelpButtonStyle" TargetType="Button" BasedOn="{StaticResource TextButtonStyle}">
-                <Setter Property="Width" Value="22"/>
-                <Setter Property="Height" Value="22"/>
-                <Setter Property="FontWeight" Value="Bold"/>
-                <Setter Property="Padding" Value="0"/>
-                <Setter Property="Margin" Value="0"/>
-                <Setter Property="HorizontalAlignment" Value="Left"/>
-                <Setter Property="VerticalAlignment" Value="Center"/>
-            </Style>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         </ResourceDictionary>
     </UserControl.Resources>
     

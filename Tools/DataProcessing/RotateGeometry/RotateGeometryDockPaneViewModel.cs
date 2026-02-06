@@ -5,6 +5,7 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 using ArcGIS.Desktop.Editing;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,8 @@ namespace XIAOFUTools.Tools.RotateGeometry
 {
     internal class RotateGeometryDockPaneViewModel : PropertyChangedBase
     {
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
         private ObservableCollection<FeatureLayer> _featureLayers = new ObservableCollection<FeatureLayer>();
         public ObservableCollection<FeatureLayer> FeatureLayers
@@ -262,7 +265,7 @@ namespace XIAOFUTools.Tools.RotateGeometry
         public RotateGeometryDockPaneViewModel()
         {
             RefreshLayers();
-            MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
         }
         #endregion
 
@@ -462,14 +465,14 @@ namespace XIAOFUTools.Tools.RotateGeometry
 
                                 processed++;
                                 int prog = total > 0 ? (int)(processed * 100.0 / total) : 0;
-                                System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { Progress = prog; StatusMessage = $"已处理 {processed}/{total}"; });
+                                _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { Progress = prog; StatusMessage = $"已处理 {processed}/{total}"; });
                             }
                         }
 
                         if (!CancelRequested)
                         {
                             var result = await editOp.ExecuteAsync();
-                            System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
+                            _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(() =>
                             {
                                 if (result)
                                 {
@@ -487,17 +490,17 @@ namespace XIAOFUTools.Tools.RotateGeometry
                         }
                         else
                         {
-                            System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { AppendLog("已取消"); StatusMessage = "已取消"; });
+                            _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { AppendLog("已取消"); StatusMessage = "已取消"; });
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { AppendLog("错误: " + ex.Message); StatusMessage = "错误"; });
+                    _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { AppendLog("错误: " + ex.Message); StatusMessage = "错误"; });
                 }
                 finally
                 {
-                    System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { IsProcessing = false; Progress = 0; });
+                    _ = System.Windows.Application.Current.Dispatcher.BeginInvoke(() => { IsProcessing = false; Progress = 0; });
                 }
             });
         }
@@ -670,7 +673,9 @@ namespace XIAOFUTools.Tools.RotateGeometry
                 });
                 bool isLine = gtype == GeometryType.Polyline;
                 bool isPolygon = gtype == GeometryType.Polygon;
-                System.Windows.Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
+                var dispatcher = System.Windows.Application.Current?.Dispatcher;
+                if (dispatcher != null)
+                    _ = dispatcher.BeginInvoke(new Action(() =>
                 {
                     bool beforeLine = IsLineLayer;
                     bool beforePolygon = IsPolygonLayer;
@@ -684,6 +689,15 @@ namespace XIAOFUTools.Tools.RotateGeometry
                 }));
             });
         }
+        public void Cleanup()
+        {
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
+            }
+        }
+
         private void ShowHelp()
         {
             var help = "旋转图形[线/面] 使用说明\n\n" +

@@ -216,29 +216,32 @@ namespace XIAOFUTools.Tools.SpecialCoordinateTransform
                 SelectedConversionType = ConversionTypes[0];
         }
 
-        private void LoadFeatureLayers()
+        private async void LoadFeatureLayers()
         {
             try
             {
+                var layers = await QueuedTask.Run(() =>
+                {
+                    var map = MapView.Active?.Map;
+                    if (map == null) return new List<FeatureLayer>();
+                    return map.GetLayersAsFlattenedList()
+                        .OfType<FeatureLayer>()
+                        .ToList();
+                });
+
                 FeatureLayers.Clear();
 
-                if (MapView.Active?.Map == null)
+                if (layers.Count == 0)
                 {
                     // 保留必要提示
                     AddLog("当前没有活动地图");
                     return;
                 }
 
-                var layers = MapView.Active.Map.GetLayersAsFlattenedList().OfType<FeatureLayer>();
-                var layerCount = 0;
-
                 foreach (var layer in layers)
                 {
                     FeatureLayers.Add(layer);
-                    layerCount++;
                 }
-
-                // 精简日志：不输出图层统计
 
                 // 如果有图层，默认选择第一个
                 if (FeatureLayers.Count > 0 && SelectedInputLayer == null)
@@ -375,6 +378,7 @@ namespace XIAOFUTools.Tools.SpecialCoordinateTransform
             Progress = 0;
             IsProgressIndeterminate = true;
             StatusMessage = "正在处理...";
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
 
             try
@@ -568,8 +572,6 @@ namespace XIAOFUTools.Tools.SpecialCoordinateTransform
             Progress = 0;
 
             var processedCount = 0;
-            var batchSize = 100; // 减小批次大小以提高响应性
-
             // 获取字段信息
             var inputDefinition = inputFeatureClass.GetDefinition();
             var outputDefinition = outputFeatureClass.GetDefinition();

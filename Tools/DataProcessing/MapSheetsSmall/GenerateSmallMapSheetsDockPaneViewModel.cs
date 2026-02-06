@@ -32,10 +32,17 @@ namespace XIAOFUTools.Tools.MapSheetsSmall
 
         private async void OnExtentCreated(Envelope env)
         {
-            _drawnExtent = env;
-            NotifyPropertyChanged(() => DrawnExtentText);
-            NotifyPropertyChanged(() => CanRun);
-            await FrameworkApplication.SetCurrentToolAsync("esri_mapping_exploreTool");
+            try
+            {
+                _drawnExtent = env;
+                NotifyPropertyChanged(() => DrawnExtentText);
+                NotifyPropertyChanged(() => CanRun);
+                await FrameworkApplication.SetCurrentToolAsync("esri_mapping_exploreTool");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
 
         public ObservableCollection<string> ScaleNames { get; } = new ObservableCollection<string>

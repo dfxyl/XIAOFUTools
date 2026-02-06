@@ -1,5 +1,6 @@
 using System;
 using System.Data;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -179,8 +180,20 @@ namespace XIAOFUTools.Tools.IntersectSummary
         private void ExportToExcel(string filePath)
         {
             Excel.Application excelApp = null;
+            Excel.Workbooks workbooks = null;
             Excel.Workbook workbook = null;
+            Excel.Sheets sheets = null;
             Excel.Worksheet worksheet = null;
+            Excel.Range headerRange = null;
+            Excel.Range headerCell1 = null;
+            Excel.Range headerCell2 = null;
+            Excel.Range totalRowRange = null;
+            Excel.Range totalRowCell1 = null;
+            Excel.Range totalRowCell2 = null;
+            Excel.Range dataRange = null;
+            Excel.Range dataRangeCell1 = null;
+            Excel.Range dataRangeCell2 = null;
+            Excel.Range columns = null;
 
             try
             {
@@ -188,18 +201,30 @@ namespace XIAOFUTools.Tools.IntersectSummary
                 excelApp.Visible = false;
                 excelApp.DisplayAlerts = false;
 
-                workbook = excelApp.Workbooks.Add();
-                worksheet = (Excel.Worksheet)workbook.Sheets[1];
+                workbooks = excelApp.Workbooks;
+                workbook = workbooks.Add();
+                sheets = workbook.Sheets;
+                worksheet = (Excel.Worksheet)sheets[1];
                 worksheet.Name = "交集汇总表";
 
                 // 写入列标题
                 for (int col = 0; col < _dataTable.Columns.Count; col++)
                 {
-                    worksheet.Cells[1, col + 1] = _dataTable.Columns[col].ColumnName;
+                    Excel.Range cell = (Excel.Range)worksheet.Cells[1, col + 1];
+                    try
+                    {
+                        cell.Value2 = _dataTable.Columns[col].ColumnName;
+                    }
+                    finally
+                    {
+                        if (cell != null) Marshal.ReleaseComObject(cell);
+                    }
                 }
 
                 // 设置标题行样式
-                Excel.Range headerRange = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[1, _dataTable.Columns.Count]];
+                headerCell1 = (Excel.Range)worksheet.Cells[1, 1];
+                headerCell2 = (Excel.Range)worksheet.Cells[1, _dataTable.Columns.Count];
+                headerRange = worksheet.Range[headerCell1, headerCell2];
                 headerRange.Font.Bold = true;
                 headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.FromArgb(79, 129, 189));
                 headerRange.Font.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.White);
@@ -213,16 +238,24 @@ namespace XIAOFUTools.Tools.IntersectSummary
                 {
                     for (int col = 0; col < _dataTable.Columns.Count; col++)
                     {
-                        var value = _dataTable.Rows[row][col];
-                        if (value is double d)
+                        Excel.Range cell = (Excel.Range)worksheet.Cells[row + 2, col + 1];
+                        try
                         {
-                            worksheet.Cells[row + 2, col + 1] = Math.Round(d, _decimalPlaces);
-                            string format = _decimalPlaces > 0 ? $"0.{new string('0', _decimalPlaces)}" : "0";
-                            ((Excel.Range)worksheet.Cells[row + 2, col + 1]).NumberFormat = format;
+                            var value = _dataTable.Rows[row][col];
+                            if (value is double d)
+                            {
+                                cell.Value2 = Math.Round(d, _decimalPlaces);
+                                string format = _decimalPlaces > 0 ? $"0.{new string('0', _decimalPlaces)}" : "0";
+                                cell.NumberFormat = format;
+                            }
+                            else
+                            {
+                                cell.Value2 = value?.ToString() ?? "";
+                            }
                         }
-                        else
+                        finally
                         {
-                            worksheet.Cells[row + 2, col + 1] = value?.ToString() ?? "";
+                            if (cell != null) Marshal.ReleaseComObject(cell);
                         }
                     }
                 }
@@ -278,17 +311,26 @@ namespace XIAOFUTools.Tools.IntersectSummary
                         {
                             if (row > mergeStartRow + 1)
                             {
+                                Excel.Range mergeCell1 = null;
+                                Excel.Range mergeCell2 = null;
+                                Excel.Range mergeRange = null;
                                 try
                                 {
                                     int excelStartRow = mergeStartRow + 2;
                                     int excelEndRow = row + 1;
-                                    Excel.Range mergeRange = worksheet.Range[
-                                        worksheet.Cells[excelStartRow, col + 1],
-                                        worksheet.Cells[excelEndRow, col + 1]];
+                                    mergeCell1 = (Excel.Range)worksheet.Cells[excelStartRow, col + 1];
+                                    mergeCell2 = (Excel.Range)worksheet.Cells[excelEndRow, col + 1];
+                                    mergeRange = worksheet.Range[mergeCell1, mergeCell2];
                                     mergeRange.Merge();
                                     mergeRange.VerticalAlignment = Excel.XlVAlign.xlVAlignCenter;
                                 }
                                 catch { }
+                                finally
+                                {
+                                    try { if (mergeRange != null) Marshal.ReleaseComObject(mergeRange); } catch { }
+                                    try { if (mergeCell2 != null) Marshal.ReleaseComObject(mergeCell2); } catch { }
+                                    try { if (mergeCell1 != null) Marshal.ReleaseComObject(mergeCell1); } catch { }
+                                }
                             }
 
                             mergeStartRow = row;
@@ -301,18 +343,21 @@ namespace XIAOFUTools.Tools.IntersectSummary
                 // 设置合计行样式（最后一行）
                 if (dataRowCount > 0)
                 {
-                    Excel.Range totalRowRange = worksheet.Range[
-                        worksheet.Cells[dataRowCount + 1, 1],
-                        worksheet.Cells[dataRowCount + 1, _dataTable.Columns.Count]];
+                    totalRowCell1 = (Excel.Range)worksheet.Cells[dataRowCount + 1, 1];
+                    totalRowCell2 = (Excel.Range)worksheet.Cells[dataRowCount + 1, _dataTable.Columns.Count];
+                    totalRowRange = worksheet.Range[totalRowCell1, totalRowCell2];
                     totalRowRange.Font.Bold = true;
                     totalRowRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.FromArgb(221, 235, 247));
                 }
 
                 // 自动调整列宽
-                worksheet.Columns.AutoFit();
+                columns = (Excel.Range)worksheet.Columns;
+                columns.AutoFit();
 
                 // 添加边框
-                Excel.Range dataRange = worksheet.Range[worksheet.Cells[1, 1], worksheet.Cells[dataRowCount + 1, _dataTable.Columns.Count]];
+                dataRangeCell1 = (Excel.Range)worksheet.Cells[1, 1];
+                dataRangeCell2 = (Excel.Range)worksheet.Cells[dataRowCount + 1, _dataTable.Columns.Count];
+                dataRange = worksheet.Range[dataRangeCell1, dataRangeCell2];
                 dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
                 dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
 
@@ -320,20 +365,22 @@ namespace XIAOFUTools.Tools.IntersectSummary
             }
             finally
             {
-                if (workbook != null)
-                {
-                    workbook.Close(false);
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
-                }
-                if (excelApp != null)
-                {
-                    excelApp.Quit();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-                }
-                if (worksheet != null)
-                {
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(worksheet);
-                }
+                // 按正确顺序释放 COM 对象：Range -> Worksheet -> Workbook -> Application
+                try { if (columns != null) Marshal.ReleaseComObject(columns); } catch { }
+                try { if (dataRange != null) Marshal.ReleaseComObject(dataRange); } catch { }
+                try { if (dataRangeCell2 != null) Marshal.ReleaseComObject(dataRangeCell2); } catch { }
+                try { if (dataRangeCell1 != null) Marshal.ReleaseComObject(dataRangeCell1); } catch { }
+                try { if (totalRowRange != null) Marshal.ReleaseComObject(totalRowRange); } catch { }
+                try { if (totalRowCell2 != null) Marshal.ReleaseComObject(totalRowCell2); } catch { }
+                try { if (totalRowCell1 != null) Marshal.ReleaseComObject(totalRowCell1); } catch { }
+                try { if (headerRange != null) Marshal.ReleaseComObject(headerRange); } catch { }
+                try { if (headerCell2 != null) Marshal.ReleaseComObject(headerCell2); } catch { }
+                try { if (headerCell1 != null) Marshal.ReleaseComObject(headerCell1); } catch { }
+                try { if (worksheet != null) Marshal.ReleaseComObject(worksheet); } catch { }
+                try { if (sheets != null) Marshal.ReleaseComObject(sheets); } catch { }
+                try { if (workbook != null) { workbook.Close(false); Marshal.ReleaseComObject(workbook); } } catch { }
+                try { if (workbooks != null) Marshal.ReleaseComObject(workbooks); } catch { }
+                try { if (excelApp != null) { excelApp.Quit(); Marshal.ReleaseComObject(excelApp); } } catch { }
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }

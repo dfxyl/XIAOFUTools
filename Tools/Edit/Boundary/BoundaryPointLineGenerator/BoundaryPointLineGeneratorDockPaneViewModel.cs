@@ -16,6 +16,7 @@ using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 using XIAOFUTools.Common;
 
 namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
@@ -29,6 +30,10 @@ namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
     /// </summary>
     internal class BoundaryPointLineGeneratorDockPaneViewModel : PropertyChangedBase
     {
+        private dynamic _mapViewInitializedToken;
+        private dynamic _activeMapViewChangedToken;
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
         private bool _cancelRequested;
         public bool CancelRequested { get => _cancelRequested; set => SetProperty(ref _cancelRequested, value); }
@@ -244,7 +249,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
             UpdateOutputPaths();
 
             // 订阅地图视图相关事件，自动刷新图层列表
-            MapViewInitializedEvent.Subscribe((args) =>
+            _mapViewInitializedToken = MapViewInitializedEvent.Subscribe((args) =>
             {
                 try
                 {
@@ -255,7 +260,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
                 }
                 catch { }
             });
-            ActiveMapViewChangedEvent.Subscribe((args) =>
+            _activeMapViewChangedToken = ActiveMapViewChangedEvent.Subscribe((args) =>
             {
                 try
                 {
@@ -267,7 +272,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
                 catch { }
             });
             // 订阅地图选择变化事件并初始化一次选择信息
-            MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
             UpdateSelectionInfo();
         }
 
@@ -817,6 +822,28 @@ namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
             _logBuilder.AppendLine($"[{DateTime.Now:HH:mm:ss}] {msg}");
             System.Windows.Application.Current?.Dispatcher.Invoke(() => LogContent = _logBuilder.ToString());
         }
+        /// <summary>
+        /// 清理事件订阅
+        /// </summary>
+        public void Cleanup()
+        {
+            if (_mapViewInitializedToken != null)
+            {
+                MapViewInitializedEvent.Unsubscribe(_mapViewInitializedToken);
+                _mapViewInitializedToken = null;
+            }
+            if (_activeMapViewChangedToken != null)
+            {
+                ActiveMapViewChangedEvent.Unsubscribe(_activeMapViewChangedToken);
+                _activeMapViewChangedToken = null;
+            }
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
+            }
+        }
+
         private void ShowHelp()
         {
             var help = "界址点线生成\n\n" +

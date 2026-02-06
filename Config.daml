@@ -54,7 +54,7 @@
           <buttonPalette refID="XIAOFUTools_OutputButtonPalette" />
           <buttonPalette refID="XIAOFUTools_DwgButtonPalette" />
           <buttonPalette refID="XIAOFUTools_PdfButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_OvertureLoaderButton" />
+          <button refID="XIAOFUTools_OvertureLoaderButton" />
         </group>
         <!-- 数据分析/处理组 -->
         <group id="XIAOFUTools_DataProcessingGroup" caption="数据分析/处理" appearsOnAddInTab="false">
@@ -360,7 +360,7 @@
             <disabledText>无权限使用交集汇总表工具</disabledText></tooltip>
         </button>
         <!-- 多图层压盖汇总按钮 -->
-        <button id="XIAOFUTools_MultiOverlaySummaryButton" caption="多图层压盖汇总" className="XIAOFUTools.Tools.MultiOverlaySummary.MultiOverlaySummaryButton" loadOnClick="true" smallImage="Images\IntersectSummary_16.png" largeImage="Images\IntersectSummary_32.png">
+        <button id="XIAOFUTools_MultiOverlaySummaryButton" caption="多图层压盖汇总" className="XIAOFUTools.Tools.MultiOverlaySummary.MultiOverlaySummaryButton" loadOnClick="true" smallImage="Images\MultiOverlaySummary_16.png" largeImage="Images\MultiOverlaySummary_32.png">
           <tooltip heading="多图层压盖汇总">
             计算主图层与多个压盖图层的交集面积，以图层名称为列名输出汇总表
             <disabledText>无权限使用多图层压盖汇总工具</disabledText></tooltip>
@@ -516,13 +516,13 @@
             <disabledText>无权限使用属性传递工具</disabledText></tooltip>
         </button>
         <!-- 旋转图形[线/面]按钮 -->
-        <button id="XIAOFUTools_RotateGeometryButton" caption="旋转图形[线/面]" className="XIAOFUTools.Tools.RotateGeometry.RotateGeometryButton" loadOnClick="true" smallImage="Images\SpecialCoordinateTransform_16.png" largeImage="Images\SpecialCoordinateTransform_32.png">
+        <button id="XIAOFUTools_RotateGeometryButton" caption="旋转图形[线/面]" className="XIAOFUTools.Tools.RotateGeometry.RotateGeometryButton" loadOnClick="true" smallImage="Images\RotateGeometry_16.png" largeImage="Images\RotateGeometry_32.png">
           <tooltip heading="旋转图形[线/面]">
             按统一角度或字段角度旋转线/面要素，支持线起点/中点/终点与面质心/起点锚点
             <disabledText>无权限使用旋转图形工具</disabledText></tooltip>
         </button>
         <!-- 提取协议线按钮 -->
-        <button id="XIAOFUTools_ProtocolLineExtractButton" caption="提取协议线" className="XIAOFUTools.Tools.ProtocolLineExtract.ProtocolLineExtractButton" loadOnClick="true" smallImage="Images\BoundaryPointLineGenerator_16.png" largeImage="Images\BoundaryPointLineGenerator_32.png">
+        <button id="XIAOFUTools_ProtocolLineExtractButton" caption="提取协议线" className="XIAOFUTools.Tools.ProtocolLineExtract.ProtocolLineExtractButton" loadOnClick="true" smallImage="Images\ProtocolLineExtract_16.png" largeImage="Images\ProtocolLineExtract_32.png">
           <tooltip heading="提取协议线">
             根据输入面要素图层提取共享边线（协议线），可选择合并相连线段
             <disabledText>无权限使用提取协议线工具</disabledText></tooltip>
@@ -685,7 +685,7 @@
             <disabledText>无权限使用驱动制图功能</disabledText></tooltip>
         </button>
         <!-- 开发区整合优化核查按钮 -->
-        <button id="XIAOFUTools_DevZoneCheckButton" caption="开发区整合优化核查(定制)" className="XIAOFUTools.Tools.User.Custom.DevZoneCheck.DevZoneCheckButton" loadOnClick="true" smallImage="Images\IntersectSummary_16.png" largeImage="Images\IntersectSummary_32.png">
+        <button id="XIAOFUTools_DevZoneCheckButton" caption="开发区整合优化核查(定制)" className="XIAOFUTools.Tools.User.Custom.DevZoneCheck.DevZoneCheckButton" loadOnClick="true" smallImage="Images\DevZoneCheck_16.png" largeImage="Images\DevZoneCheck_32.png">
           <tooltip heading="开发区整合优化核查(定制)">
             基于园区红线进行底线类、节约集约类、发展空间类核查分析，所有面积基于椭球面计算
             <disabledText>无权限使用开发区整合优化核查功能</disabledText></tooltip>

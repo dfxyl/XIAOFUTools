@@ -120,10 +120,13 @@ namespace XIAOFUTools.Tools.PresetLayers
 
                 await QueuedTask.Run(() =>
                 {
-                    // 将层添加到地图
-                    Layer newLayer = LayerFactory.Instance.CreateLayer(new Uri(layerPath), MapView.Active.Map);
+                    var mapView = MapView.Active;
+                    if (mapView?.Map == null) return;
 
-                    var map = MapView.Active.Map;
+                    // 将层添加到地图
+                    Layer newLayer = LayerFactory.Instance.CreateLayer(new Uri(layerPath), mapView.Map);
+
+                    var map = mapView.Map;
 
                     // 获取所有图层
                     var allLayers = map.Layers.ToList();

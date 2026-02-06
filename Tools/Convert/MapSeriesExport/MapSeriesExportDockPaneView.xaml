@@ -96,13 +96,24 @@
                                    VerticalAlignment="Center" Padding="4,2"/>
                     </Grid>
                     
-                    <!-- 列表 -->
+                    <!-- 列表 - 启用虚拟化支持大量数据 -->
                     <ListBox Grid.Row="1" x:Name="PageListBox" ItemsSource="{Binding MapSeriesPages}" Background="White"
-                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0">
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0"
+                             VirtualizingPanel.IsVirtualizing="True"
+                             VirtualizingPanel.VirtualizationMode="Recycling"
+                             VirtualizingPanel.ScrollUnit="Item"
+                             ScrollViewer.CanContentScroll="True"
+                             ScrollViewer.IsDeferredScrollingEnabled="True">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <VirtualizingStackPanel />
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
                         <ListBox.ItemContainerStyle>
                             <Style TargetType="ListBoxItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                                 <Setter Property="Padding" Value="0,1"/>
+                                <Setter Property="Height" Value="22"/>
                                 <EventSetter Event="MouseDoubleClick" Handler="ListBoxItem_MouseDoubleClick"/>
                             </Style>
                         </ListBox.ItemContainerStyle>

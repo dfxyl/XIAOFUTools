@@ -73,8 +73,8 @@ namespace XIAOFUTools.Tools.Analysis.PasteSymbology
 
                 try
                 {
-                    // 并行处理所有目标图层
-                    var tasks = targetLayers.Select(targetLayer => Task.Run(async () =>
+                    // 顺序处理所有目标图层（GP工具在MCT上执行，并行无实际加速）
+                    foreach (var targetLayer in targetLayers)
                     {
                         try
                         {
@@ -99,10 +99,7 @@ namespace XIAOFUTools.Tools.Analysis.PasteSymbology
                             // 记录异常信息但不中断其他任务
                             System.Diagnostics.Debug.WriteLine($"处理图层 {targetLayer.Name} 时发生异常: {ex.Message}");
                         }
-                    }));
-
-                    // 等待所有任务完成
-                    await Task.WhenAll(tasks);
+                    }
                     
                     progressDialog.Hide();
                     

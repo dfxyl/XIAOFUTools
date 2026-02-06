@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -13,7 +14,7 @@ using Excel = Microsoft.Office.Interop.Excel;
 
 namespace XIAOFUTools.Tools.ExcelToPdf
 {
-    internal class ExcelToPdfDockPaneViewModel : DockPane, INotifyPropertyChanged
+    internal class ExcelToPdfDockPaneViewModel : INotifyPropertyChanged
     {
         #region 属性
 
@@ -289,6 +290,7 @@ namespace XIAOFUTools.Tools.ExcelToPdf
             }
 
             IsProcessing = true;
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
             Progress = 0;
             IsProgressIndeterminate = false;
@@ -376,49 +378,60 @@ namespace XIAOFUTools.Tools.ExcelToPdf
             }
             finally
             {
-                if (excelApp != null)
-                {
-                    excelApp.Quit();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-                }
+                try { if (excelApp != null) { excelApp.Quit(); Marshal.ReleaseComObject(excelApp); } } catch { }
             }
         }
 
         private void ConvertExcelToPdf(Excel.Application excelApp, string excelFilePath, CancellationToken token)
         {
             Excel.Workbook workbook = null;
+            Excel.Workbooks workbooks = null;
 
             try
             {
-                workbook = excelApp.Workbooks.Open(excelFilePath);
+                workbooks = excelApp.Workbooks;
+                workbook = workbooks.Open(excelFilePath);
 
                 ApplyPageSettings(workbook);
 
                 if (SeparateWorksheets)
                 {
-                    foreach (Excel.Worksheet sheet in workbook.Worksheets)
+                    Excel.Sheets sheets = workbook.Worksheets;
+                    try
                     {
-                        if (token.IsCancellationRequested)
-                            break;
-
-                        try
+                        for (int i = 1; i <= sheets.Count; i++)
                         {
-                            string pdfName = $"{Path.GetFileNameWithoutExtension(excelFilePath)}_{sheet.Name}";
-                            string outputPath = GetOutputPdfPath(Path.GetDirectoryName(excelFilePath), pdfName);
+                            if (token.IsCancellationRequested)
+                                break;
 
-                            sheet.ExportAsFixedFormat(
-                                Excel.XlFixedFormatType.xlTypePDF,
-                                outputPath,
-                                Excel.XlFixedFormatQuality.xlQualityStandard,
-                                true,
-                                false);
+                            Excel.Worksheet sheet = (Excel.Worksheet)sheets[i];
+                            try
+                            {
+                                string pdfName = $"{Path.GetFileNameWithoutExtension(excelFilePath)}_{sheet.Name}";
+                                string outputPath = GetOutputPdfPath(Path.GetDirectoryName(excelFilePath), pdfName);
 
-                            LogMessage($"    - 工作表 '{sheet.Name}' 已导出");
+                                sheet.ExportAsFixedFormat(
+                                    Excel.XlFixedFormatType.xlTypePDF,
+                                    outputPath,
+                                    Excel.XlFixedFormatQuality.xlQualityStandard,
+                                    true,
+                                    false);
+
+                                LogMessage($"    - 工作表 '{sheet.Name}' 已导出");
+                            }
+                            catch (Exception ex)
+                            {
+                                LogError($"    - 导出工作表 '{sheet.Name}' 失败: {ex.Message}");
+                            }
+                            finally
+                            {
+                                Marshal.ReleaseComObject(sheet);
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            LogError($"    - 导出工作表 '{sheet.Name}' 失败: {ex.Message}");
-                        }
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(sheets);
                     }
                 }
                 else
@@ -436,54 +449,64 @@ namespace XIAOFUTools.Tools.ExcelToPdf
             }
             finally
             {
-                if (workbook != null)
-                {
-                    workbook.Close(false);
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
-                }
+                try { if (workbook != null) { workbook.Close(false); Marshal.ReleaseComObject(workbook); } } catch { }
+                try { if (workbooks != null) Marshal.ReleaseComObject(workbooks); } catch { }
             }
         }
 
         private void ApplyPageSettings(Excel.Workbook workbook)
         {
-            foreach (Excel.Worksheet sheet in workbook.Worksheets)
+            Excel.Sheets sheets = workbook.Worksheets;
+            try
             {
-                try
+                for (int i = 1; i <= sheets.Count; i++)
                 {
-                    if (SelectedPageOrientation == 1)
-                        sheet.PageSetup.Orientation = Excel.XlPageOrientation.xlLandscape;
-                    else if (SelectedPageOrientation == 2)
-                        sheet.PageSetup.Orientation = Excel.XlPageOrientation.xlPortrait;
+                    Excel.Worksheet sheet = (Excel.Worksheet)sheets[i];
+                    try
+                    {
+                        if (SelectedPageOrientation == 1)
+                            sheet.PageSetup.Orientation = Excel.XlPageOrientation.xlLandscape;
+                        else if (SelectedPageOrientation == 2)
+                            sheet.PageSetup.Orientation = Excel.XlPageOrientation.xlPortrait;
 
-                    if (SelectedPageSize == 1)
-                        sheet.PageSetup.PaperSize = Excel.XlPaperSize.xlPaperA4;
-                    else if (SelectedPageSize == 2)
-                        sheet.PageSetup.PaperSize = Excel.XlPaperSize.xlPaperA3;
+                        if (SelectedPageSize == 1)
+                            sheet.PageSetup.PaperSize = Excel.XlPaperSize.xlPaperA4;
+                        else if (SelectedPageSize == 2)
+                            sheet.PageSetup.PaperSize = Excel.XlPaperSize.xlPaperA3;
 
-                    if (SelectedPrintLayout == 1)
-                        sheet.PageSetup.Zoom = false;
-                    else if (SelectedPrintLayout == 2)
-                    {
-                        sheet.PageSetup.Zoom = false;
-                        sheet.PageSetup.FitToPagesWide = 1;
-                        sheet.PageSetup.FitToPagesTall = 1;
+                        if (SelectedPrintLayout == 1)
+                            sheet.PageSetup.Zoom = false;
+                        else if (SelectedPrintLayout == 2)
+                        {
+                            sheet.PageSetup.Zoom = false;
+                            sheet.PageSetup.FitToPagesWide = 1;
+                            sheet.PageSetup.FitToPagesTall = 1;
+                        }
+                        else if (SelectedPrintLayout == 3)
+                        {
+                            sheet.PageSetup.Zoom = false;
+                            sheet.PageSetup.FitToPagesWide = 1;
+                            sheet.PageSetup.FitToPagesTall = false;
+                        }
+                        else if (SelectedPrintLayout == 4)
+                        {
+                            sheet.PageSetup.Zoom = false;
+                            sheet.PageSetup.FitToPagesWide = false;
+                            sheet.PageSetup.FitToPagesTall = 1;
+                        }
                     }
-                    else if (SelectedPrintLayout == 3)
+                    catch
                     {
-                        sheet.PageSetup.Zoom = false;
-                        sheet.PageSetup.FitToPagesWide = 1;
-                        sheet.PageSetup.FitToPagesTall = false;
                     }
-                    else if (SelectedPrintLayout == 4)
+                    finally
                     {
-                        sheet.PageSetup.Zoom = false;
-                        sheet.PageSetup.FitToPagesWide = false;
-                        sheet.PageSetup.FitToPagesTall = 1;
+                        Marshal.ReleaseComObject(sheet);
                     }
                 }
-                catch
-                {
-                }
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(sheets);
             }
         }
 
@@ -630,7 +653,7 @@ namespace XIAOFUTools.Tools.ExcelToPdf
 
         #region INotifyPropertyChanged
 
-        public new event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

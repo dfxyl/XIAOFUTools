@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -207,6 +208,7 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
         {
             IsProcessing = true;
             LogText = "";
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
 
             var startTime = DateTime.Now;
@@ -428,6 +430,7 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
         {
             Excel.Application excelApp = null;
             Excel.Workbook workbook = null;
+            var worksheetsToRelease = new List<Excel.Worksheet>();
 
             try
             {
@@ -438,33 +441,87 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
                 workbook = excelApp.Workbooks.Add();
 
                 // 删除默认的工作表（保留一个）
-                while (workbook.Sheets.Count > 1)
+                Excel.Sheets defaultSheets = workbook.Sheets;
+                try
                 {
-                    ((Excel.Worksheet)workbook.Sheets[workbook.Sheets.Count]).Delete();
+                    while (defaultSheets.Count > 1)
+                    {
+                        Excel.Worksheet tempSheet = (Excel.Worksheet)defaultSheets[defaultSheets.Count];
+                        try
+                        {
+                            tempSheet.Delete();
+                        }
+                        finally
+                        {
+                            Marshal.ReleaseComObject(tempSheet);
+                        }
+                    }
+                }
+                finally
+                {
+                    Marshal.ReleaseComObject(defaultSheets);
                 }
 
                 // 创建要素集表（如果有要素集）
                 var usedNames = new HashSet<string>();
                 if (featureDatasets.Count > 0)
                 {
-                    var datasetSheet = (Excel.Worksheet)workbook.Sheets[1];
-                    datasetSheet.Name = "要素集";
-                    CreateFeatureDatasetSheet(datasetSheet, featureDatasets);
-                    usedNames.Add("要素集");
+                    Excel.Sheets sheets1 = workbook.Sheets;
+                    Excel.Worksheet datasetSheet = null;
+                    try
+                    {
+                        datasetSheet = (Excel.Worksheet)sheets1[1];
+                        datasetSheet.Name = "要素集";
+                        CreateFeatureDatasetSheet(datasetSheet, featureDatasets);
+                        usedNames.Add("要素集");
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(sheets1);
+                    }
+                    if (datasetSheet != null) worksheetsToRelease.Add(datasetSheet);
                     
                     // 添加图层表
-                    var summarySheet = (Excel.Worksheet)workbook.Sheets.Add(After: workbook.Sheets[workbook.Sheets.Count]);
-                    summarySheet.Name = "图层";
-                    CreateSummarySheet(summarySheet, featureClasses);
-                    usedNames.Add("图层");
+                    Excel.Sheets sheets2 = workbook.Sheets;
+                    Excel.Worksheet summarySheet = null;
+                    try
+                    {
+                        Excel.Worksheet afterSheet = (Excel.Worksheet)sheets2[sheets2.Count];
+                        try
+                        {
+                            summarySheet = (Excel.Worksheet)sheets2.Add(After: afterSheet);
+                        }
+                        finally
+                        {
+                            Marshal.ReleaseComObject(afterSheet);
+                        }
+                        summarySheet.Name = "图层";
+                        CreateSummarySheet(summarySheet, featureClasses);
+                        usedNames.Add("图层");
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(sheets2);
+                    }
+                    if (summarySheet != null) worksheetsToRelease.Add(summarySheet);
                 }
                 else
                 {
                     // 没有要素集，直接创建图层表
-                    var summarySheet = (Excel.Worksheet)workbook.Sheets[1];
-                    summarySheet.Name = "图层";
-                    CreateSummarySheet(summarySheet, featureClasses);
-                    usedNames.Add("图层");
+                    Excel.Sheets sheets1 = workbook.Sheets;
+                    Excel.Worksheet summarySheet = null;
+                    try
+                    {
+                        summarySheet = (Excel.Worksheet)sheets1[1];
+                        summarySheet.Name = "图层";
+                        CreateSummarySheet(summarySheet, featureClasses);
+                        usedNames.Add("图层");
+                    }
+                    finally
+                    {
+                        Marshal.ReleaseComObject(sheets1);
+                    }
+                    if (summarySheet != null) worksheetsToRelease.Add(summarySheet);
                 }
 
                 // 为每个要素类创建字段表
@@ -489,9 +546,27 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
                         }
                         usedNames.Add(sheetName);
 
-                        var fieldSheet = (Excel.Worksheet)workbook.Sheets.Add(After: workbook.Sheets[workbook.Sheets.Count]);
-                        fieldSheet.Name = sheetName;
-                        CreateFieldSheet(fieldSheet, fc);
+                        Excel.Sheets sheetsForField = workbook.Sheets;
+                        Excel.Worksheet fieldSheet = null;
+                        try
+                        {
+                            Excel.Worksheet afterSheet = (Excel.Worksheet)sheetsForField[sheetsForField.Count];
+                            try
+                            {
+                                fieldSheet = (Excel.Worksheet)sheetsForField.Add(After: afterSheet);
+                            }
+                            finally
+                            {
+                                Marshal.ReleaseComObject(afterSheet);
+                            }
+                            fieldSheet.Name = sheetName;
+                            CreateFieldSheet(fieldSheet, fc);
+                        }
+                        finally
+                        {
+                            Marshal.ReleaseComObject(sheetsForField);
+                        }
+                        if (fieldSheet != null) worksheetsToRelease.Add(fieldSheet);
                     }
                 }
 
@@ -507,16 +582,12 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
             }
             finally
             {
-                if (workbook != null)
+                foreach (var ws in worksheetsToRelease)
                 {
-                    workbook.Close(false);
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(workbook);
+                    try { Marshal.ReleaseComObject(ws); } catch { }
                 }
-                if (excelApp != null)
-                {
-                    excelApp.Quit();
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(excelApp);
-                }
+                try { if (workbook != null) { workbook.Close(false); Marshal.ReleaseComObject(workbook); } } catch { }
+                try { if (excelApp != null) { excelApp.Quit(); Marshal.ReleaseComObject(excelApp); } } catch { }
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
             }
@@ -543,11 +614,18 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
             }
 
             // 设置表头样式
-            var headerRange = sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, headers.Length]];
-            headerRange.Font.Bold = true;
-            headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
-            headerRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-            headerRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+            Excel.Range headerRange = sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, headers.Length]];
+            try
+            {
+                headerRange.Font.Bold = true;
+                headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
+                headerRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                headerRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(headerRange);
+            }
 
             // 数据行
             for (int i = 0; i < featureDatasets.Count; i++)
@@ -563,9 +641,16 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
             // 设置数据区域边框
             if (featureDatasets.Count > 0)
             {
-                var dataRange = sheet.Range[sheet.Cells[2, 1], sheet.Cells[featureDatasets.Count + 1, headers.Length]];
-                dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-                dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+                Excel.Range dataRange = sheet.Range[sheet.Cells[2, 1], sheet.Cells[featureDatasets.Count + 1, headers.Length]];
+                try
+                {
+                    dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                    dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+                }
+                finally
+                {
+                    Marshal.ReleaseComObject(dataRange);
+                }
             }
 
             // 自动调整列宽
@@ -582,11 +667,18 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
             }
 
             // 设置表头样式
-            var headerRange = sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, headers.Length]];
-            headerRange.Font.Bold = true;
-            headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
-            headerRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-            headerRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+            Excel.Range headerRange = sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, headers.Length]];
+            try
+            {
+                headerRange.Font.Bold = true;
+                headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
+                headerRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                headerRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(headerRange);
+            }
 
             // 数据行
             for (int i = 0; i < featureClasses.Count; i++)
@@ -605,9 +697,16 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
             // 设置数据区域边框
             if (featureClasses.Count > 0)
             {
-                var dataRange = sheet.Range[sheet.Cells[2, 1], sheet.Cells[featureClasses.Count + 1, headers.Length]];
-                dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-                dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+                Excel.Range dataRange = sheet.Range[sheet.Cells[2, 1], sheet.Cells[featureClasses.Count + 1, headers.Length]];
+                try
+                {
+                    dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                    dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+                }
+                finally
+                {
+                    Marshal.ReleaseComObject(dataRange);
+                }
             }
 
             // 自动调整列宽
@@ -624,11 +723,18 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
             }
 
             // 设置表头样式
-            var headerRange = sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, headers.Length]];
-            headerRange.Font.Bold = true;
-            headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
-            headerRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-            headerRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+            Excel.Range headerRange = sheet.Range[sheet.Cells[1, 1], sheet.Cells[1, headers.Length]];
+            try
+            {
+                headerRange.Font.Bold = true;
+                headerRange.Interior.Color = System.Drawing.ColorTranslator.ToOle(System.Drawing.Color.LightGray);
+                headerRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                headerRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+            }
+            finally
+            {
+                Marshal.ReleaseComObject(headerRange);
+            }
 
             // 数据行
             for (int i = 0; i < fc.Fields.Count; i++)
@@ -651,9 +757,16 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
             // 设置数据区域边框
             if (fc.Fields.Count > 0)
             {
-                var dataRange = sheet.Range[sheet.Cells[2, 1], sheet.Cells[fc.Fields.Count + 1, headers.Length]];
-                dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
-                dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+                Excel.Range dataRange = sheet.Range[sheet.Cells[2, 1], sheet.Cells[fc.Fields.Count + 1, headers.Length]];
+                try
+                {
+                    dataRange.Borders.LineStyle = Excel.XlLineStyle.xlContinuous;
+                    dataRange.Borders.Weight = Excel.XlBorderWeight.xlThin;
+                }
+                finally
+                {
+                    Marshal.ReleaseComObject(dataRange);
+                }
             }
 
             // 自动调整列宽

@@ -23,7 +23,7 @@ namespace XIAOFUTools.Tools.RotateGeometry
             pane?.Activate();
         }
 
-        internal static bool IsVisible()
+        internal static new bool IsVisible()
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             return pane?.IsVisible == true;

@@ -20,7 +20,7 @@
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,15">
             <Image Source="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericWarning32.png" 
                    Width="32" Height="32" Margin="0,0,10,0"/>
-            <TextBlock Text="{Binding Title}" 
+            <TextBlock Text="{Binding HeaderTitle}" 
                        FontSize="16" 
                        FontWeight="Bold" 
                        VerticalAlignment="Center"/>

@@ -91,6 +91,11 @@ namespace XIAOFUTools.Tools.HistoricalImagery
     /// </summary>
     internal class HistoricalImageryDockPaneViewModel : PropertyChangedBase
     {
+        private static readonly HttpClient _httpClient = new HttpClient()
+        {
+            Timeout = TimeSpan.FromSeconds(30)
+        };
+
         private ObservableCollection<TreeNode> _treeNodes;
         private bool _isLoading;
         private string _statusMessage;
@@ -621,54 +626,50 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         {
             var configUrl = "https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json";
 
-            using (var client = new HttpClient())
+            var response = await _httpClient.GetAsync(configUrl);
+            response.EnsureSuccessStatusCode();
+
+            var json = await response.Content.ReadAsStringAsync();
+            var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+
+            var versions = new List<WaybackVersion>();
+
+            foreach (var kvp in data)
             {
-                client.Timeout = TimeSpan.FromSeconds(30);
-                var response = await client.GetAsync(configUrl);
-                response.EnsureSuccessStatusCode();
+                var releaseNum = int.Parse(kvp.Key);
+                var item = kvp.Value;
 
-                var json = await response.Content.ReadAsStringAsync();
-                var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
+                string itemTitle = item.GetProperty("itemTitle").GetString();
+                string releaseDate = "";
+                int year = 0;
 
-                var versions = new List<WaybackVersion>();
-
-                foreach (var kvp in data)
+                // 从 itemTitle 中提取日期
+                var dateMatch = Regex.Match(itemTitle, @"(\d{4}-\d{2}-\d{2})");
+                if (dateMatch.Success)
                 {
-                    var releaseNum = int.Parse(kvp.Key);
-                    var item = kvp.Value;
-
-                    string itemTitle = item.GetProperty("itemTitle").GetString();
-                    string releaseDate = "";
-                    int year = 0;
-
-                    // 从 itemTitle 中提取日期
-                    var dateMatch = Regex.Match(itemTitle, @"(\d{4}-\d{2}-\d{2})");
-                    if (dateMatch.Success)
-                    {
-                        releaseDate = dateMatch.Groups[1].Value;
-                        year = int.Parse(releaseDate.Split('-')[0]);
-                    }
-
-                    // Wayback WMTS 瓦片服务格式（使用 wayback-a 服务器）
-                    string url = $"https://wayback-a.maptiles.arcgis.com/arcgis/rest/services/world_imagery/wmts/1.0.0/default028mm/mapserver/tile/{releaseNum}/{{level}}/{{row}}/{{col}}";
-                    
-                    // 获取元数据服务URL
-                    string metadataUrl = item.TryGetProperty("metadataLayerUrl", out var metaProp) ? metaProp.GetString() : null;
-
-                    versions.Add(new WaybackVersion
-                    {
-                        ReleaseNum = releaseNum,
-                        ReleaseDate = releaseDate,
-                        Year = year,
-                        ItemTitle = itemTitle,
-                        Url = url,
-                        MetadataLayerUrl = metadataUrl
-                    });
+                    releaseDate = dateMatch.Groups[1].Value;
+                    year = int.Parse(releaseDate.Split('-')[0]);
                 }
 
-                // 按日期降序排列
-                return versions.OrderByDescending(v => v.ReleaseDate).ToList();
+                // Wayback WMTS 瓦片服务格式（使用 wayback-a 服务器）
+                string url = $"https://wayback-a.maptiles.arcgis.com/arcgis/rest/services/world_imagery/wmts/1.0.0/default028mm/mapserver/tile/{releaseNum}/{{level}}/{{row}}/{{col}}";
+                
+                // 获取元数据服务URL
+                string metadataUrl = item.TryGetProperty("metadataLayerUrl", out var metaProp) ? metaProp.GetString() : null;
+
+                versions.Add(new WaybackVersion
+                {
+                    ReleaseNum = releaseNum,
+                    ReleaseDate = releaseDate,
+                    Year = year,
+                    ItemTitle = itemTitle,
+                    Url = url,
+                    MetadataLayerUrl = metadataUrl
+                });
             }
+
+            // 按日期降序排列
+            return versions.OrderByDescending(v => v.ReleaseDate).ToList();
         }
 
         /// <summary>
@@ -699,52 +700,49 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                     { "spatialRel", "esriSpatialRelIntersects" }
                 };
 
-                using (var client = new HttpClient())
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var content = new FormUrlEncodedContent(queryParams);
+                var response = await _httpClient.PostAsync(queryUrl, content, cts.Token);
+                response.EnsureSuccessStatusCode();
+
+                var json = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<JsonElement>(json);
+
+                // 检查错误
+                if (result.TryGetProperty("error", out var error))
                 {
-                    client.Timeout = TimeSpan.FromSeconds(10); // 减少超时时间到10秒
-                    var content = new FormUrlEncodedContent(queryParams);
-                    var response = await client.PostAsync(queryUrl, content);
-                    response.EnsureSuccessStatusCode();
-
-                    var json = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<JsonElement>(json);
-
-                    // 检查错误
-                    if (result.TryGetProperty("error", out var error))
-                    {
-                        return null;
-                    }
-
-                    // 检查是否有数据
-                    if (!result.TryGetProperty("features", out var features) || features.GetArrayLength() == 0)
-                    {
-                        return null;
-                    }
-
-                    // 解析第一个要素的属性
-                    var attrs = features[0].GetProperty("attributes");
-                    
-                    string acquisitionDate = null;
-                    if (attrs.TryGetProperty("SRC_DATE2", out var srcDate) && srcDate.ValueKind != JsonValueKind.Null)
-                    {
-                        long timestamp = srcDate.GetInt64();
-                        var date = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime;
-                        acquisitionDate = date.ToString("yyyy-MM-dd");
-                    }
-
-                    var metadata = new ImageryMetadata
-                    {
-                        AcquisitionDate = acquisitionDate,
-                        Provider = attrs.TryGetProperty("NICE_DESC", out var provider) ? provider.GetString() : "N/A",
-                        Satellite = attrs.TryGetProperty("SRC_DESC", out var satellite) ? satellite.GetString() : "N/A",
-                        Resolution = attrs.TryGetProperty("SAMP_RES", out var resolution) ? resolution.ToString() : "N/A",
-                        Accuracy = attrs.TryGetProperty("SRC_ACC", out var accuracy) ? accuracy.ToString() : "N/A",
-                        ZoomLevel = zoomLevel,
-                        ReleaseTitle = releaseTitle
-                    };
-
-                    return metadata;
+                    return null;
                 }
+
+                // 检查是否有数据
+                if (!result.TryGetProperty("features", out var features) || features.GetArrayLength() == 0)
+                {
+                    return null;
+                }
+
+                // 解析第一个要素的属性
+                var attrs = features[0].GetProperty("attributes");
+                
+                string acquisitionDate = null;
+                if (attrs.TryGetProperty("SRC_DATE2", out var srcDate) && srcDate.ValueKind != JsonValueKind.Null)
+                {
+                    long timestamp = srcDate.GetInt64();
+                    var date = DateTimeOffset.FromUnixTimeMilliseconds(timestamp).DateTime;
+                    acquisitionDate = date.ToString("yyyy-MM-dd");
+                }
+
+                var metadata = new ImageryMetadata
+                {
+                    AcquisitionDate = acquisitionDate,
+                    Provider = attrs.TryGetProperty("NICE_DESC", out var provider) ? provider.GetString() : "N/A",
+                    Satellite = attrs.TryGetProperty("SRC_DESC", out var satellite) ? satellite.GetString() : "N/A",
+                    Resolution = attrs.TryGetProperty("SAMP_RES", out var resolution) ? resolution.ToString() : "N/A",
+                    Accuracy = attrs.TryGetProperty("SRC_ACC", out var accuracy) ? accuracy.ToString() : "N/A",
+                    ZoomLevel = zoomLevel,
+                    ReleaseTitle = releaseTitle
+                };
+
+                return metadata;
             }
             catch
             {

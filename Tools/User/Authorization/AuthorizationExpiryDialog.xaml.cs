@@ -157,6 +157,7 @@ namespace XIAOFUTools.Tools.Authorization
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"授权过期对话框失败: {ex.Message}");
                 // 如果自定义对话框失败，回退到标准MessageBox
                 string warningMessage = $"授权即将过期！\n\n";
                 warningMessage += $"剩余时间: {remainingDays} 天\n";

@@ -269,68 +269,89 @@ namespace XIAOFUTools.Tools.AttributeTransferFields
         #region 加载图层/表 与 字段
         private async void LoadDatasets()
         {
-            LogInfo("正在加载图层/表...");
-            await QueuedTask.Run(() =>
+            try
             {
-                try
+                LogInfo("正在加载图层/表...");
+                await QueuedTask.Run(() =>
                 {
-                    var map = MapView.Active?.Map;
-                    if (map == null) return;
-
-                    var flayers = map.GetLayersAsFlattenedList().OfType<FeatureLayer>().ToList();
-                    var tables = map.GetStandaloneTablesAsFlattenedList().ToList();
-                    LogInfo($"图层数: {flayers.Count}，独立表数: {tables.Count}");
-
-                    // 在 MCT 线程过滤，确保仅保留可获取 Table 的数据集（支持 FeatureLayer.GetFeatureClass 兜底）
-                    var valid = new List<DatasetInfo>();
-                    foreach (var fl in flayers)
+                    try
                     {
-                        var tmp = new DatasetInfo { FeatureLayer = fl, DisplayName = fl?.Name };
-                        using (var tbl = TryGetTable(tmp))
+                        var map = MapView.Active?.Map;
+                        if (map == null) return;
+
+                        var flayers = map.GetLayersAsFlattenedList().OfType<FeatureLayer>().ToList();
+                        var tables = map.GetStandaloneTablesAsFlattenedList().ToList();
+                        LogInfo($"图层数: {flayers.Count}，独立表数: {tables.Count}");
+
+                        // 在 MCT 线程过滤，确保仅保留可获取 Table 的数据集（支持 FeatureLayer.GetFeatureClass 兜底）
+                        var valid = new List<DatasetInfo>();
+                        foreach (var fl in flayers)
                         {
-                            if (tbl != null) valid.Add(tmp);
+                            var tmp = new DatasetInfo { FeatureLayer = fl, DisplayName = fl?.Name };
+                            using (var tbl = TryGetTable(tmp))
+                            {
+                                if (tbl != null) valid.Add(tmp);
+                            }
+                        LogInfo($"可用数据源: {valid.Count}");
                         }
-                    LogInfo($"可用数据源: {valid.Count}");
+                        foreach (var t in tables)
+                        {
+                            var tmp = new DatasetInfo { StandaloneTable = t, DisplayName = t?.Name };
+                            using (var tbl = TryGetTable(tmp))
+                            {
+                                if (tbl != null) valid.Add(tmp);
+                            }
+                        }
+
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            // 重置选择与字段列表，避免旧选择触发字段加载
+                            SelectedPrimary = null;
+                            SelectedSecondary = null;
+                            PrimaryFieldList.Clear();
+                            SecondaryFieldList.Clear();
+                            PrimaryList.Clear();
+                            SecondaryList.Clear();
+                            foreach (var ds in valid)
+                            {
+                                // 分别为主/从构造独立实例，避免共享同一引用造成潜在绑定混淆
+                                PrimaryList.Add(new DatasetInfo { FeatureLayer = ds.FeatureLayer, StandaloneTable = ds.StandaloneTable, DisplayName = ds.DisplayName });
+                                SecondaryList.Add(new DatasetInfo { FeatureLayer = ds.FeatureLayer, StandaloneTable = ds.StandaloneTable, DisplayName = ds.DisplayName });
+                            }
+                        });
                     }
-                    foreach (var t in tables)
+                    catch (Exception ex)
                     {
-                        var tmp = new DatasetInfo { StandaloneTable = t, DisplayName = t?.Name };
-                        using (var tbl = TryGetTable(tmp))
-                        {
-                            if (tbl != null) valid.Add(tmp);
-                        }
+                        LogError($"加载图层/表时出错: {ex.Message}");
                     }
-
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                    {
-                        // 重置选择与字段列表，避免旧选择触发字段加载
-                        SelectedPrimary = null;
-                        SelectedSecondary = null;
-                        PrimaryFieldList.Clear();
-                        SecondaryFieldList.Clear();
-                        PrimaryList.Clear();
-                        SecondaryList.Clear();
-                        foreach (var ds in valid)
-                        {
-                            // 分别为主/从构造独立实例，避免共享同一引用造成潜在绑定混淆
-                            PrimaryList.Add(new DatasetInfo { FeatureLayer = ds.FeatureLayer, StandaloneTable = ds.StandaloneTable, DisplayName = ds.DisplayName });
-                            SecondaryList.Add(new DatasetInfo { FeatureLayer = ds.FeatureLayer, StandaloneTable = ds.StandaloneTable, DisplayName = ds.DisplayName });
-                        }
-                    });
-                }
-                catch (Exception ex)
-                {
-                    LogError($"加载图层/表时出错: {ex.Message}");
-                }
-            });
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
         private async void LoadPrimaryFields()
         {
-            await LoadFieldsInternal(SelectedPrimary, PrimaryFieldList, sideName: "主");
+            try
+            {
+                await LoadFieldsInternal(SelectedPrimary, PrimaryFieldList, sideName: "主");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
         private async void LoadSecondaryFields()
         {
-            await LoadFieldsInternal(SelectedSecondary, SecondaryFieldList, sideName: "从");
+            try
+            {
+                await LoadFieldsInternal(SelectedSecondary, SecondaryFieldList, sideName: "从");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
         private async Task LoadFieldsInternal(DatasetInfo ds, ObservableCollection<FieldInfo> target, string sideName)
         {
@@ -439,6 +460,7 @@ namespace XIAOFUTools.Tools.AttributeTransferFields
             LogText = string.Empty;
             LogInfo("开始执行属性传递...");
             IsProcessing = true;
+            _cts?.Dispose();
             _cts = new CancellationTokenSource();
 
             try
@@ -581,6 +603,7 @@ namespace XIAOFUTools.Tools.AttributeTransferFields
             finally
             {
                 IsProcessing = false;
+                _cts?.Dispose();
                 _cts = null;
             }
         }

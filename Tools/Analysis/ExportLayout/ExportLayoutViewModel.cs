@@ -138,21 +138,28 @@ namespace XIAOFUTools.Tools.ExportLayout
         /// </summary>
         private async void LoadLayouts()
         {
-            await QueuedTask.Run(() =>
+            try
             {
-                var project = Project.Current;
-                if (project == null) return;
-
-                var layouts = project.GetItems<LayoutProjectItem>();
-                
-                foreach (var layout in layouts)
+                await QueuedTask.Run(() =>
                 {
-                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    var project = Project.Current;
+                    if (project == null) return;
+
+                    var layouts = project.GetItems<LayoutProjectItem>();
+                    
+                    foreach (var layout in layouts)
                     {
-                        Layouts.Add(new LayoutItem { Name = layout.Name, IsSelected = true });
-                    });
-                }
-            });
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            Layouts.Add(new LayoutItem { Name = layout.Name, IsSelected = true });
+                        });
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -259,6 +266,7 @@ namespace XIAOFUTools.Tools.ExportLayout
             try
             {
                 IsRunning = true;
+                _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 // 创建输出文件夹

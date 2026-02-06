@@ -44,7 +44,7 @@ namespace XIAOFUTools.Tools.ViewArea
         /// <summary>
         /// 检查停靠窗格是否可见
         /// </summary>
-        internal static bool IsVisible()
+        internal static new bool IsVisible()
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
             return pane?.IsVisible == true;

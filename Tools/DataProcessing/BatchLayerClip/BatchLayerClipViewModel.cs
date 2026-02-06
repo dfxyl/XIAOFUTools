@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Text;
+using System.Globalization;
 using ArcGIS.Core.CIM;
 using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
@@ -175,6 +176,9 @@ namespace XIAOFUTools.Tools.BatchLayerClip
             }
         }
 
+        // 当前地理处理任务的取消源
+        private CancellationTokenSource _geoprocessingCancellationSource;
+
         #endregion
 
         #region 命令
@@ -241,6 +245,7 @@ namespace XIAOFUTools.Tools.BatchLayerClip
                     CancelRequested = true;
                     StatusMessage = "正在取消操作...";
                     LogWarning("用户请求取消操作");
+                    _geoprocessingCancellationSource?.Cancel();
                 }, () => IsProcessing));
             }
         }
@@ -485,348 +490,429 @@ namespace XIAOFUTools.Tools.BatchLayerClip
         /// </summary>
         private async void Execute()
         {
-            // 重置取消标志
+            if (SelectedFeatureLayer == null || string.IsNullOrWhiteSpace(SelectedField))
+                return;
+
             CancelRequested = false;
-            // 设置处理状态
             IsProcessing = true;
-            
             StatusMessage = "正在处理...";
             ClearLog();
-            // 重置进度条
             Progress = 0;
             IsProgressIndeterminate = true;
-            
-            LogInfo($"===== 开始批量裁剪操作 - {DateTime.Now} =====");
-            LogInfo($"选择的图层: {SelectedFeatureLayer.Name}");
-            LogInfo($"选择的分组字段: {SelectedField}");
-            LogInfo($"输出文件夹: {OutputFolder}");
-            LogInfo($"是否创建子文件夹: {(CreateSubFolder ? "是" : "否")}");
-            LogInfo("开始处理...");
-            
-            await QueuedTask.Run(async () =>
+
+            var layer = SelectedFeatureLayer;
+            string fieldName = GetActualFieldName(SelectedField);
+
+            try
             {
+                LogInfo($"===== 开始批量裁剪操作 - {DateTime.Now} =====");
+                LogInfo($"选择的图层: {layer.Name}");
+                LogInfo($"选择的分组字段: {SelectedField}");
+                LogInfo($"输出文件夹: {OutputFolder}");
+                LogInfo($"是否创建子文件夹: {(CreateSubFolder ? "是" : "否")}");
+
+                var preparationResult = await QueuedTask.Run(() => PrepareFieldGroups(layer, fieldName));
+                LogInfo($"已生成 {preparationResult.Groups.Count} 个分组，准备导出...");
+
+                var exportedCount = await ProcessGroupsAsync(layer, preparationResult);
+
+                if (CancelRequested)
+                {
+                    LogWarning("操作已取消");
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        StatusMessage = "操作已取消";
+                    });
+                }
+                else
+                {
+                    LogInfo($"===== 批量裁剪完成 - {DateTime.Now} =====");
+                    LogInfo($"共导出 {exportedCount} 个分组至 {OutputFolder}");
+
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        Progress = 100;
+                        StatusMessage = $"导出完成! 共导出 {exportedCount} 个分组。";
+                    });
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                LogWarning("操作已取消");
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    StatusMessage = "操作已取消";
+                });
+            }
+            catch (Exception ex)
+            {
+                string errorMsg = $"处理出错: {ex.Message}";
+                LogError(errorMsg);
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    StatusMessage = errorMsg;
+                    Progress = 0;
+                });
+            }
+            finally
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsProcessing = false;
+                    IsProgressIndeterminate = false;
+                    if (CancelRequested && Progress < 100)
+                    {
+                        Progress = 0;
+                    }
+                });
+            }
+        }
+
+        private string GetActualFieldName(string selectedField)
+        {
+            if (string.IsNullOrWhiteSpace(selectedField))
+                throw new InvalidOperationException("请先选择分组字段。");
+
+            int aliasIndex = selectedField.IndexOf("(", StringComparison.Ordinal);
+            if (aliasIndex > 0)
+            {
+                string actual = selectedField.Substring(0, aliasIndex).Trim();
+                if (!string.IsNullOrWhiteSpace(actual))
+                    return actual;
+            }
+
+            return selectedField.Trim();
+        }
+
+        private GroupPreparationResult PrepareFieldGroups(FeatureLayer layer, string fieldName)
+        {
+            var result = new GroupPreparationResult { FieldName = fieldName };
+
+            using (var table = layer.GetTable())
+            {
+                var definition = table.GetDefinition();
+                var targetField = definition.GetFields().FirstOrDefault(f => f.Name.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
+                if (targetField == null)
+                    throw new InvalidOperationException($"字段 {fieldName} 不存在。");
+
+                result.FieldType = targetField.FieldType;
+
+                var groups = new Dictionary<FieldGroupKey, FieldGroupInfo>();
+                var nameUsage = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+                using (var cursor = table.Search(null, false))
+                {
+                    while (cursor.MoveNext())
+                    {
+                        if (CancelRequested)
+                            throw new OperationCanceledException();
+
+                        using (var row = cursor.Current)
+                        {
+                            var rawValue = row[fieldName];
+                            var key = new FieldGroupKey(rawValue, targetField.FieldType);
+
+                            if (!groups.TryGetValue(key, out var info))
+                            {
+                                var displayValue = FormatGroupDisplayValue(rawValue);
+                                var safeName = BuildUniqueGroupName(displayValue, nameUsage);
+
+                                info = new FieldGroupInfo
+                                {
+                                    Key = key,
+                                    DisplayValue = displayValue,
+                                    OutputName = safeName,
+                                    FeatureCount = 0
+                                };
+                                groups[key] = info;
+                            }
+
+                            info.FeatureCount++;
+                        }
+                    }
+                }
+
+                result.Groups = groups.Values
+                    .OrderBy(g => g.DisplayValue, StringComparer.CurrentCultureIgnoreCase)
+                    .ToList();
+            }
+
+            return result;
+        }
+
+        private async Task<int> ProcessGroupsAsync(FeatureLayer layer, GroupPreparationResult preparationResult)
+        {
+            if (preparationResult.Groups.Count == 0)
+            {
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    StatusMessage = "未找到可导出的分组";
+                    IsProgressIndeterminate = false;
+                    Progress = 0;
+                });
+                return 0;
+            }
+
+            var envSettings = Geoprocessing.MakeEnvironmentArray("addOutputsToMap", "False", "overwriteoutput", "True");
+            int total = preparationResult.Groups.Count;
+            int currentIndex = 0;
+            int completedCount = 0;
+
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                IsProgressIndeterminate = false;
+                Progress = 0;
+            });
+
+            foreach (var group in preparationResult.Groups)
+            {
+                if (CancelRequested)
+                {
+                    LogWarning("操作已取消，停止处理剩余分组");
+                    break;
+                }
+
+                currentIndex++;
+                int progressValue = (int)((double)currentIndex / total * 100);
+                string statusText = $"正在导出 {group.DisplayValue} ({currentIndex}/{total})...";
+
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    StatusMessage = statusText;
+                    Progress = progressValue;
+                });
+
+                string outputFolder = OutputFolder;
+                if (CreateSubFolder)
+                {
+                    outputFolder = Path.Combine(OutputFolder, group.OutputName);
+                    if (!Directory.Exists(outputFolder))
+                    {
+                        Directory.CreateDirectory(outputFolder);
+                        LogInfo($"创建目录: {outputFolder}");
+                    }
+                }
+
+                string shapeName = group.OutputName;
+                string whereClause = BuildWhereClause(preparationResult.FieldName, preparationResult.FieldType, group);
+
+                LogInfo($"开始导出分组: {group.DisplayValue} (要素 {group.FeatureCount})");
+                LogInfo($"导出文件名: {shapeName}");
+                LogInfo($"查询条件: {whereClause}");
+
+                bool success = await ExportGroupAsync(layer, outputFolder, shapeName, whereClause, envSettings);
+                if (success)
+                {
+                    completedCount++;
+                }
+            }
+
+            return completedCount;
+        }
+
+        private async Task<bool> ExportGroupAsync(FeatureLayer layer, string outputFolder, string shapeName, string whereClause, IEnumerable<KeyValuePair<string, string>> environmentSettings)
+        {
+            var exportParams = Geoprocessing.MakeValueArray(
+                layer,
+                outputFolder,
+                shapeName,
+                whereClause,
+                "");
+
+            using (var cts = new CancellationTokenSource())
+            {
+                _geoprocessingCancellationSource = cts;
+
                 try
                 {
-                    // 获取选中图层和字段
-                    var layer = SelectedFeatureLayer;
-                    
-                    // 从显示名称中提取真实字段名（去除别名部分）
-                    string fieldName = SelectedField;
-                    string displayFieldName = fieldName; // 保存显示用的名称
-                    
-                    if (fieldName.Contains("("))
-                    {
-                        // 如果字段名是带别名的格式，提取括号前的部分作为实际字段名
-                        fieldName = fieldName.Substring(0, fieldName.IndexOf("(")).Trim();
-                        LogInfo($"从显示名 \"{displayFieldName}\" 提取实际字段名: \"{fieldName}\"");
-                    }
-                    
-                    // 检查fieldName是否为空
-                    if (string.IsNullOrWhiteSpace(fieldName))
-                    {
-                        throw new Exception("无法获取有效字段名");
-                    }
-                    
-                    // OID 字段名（例如 OBJECTID 或 FID），后续用于 where 子句
-                    string oidFieldName = null;
+                    var gpResult = await Geoprocessing.ExecuteToolAsync(
+                        "conversion.FeatureClassToFeatureClass",
+                        exportParams,
+                        environmentSettings,
+                        cts.Token,
+                        null,
+                        GPExecuteToolFlags.GPThread);
 
-                    // 获取要素并按字段分组
-                    var featuresByValue = new Dictionary<string, List<long>>();
-                    
-                    using (var table = layer.GetTable())
-                    using (var rowCursor = table.Search())
+                    if (gpResult == null)
                     {
-                        LogInfo("正在按字段分组要素...");
-                        // 获取真实的 OID 字段名
-                        try
-                        {
-                            oidFieldName = table.GetDefinition()?.GetObjectIDField();
-                            if (string.IsNullOrWhiteSpace(oidFieldName))
-                                oidFieldName = "OBJECTID"; // 兜底
-                            LogInfo($"OID字段: {oidFieldName}");
-                        }
-                        catch { oidFieldName = "OBJECTID"; }
-                        int featureCount = 0;
-                        
-                        while (rowCursor.MoveNext())
-                        {
-                            using (var row = rowCursor.Current)
-                            {
-                                featureCount++;
-                                // 获取分组字段值
-                                var value = row[fieldName]?.ToString() ?? "未知";
-                                
-                                // 替换特殊字符
-                                var safeName = SanitizeFileName(value);
-                                
-                                // 将要素OID添加到对应分组
-                                if (!featuresByValue.ContainsKey(safeName))
-                                {
-                                    featuresByValue[safeName] = new List<long>();
-                                }
-                                
-                                featuresByValue[safeName].Add(row.GetObjectID());
-                            }
-                        }
-                        
-                        LogInfo($"分组完成，共 {featureCount} 个要素，分为 {featuresByValue.Count} 个组。");
+                        LogError($"导出失败: GP 结果为空 ({shapeName})");
+                        return false;
                     }
-                    
-                    // 开始逐个分组导出
-                    int total = featuresByValue.Count;
-                    int current = 0;
-                    
-                    // 设置进度条为确定状态
-                    System.Windows.Application.Current.Dispatcher.Invoke(() => 
+
+                    if (gpResult.IsFailed)
                     {
-                        IsProgressIndeterminate = false;
-                    });
-                    
-                    foreach (var group in featuresByValue)
-                    {
-                        // 检查是否请求取消
-                        if (CancelRequested)
+                        LogError($"导出失败: {shapeName}");
+                        foreach (var msg in gpResult.Messages)
                         {
-                            LogWarning("操作已取消，停止处理");
-                            break;
-                        }
-                        
-                        current++;
-                        var groupValue = group.Key;
-                        var objectIds = group.Value;
-                        
-                        // 更新状态和进度
-                        int progressValue = (int)((double)current / total * 100);
-                        string statusText = $"正在导出 {groupValue} ({current}/{total})...";
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => 
-                        {
-                            StatusMessage = statusText;
-                            Progress = progressValue;
-                        });
-                        
-                        LogInfo($"开始导出分组: {groupValue} ({objectIds.Count} 个要素)");
-                        
-                        // 确定输出路径
-                        string outputPath = OutputFolder;
-                        if (CreateSubFolder)
-                        {
-                            outputPath = Path.Combine(OutputFolder, groupValue);
-                            if (!Directory.Exists(outputPath))
+                            switch (msg.Type)
                             {
-                                Directory.CreateDirectory(outputPath);
-                                LogInfo($"创建目录: {outputPath}");
+                                case GPMessageType.Error:
+                                    LogError($"GP错误: {msg.Text}");
+                                    break;
+                                case GPMessageType.Warning:
+                                    LogWarning($"GP警告: {msg.Text}");
+                                    break;
+                                default:
+                                    LogInfo($"GP信息: {msg.Text}");
+                                    break;
                             }
                         }
-                        
-                        // 创建查询条件，使用真实 OID 字段名，格式如"<OID> IN (1,2,3)"
-                        string whereClause = "";
-                        if (objectIds.Count > 0)
-                        {
-                            var oidField = string.IsNullOrWhiteSpace(oidFieldName) ? "OBJECTID" : oidFieldName;
-                            whereClause = $"{oidField} IN ({string.Join(",", objectIds)})";
-                        }
-                        
-                        // 导出文件名
-                        string shapeName;
-                        if (string.IsNullOrWhiteSpace(groupValue) || groupValue == "未知")
-                        {
-                            // 如果分组值为空，使用图层名称加"空值"标记
-                            string layerName = SanitizeFileName(layer.Name);
-                            shapeName = $"{layerName}_空值";
-                        }
-                        else
-                        {
-                            // 只使用分组值作为文件名（已经在前面进行了清理）
-                            shapeName = groupValue;
-                        }
-                        
-                        // 确保shapeName是有效的文件名
-                        if (string.IsNullOrWhiteSpace(shapeName) || shapeName.Trim() == "_")
-                        {
-                            shapeName = "未知值";
-                        }
-                        
-                        LogInfo($"导出文件名: {shapeName}");
-                        LogInfo($"查询条件: {whereClause}");
-                        
-                        // 执行要素导出
-                        // 再次检查是否请求取消
-                        if (CancelRequested)
-                        {
-                            LogWarning("操作已取消，跳过当前分组");
-                            continue;
-                        }
-                        
-                        try
-                        {
-                            // 使用按条件导出要素
-                            // 设置环境变量：不添加到地图，并允许覆盖输出
-                            var envSettings = Geoprocessing.MakeEnvironmentArray("addOutputsToMap", "False", "overwriteoutput", "True");
-                            
-                            // 准备导出参数
-                            var exportParams = Geoprocessing.MakeValueArray(
-                                layer, // 输入要素类
-                                outputPath, // 输出位置
-                                shapeName, // 输出要素类名称
-                                whereClause,
-                                "" // 不使用字段映射
-                            );
-                            
-                            string toolName = "conversion.FeatureClassToFeatureClass";
-                            LogInfo($"执行导出: {layer.Name} -> {outputPath}\\{shapeName} (不添加到地图)");
-                            
-                                            // 执行工具
-                            // 创建可取消的任务
-                            var cts = new System.Threading.CancellationTokenSource();
-                            
-                            // 设置地理处理标志，使用GPThread来避免阻塞UI线程
-                            GPExecuteToolFlags flags = GPExecuteToolFlags.GPThread | GPExecuteToolFlags.None;
-                            
-                            // 准备取消监控任务
-                            var cancelMonitorTask = Task.Run(() => {
-                                while (!CancelRequested)
-                                {
-                                    // 短暂等待检查取消请求
-                                    Thread.Sleep(200);
-                                    
-                                    // 如果用户请求取消
-                                    if (CancelRequested)
-                                    {
-                                        LogWarning("取消地理处理任务...");
-                                        cts.Cancel();
-                                        break;
-                                    }
-                                }
-                            });
-                            
-                            // 使用异步执行地理处理操作
-                            LogInfo($"开始异步执行地理处理工具: {toolName}");
-                            IGPResult gpResult = null;
-                            
-                            try 
-                            {
-                                // 这里使用真正的await，不阻塞UI线程
-                                gpResult = await Geoprocessing.ExecuteToolAsync(toolName, exportParams, envSettings, cts.Token, null, flags);
-                            }
-                            catch (OperationCanceledException)
-                            {
-                                LogWarning("地理处理任务已被取消");
-                            }
-                            catch (Exception ex)
-                            {
-                                if (CancelRequested)
-                                {
-                                    LogWarning("因用户请求，操作已取消");
-                                }
-                                else
-                                {
-                                    LogError($"执行地理处理工具时出错: {ex.Message}");
-                                    throw;
-                                }
-                            }
-                            
-                            // 如果任务完成且没有被取消
-                            if (!CancelRequested)
-                            {
-                                if (gpResult == null)
-                                {
-                                    LogError("导出失败: GP 结果为空");
-                                    LogError($"继续处理其他组...");
-                                }
-                                else if (gpResult.IsFailed)
-                                {
-                                    string errorMsg = "导出失败: " + gpResult.ErrorCode;
-                                    LogError(errorMsg);
-                                    foreach (var msg in gpResult.Messages)
-                                    {
-                                        switch (msg.Type)
-                                        {
-                                            case GPMessageType.Error:
-                                                LogError($"GP错误: {msg.Text}");
-                                                break;
-                                            case GPMessageType.Warning:
-                                                LogWarning($"GP警告: {msg.Text}");
-                                                break;
-                                            default:
-                                                LogInfo($"GP信息: {msg.Text}");
-                                                break;
-                                        }
-                                    }
-                                    // 不抛出异常，继续处理其他组
-                                    LogError($"继续处理其他组...");
-                                }
-                                else
-                                {
-                                    foreach (var msg in gpResult.Messages)
-                                    {
-                                        if (msg.Type == GPMessageType.Warning)
-                                            LogWarning($"GP警告: {msg.Text}");
-                                    }
-                                    LogInfo($"导出成功: {groupValue}");
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            // 如果是由取消导致的异常，则不提示为错误
-                            if (CancelRequested)
-                            {
-                                LogWarning($"由于用户取消，停止当前导出操作");
-                            }
-                            else
-                            {
-                                string errorMsg = $"导出要素出错: {ex.Message}";
-                                LogError(errorMsg);
-                                // 不抛出异常，继续处理其他组
-                                LogError($"继续处理其他组...");
-                            }
-                        }
+                        return false;
                     }
-                    
-                    // 完成
-                    LogInfo($"===== 批量裁剪完成 - {DateTime.Now} =====");
-                    LogInfo($"共导出 {total} 个分组至 {OutputFolder}");
-                    
-                    System.Windows.Application.Current.Dispatcher.Invoke(() => 
+
+                    foreach (var msg in gpResult.Messages)
                     {
-                        StatusMessage = $"导出完成! 共导出 {total} 个分组。";
-                        Progress = 100; // 设置进度为100%
-                        // 重置处理状态
-                        IsProcessing = false;
-                    });
+                        if (msg.Type == GPMessageType.Warning)
+                            LogWarning($"GP警告: {msg.Text}");
+                    }
+
+                    LogInfo($"导出成功: {shapeName}");
+                    return true;
+                }
+                catch (OperationCanceledException)
+                {
+                    LogWarning($"地理处理任务已取消: {shapeName}");
+                    return false;
                 }
                 catch (Exception ex)
                 {
-                    string errorMsg = $"处理出错: {ex.Message}";
-                    LogError(errorMsg);
-                    LogError($"===== 批量裁剪中断 - {DateTime.Now} =====");
-                    
-                    System.Windows.Application.Current.Dispatcher.Invoke(() => 
+                    if (CancelRequested)
                     {
-                        StatusMessage = errorMsg;
-                        IsProgressIndeterminate = false; // 停止不确定进度状态
-                        Progress = 0; // 重置进度
-                        // 重置处理状态
-                        IsProcessing = false;
-                    });
+                        LogWarning($"由于用户取消，跳过 {shapeName}");
+                        return false;
+                    }
+
+                    LogError($"导出要素出错: {ex.Message}");
+                    return false;
                 }
                 finally
                 {
-                    // 即使取消也执行此代码
-                    if (CancelRequested)
-                    {
-                        System.Windows.Application.Current.Dispatcher.Invoke(() => 
-                        {
-                            LogInfo($"===== 批量裁剪已取消 - {DateTime.Now} =====");
-                            StatusMessage = "操作已取消";
-                            IsProgressIndeterminate = false;
-                            IsProcessing = false;
-                        });
-                    }
+                    _geoprocessingCancellationSource = null;
                 }
-            });
+            }
         }
-        
+
+        private string BuildWhereClause(string fieldName, FieldType fieldType, FieldGroupInfo group)
+        {
+            if (group.Key.IsNull)
+                return $"{fieldName} IS NULL";
+
+            switch (fieldType)
+            {
+                case FieldType.String:
+                    var textValue = group.Key.Value?.ToString() ?? string.Empty;
+                    var escaped = textValue.Replace("'", "''");
+                    return $"{fieldName} = '{escaped}'";
+                case FieldType.Integer:
+                case FieldType.SmallInteger:
+                    var longValue = Convert.ToInt64(group.Key.Value, CultureInfo.InvariantCulture);
+                    return $"{fieldName} = {longValue}";
+                case FieldType.Double:
+                case FieldType.Single:
+                    var doubleValue = Convert.ToDouble(group.Key.Value, CultureInfo.InvariantCulture);
+                    return $"{fieldName} = {doubleValue.ToString("R", CultureInfo.InvariantCulture)}";
+                default:
+                    var fallback = group.Key.Value?.ToString()?.Replace("'", "''") ?? string.Empty;
+                    return $"{fieldName} = '{fallback}'";
+            }
+        }
+
+        private string BuildUniqueGroupName(string displayValue, Dictionary<string, int> usageTracker)
+        {
+            var baseName = SanitizeFileName(displayValue);
+
+            if (!usageTracker.TryGetValue(baseName, out var count))
+            {
+                usageTracker[baseName] = 1;
+                return baseName;
+            }
+
+            count++;
+            usageTracker[baseName] = count;
+            return $"{baseName}_{count}";
+        }
+
+        private string FormatGroupDisplayValue(object value)
+        {
+            var displayValue = value?.ToString();
+            return string.IsNullOrWhiteSpace(displayValue) ? "未知" : displayValue;
+        }
+
+        private sealed class GroupPreparationResult
+        {
+            public string FieldName { get; set; } = string.Empty;
+            public FieldType FieldType { get; set; }
+            public List<FieldGroupInfo> Groups { get; set; } = new List<FieldGroupInfo>();
+        }
+
+        private sealed class FieldGroupInfo
+        {
+            public FieldGroupKey Key { get; set; }
+            public string DisplayValue { get; set; } = string.Empty;
+            public string OutputName { get; set; } = string.Empty;
+            public int FeatureCount { get; set; }
+        }
+
+        private readonly struct FieldGroupKey : IEquatable<FieldGroupKey>
+        {
+            public FieldGroupKey(object rawValue, FieldType fieldType)
+            {
+                FieldType = fieldType;
+
+                if (rawValue == null || rawValue == DBNull.Value)
+                {
+                    IsNull = true;
+                    Value = null;
+                    return;
+                }
+
+                IsNull = false;
+
+                switch (fieldType)
+                {
+                    case FieldType.Integer:
+                    case FieldType.SmallInteger:
+                        Value = Convert.ToInt64(rawValue, CultureInfo.InvariantCulture);
+                        break;
+                    case FieldType.Double:
+                    case FieldType.Single:
+                        Value = Convert.ToDouble(rawValue, CultureInfo.InvariantCulture);
+                        break;
+                    default:
+                        Value = rawValue.ToString();
+                        break;
+                }
+            }
+
+            public FieldType FieldType { get; }
+            public object Value { get; }
+            public bool IsNull { get; }
+
+            public bool Equals(FieldGroupKey other)
+            {
+                if (FieldType != other.FieldType || IsNull != other.IsNull)
+                    return false;
+
+                if (IsNull)
+                    return true;
+
+                return Value?.Equals(other.Value) ?? other.Value == null;
+            }
+
+            public override bool Equals(object obj) => obj is FieldGroupKey other && Equals(other);
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hash = (int)FieldType;
+                    hash = (hash * 397) ^ (IsNull ? 1 : 0);
+                    hash = (hash * 397) ^ (Value?.GetHashCode() ?? 0);
+                    return hash;
+                }
+            }
+        }
+
         /// <summary>
         /// 清理文件名中的非法字符，确保文件名有效
         /// </summary>

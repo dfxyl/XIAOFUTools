@@ -16,6 +16,7 @@ using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 
 namespace XIAOFUTools.Tools.ChineseNumbering
 {
@@ -62,6 +63,8 @@ namespace XIAOFUTools.Tools.ChineseNumbering
     /// </summary>
     internal class ChineseNumberingViewModel : PropertyChangedBase
     {
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
 
         private ObservableCollection<FeatureLayer> _layerList;
@@ -288,7 +291,7 @@ namespace XIAOFUTools.Tools.ChineseNumbering
             LoadLayersAsync();
 
             // 订阅地图选择变化事件
-            MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
             // 初始化一次选择提示
             UpdateSelectionInfo();
         }
@@ -521,6 +524,18 @@ namespace XIAOFUTools.Tools.ChineseNumbering
         private void OnMapSelectionChanged(MapSelectionChangedEventArgs args)
         {
             UpdateSelectionInfo();
+        }
+
+        /// <summary>
+        /// 清理事件订阅
+        /// </summary>
+        public void Cleanup()
+        {
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
+            }
         }
 
         /// <summary>

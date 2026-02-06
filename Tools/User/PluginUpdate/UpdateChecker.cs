@@ -20,17 +20,25 @@ namespace XIAOFUTools.Tools.PluginUpdate
     {
         private const string VersionUrl = "https://gitee.com/XFTools/xiaofutools/raw/master/version.json";
 
+        private static readonly HttpClient _httpClient = new HttpClient()
+        {
+            Timeout = TimeSpan.FromMinutes(10) // 使用最大超时值，短超时通过 CancellationToken 控制
+        };
+
+        static UpdateChecker()
+        {
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
+        }
+
         private static async Task<JObject> GetVersionJsonAsync()
         {
             try
             {
-                using (var client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3");
-                    client.Timeout = TimeSpan.FromSeconds(10);
-                    var response = await client.GetStringAsync(VersionUrl);
-                    return JObject.Parse(response);
-                }
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(10));
+                var response = await _httpClient.GetAsync(VersionUrl, cts.Token);
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                return JObject.Parse(content);
             }
             catch (Exception ex)
             {
@@ -593,45 +601,39 @@ namespace XIAOFUTools.Tools.PluginUpdate
 
                 await QueuedTask.Run(async () =>
                 {
-                    using (var client = new HttpClient())
+                    using var response = await _httpClient.GetAsync(updateInfo.DownloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                    response.EnsureSuccessStatusCode();
+
+                    var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+                    var readBytes = 0L;
+
+                    using (var stream = await response.Content.ReadAsStreamAsync())
+                    using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
                     {
-                        client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
-                        client.Timeout = TimeSpan.FromMinutes(10); // 10分钟超时
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
 
-                        var response = await client.GetAsync(updateInfo.DownloadUrl, HttpCompletionOption.ResponseHeadersRead);
-                        response.EnsureSuccessStatusCode();
-
-                        var totalBytes = response.Content.Headers.ContentLength ?? -1L;
-                        var readBytes = 0L;
-
-                        using (var stream = await response.Content.ReadAsStreamAsync())
-                        using (var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None))
+                        while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                         {
-                            byte[] buffer = new byte[8192];
-                            int bytesRead;
-
-                            while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                            // 检查是否取消
+                            if (cps.Progressor.CancellationToken.IsCancellationRequested)
                             {
-                                // 检查是否取消
-                                if (cps.Progressor.CancellationToken.IsCancellationRequested)
-                                {
-                                    throw new OperationCanceledException("下载已取消");
-                                }
+                                throw new OperationCanceledException("下载已取消");
+                            }
 
-                                await fileStream.WriteAsync(buffer, 0, bytesRead);
-                                readBytes += bytesRead;
+                            await fileStream.WriteAsync(buffer, 0, bytesRead);
+                            readBytes += bytesRead;
 
-                                // 更新ArcGIS Pro进度条
-                                if (totalBytes > 0)
-                                {
-                                    var progressValue = (uint)((readBytes * 100) / totalBytes);
-                                    cps.Progressor.Value = progressValue;
+                            // 更新ArcGIS Pro进度条
+                            if (totalBytes > 0)
+                            {
+                                var progressValue = (uint)((readBytes * 100) / totalBytes);
+                                cps.Progressor.Value = progressValue;
 
-                                    // 更新状态文本
-                                    var downloadedMB = readBytes / 1024.0 / 1024.0;
-                                    var totalMB = totalBytes / 1024.0 / 1024.0;
-                                    cps.Progressor.Status = $"已下载 {downloadedMB:F1} MB / {totalMB:F1} MB";
-                                }
+                                // 更新状态文本
+                                var downloadedMB = readBytes / 1024.0 / 1024.0;
+                                var totalMB = totalBytes / 1024.0 / 1024.0;
+                                cps.Progressor.Status = $"已下载 {downloadedMB:F1} MB / {totalMB:F1} MB";
                             }
                         }
                     }

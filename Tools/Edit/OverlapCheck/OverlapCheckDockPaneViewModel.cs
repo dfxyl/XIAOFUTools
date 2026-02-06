@@ -239,26 +239,31 @@ namespace XIAOFUTools.Tools.OverlapCheck
         /// <summary>
         /// 加载面要素图层
         /// </summary>
-        private void LoadPolygonLayers()
+        private async void LoadPolygonLayers()
         {
             try
             {
+                var layers = await QueuedTask.Run(() =>
+                {
+                    var map = MapView.Active?.Map;
+                    if (map == null) return new List<FeatureLayer>();
+                    return map.GetLayersAsFlattenedList()
+                        .OfType<FeatureLayer>()
+                        .Where(fl => fl.ShapeType == esriGeometryType.esriGeometryPolygon)
+                        .ToList();
+                });
+
                 PolygonLayers.Clear();
 
-                var map = MapView.Active?.Map;
-                if (map == null)
+                if (layers.Count == 0)
                 {
                     AddLog("当前没有活动地图");
                     return;
                 }
 
-                var featureLayers = map.GetLayersAsFlattenedList().OfType<FeatureLayer>();
-                foreach (var layer in featureLayers)
+                foreach (var layer in layers)
                 {
-                    if (layer.ShapeType == esriGeometryType.esriGeometryPolygon)
-                    {
-                        PolygonLayers.Add(layer);
-                    }
+                    PolygonLayers.Add(layer);
                 }
 
                 AddLog($"已加载 {PolygonLayers.Count} 个面要素图层");
@@ -395,6 +400,7 @@ namespace XIAOFUTools.Tools.OverlapCheck
                 IsProcessing = true;
                 IsProgressIndeterminate = true;
                 StatusMessage = "正在检查重叠...";
+                _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 AddLog("开始执行图形重叠检查...");
@@ -819,38 +825,39 @@ namespace XIAOFUTools.Tools.OverlapCheck
         /// <summary>
         /// 选择保留字段
         /// </summary>
-        private void SelectFields()
+        private async void SelectFields()
         {
             if (SelectedPolygonLayer == null) return;
 
             try
             {
-                QueuedTask.Run(() =>
+                // 先在MCT线程上获取字段列表
+                var fields = await QueuedTask.Run(() =>
                 {
                     using (var table = SelectedPolygonLayer.GetTable())
                     {
                         if (table != null)
                         {
                             var definition = table.GetDefinition();
-                            var fields = definition.GetFields().ToList();
-
-                            // 在UI线程显示对话框
-                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                            {
-                                var dialog = new FieldSelectionDialog(fields, SelectedFields);
-                                if (dialog.ShowDialog() == true)
-                                {
-                                    SelectedFields = dialog.SelectedFieldNames;
-                                    AddLog($"已选择 {SelectedFields.Count} 个保留字段");
-                                }
-                            });
+                            return definition.GetFields().ToList();
                         }
-                        else
-                        {
-                            AddLog("无法获取图层字段信息");
-                        }
+                        return null;
                     }
                 });
+
+                if (fields == null)
+                {
+                    AddLog("无法获取图层字段信息");
+                    return;
+                }
+
+                // 回到UI线程显示对话框
+                var dialog = new FieldSelectionDialog(fields, SelectedFields);
+                if (dialog.ShowDialog() == true)
+                {
+                    SelectedFields = dialog.SelectedFieldNames;
+                    AddLog($"已选择 {SelectedFields.Count} 个保留字段");
+                }
             }
             catch (Exception ex)
             {

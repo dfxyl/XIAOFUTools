@@ -236,19 +236,26 @@ namespace XIAOFUTools.Tools.ExportToKml
 
         #region 私有方法
 
-        private void LoadFeatureLayers()
+        private async void LoadFeatureLayers()
         {
             try
             {
+                var layers = await QueuedTask.Run(() =>
+                {
+                    var map = MapView.Active?.Map;
+                    if (map == null) return new List<FeatureLayer>();
+                    return map.GetLayersAsFlattenedList()
+                        .OfType<FeatureLayer>()
+                        .ToList();
+                });
+
                 FeatureLayers.Clear();
 
-                if (MapView.Active?.Map == null)
+                if (layers.Count == 0)
                 {
                     AddLog("当前没有活动地图");
                     return;
                 }
-
-                var layers = MapView.Active.Map.GetLayersAsFlattenedList().OfType<FeatureLayer>();
 
                 foreach (var layer in layers)
                 {
@@ -387,6 +394,7 @@ namespace XIAOFUTools.Tools.ExportToKml
             Progress = 0;
             IsProgressIndeterminate = true;
             StatusMessage = "正在处理...";
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
 
             try

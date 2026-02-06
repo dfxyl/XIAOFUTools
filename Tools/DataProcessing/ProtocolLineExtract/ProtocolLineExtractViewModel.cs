@@ -17,6 +17,7 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 using XIAOFUTools.Common;
 using XIAOFUTools.Tools.BoundaryPointGenerator;
 
@@ -27,6 +28,8 @@ namespace XIAOFUTools.Tools.ProtocolLineExtract
     /// </summary>
     internal class ProtocolLineExtractViewModel : PropertyChangedBase
     {
+        private dynamic _mapSelectionChangedToken;
+
         // 为规避个别环境下移除图层触发的 ArcGIS Pro 内部渲染 NRE，可按需关闭/开启
         private const bool RemoveIntermediatesFromMap = true;
         #region 字段与属性
@@ -176,7 +179,7 @@ namespace XIAOFUTools.Tools.ProtocolLineExtract
         {
             RefreshLayers();
             UpdateDefaultOutputPath();
-            MapSelectionChangedEvent.Subscribe(_ => UpdateSelectionInfo());
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(_ => UpdateSelectionInfo());
             UpdateSelectionInfo();
         }
 
@@ -186,26 +189,32 @@ namespace XIAOFUTools.Tools.ProtocolLineExtract
             LogContent += $"[{DateTime.Now:HH:mm:ss}] {msg}\r\n";
         }
 
-        public void RefreshLayers()
+        public async void RefreshLayers()
         {
             try
             {
-                var map = MapView.Active?.Map;
+                var layers = await QueuedTask.Run(() =>
+                {
+                    var map = MapView.Active?.Map;
+                    if (map == null) return new List<FeatureLayer>();
+                    return map.GetLayersAsFlattenedList()
+                        ?.OfType<FeatureLayer>()
+                        .Where(fl => fl.ShapeType == esriGeometryType.esriGeometryPolygon)
+                        .ToList() ?? new List<FeatureLayer>();
+                });
+
                 PolygonLayers.Clear();
-                if (map == null)
+
+                if (layers.Count == 0)
                 {
                     AddLog("当前没有活动地图");
                     return;
                 }
-                var layers = map.GetLayersAsFlattenedList()?.OfType<FeatureLayer>()
-                    .Where(fl => fl.ShapeType == esriGeometryType.esriGeometryPolygon)
-                    .ToList();
-                if (layers != null)
-                {
-                    foreach (var l in layers) PolygonLayers.Add(l);
-                    if (PolygonLayers.Count > 0 && SelectedPolygonLayer == null)
-                        SelectedPolygonLayer = PolygonLayers[0];
-                }
+
+                foreach (var l in layers) PolygonLayers.Add(l);
+                if (PolygonLayers.Count > 0 && SelectedPolygonLayer == null)
+                    SelectedPolygonLayer = PolygonLayers[0];
+
                 AddLog($"已加载 {PolygonLayers.Count} 个面要素图层");
                 UpdateSelectionInfo();
             }
@@ -233,13 +242,14 @@ namespace XIAOFUTools.Tools.ProtocolLineExtract
         /// <summary>
         /// 选择保留字段
         /// </summary>
-        private void SelectFields()
+        private async void SelectFields()
         {
             if (SelectedPolygonLayer == null) return;
 
             try
             {
-                QueuedTask.Run(() =>
+                // 先在MCT线程上获取字段列表
+                var fields = await QueuedTask.Run(() =>
                 {
                     try
                     {
@@ -248,32 +258,34 @@ namespace XIAOFUTools.Tools.ProtocolLineExtract
                             if (table != null)
                             {
                                 var definition = table.GetDefinition();
-                                var fields = definition.GetFields().ToList();
-
-                                System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
-                                {
-                                    var dlg = new FieldSelectionDialog(fields, SelectedFields);
-                                    var owner = System.Windows.Application.Current?.MainWindow;
-                                    if (owner != null) dlg.Owner = owner;
-                                    var result = dlg.ShowDialog();
-                                    if (result == true)
-                                    {
-                                        SelectedFields = dlg.SelectedFieldNames ?? new List<string>();
-                                        AddLog($"已选择 {SelectedFields.Count} 个保留字段");
-                                    }
-                                });
+                                return definition.GetFields().ToList();
                             }
-                            else
-                            {
-                                AddLog("无法获取图层表格");
-                            }
+                            return null;
                         }
                     }
                     catch (System.Exception ex)
                     {
                         AddLog($"获取字段列表失败: {ex.Message}");
+                        return null;
                     }
                 });
+
+                if (fields == null)
+                {
+                    AddLog("无法获取图层表格");
+                    return;
+                }
+
+                // 回到UI线程显示对话框
+                var dlg = new FieldSelectionDialog(fields, SelectedFields);
+                var owner = System.Windows.Application.Current?.MainWindow;
+                if (owner != null) dlg.Owner = owner;
+                var result = dlg.ShowDialog();
+                if (result == true)
+                {
+                    SelectedFields = dlg.SelectedFieldNames ?? new List<string>();
+                    AddLog($"已选择 {SelectedFields.Count} 个保留字段");
+                }
             }
             catch (System.Exception ex)
             {
@@ -313,6 +325,15 @@ namespace XIAOFUTools.Tools.ProtocolLineExtract
             catch (System.Exception ex)
             {
                 AddLog($"选择输出位置失败: {ex.Message}");
+            }
+        }
+
+        public void Cleanup()
+        {
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
             }
         }
 

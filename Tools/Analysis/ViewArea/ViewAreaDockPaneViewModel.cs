@@ -12,6 +12,7 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 using XIAOFUTools.Tools.Settings;
 
 namespace XIAOFUTools.Tools.ViewArea
@@ -92,6 +93,8 @@ namespace XIAOFUTools.Tools.ViewArea
     /// </summary>
     internal class ViewAreaDockPaneViewModel : PropertyChangedBase
     {
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
 
         // 选择状态信息
@@ -200,37 +203,57 @@ namespace XIAOFUTools.Tools.ViewArea
             CopyResultsCommand = new RelayCommand(CopyResults);
 
             // 订阅地图选择变化事件
-            MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
 
             // 初始计算
             RefreshCalculation();
         }
 
         /// <summary>
-        /// 地图选择变化事件处理
+        /// 清理事件订阅
         /// </summary>
-        private void OnMapSelectionChanged(MapSelectionChangedEventArgs args)
+        public void Cleanup()
         {
-            // 检查是否启用了自动关闭功能
-            if (SettingsManager.Settings.ViewArea.AutoCloseOnClearSelection)
+            if (_mapSelectionChangedToken != null)
             {
-                // 检查是否没有选择任何要素
-                if (!HasAnySelectedFeatures())
-                {
-                    // 如果窗口可见，则关闭它
-                    if (ViewAreaDockPane.IsVisible())
-                    {
-                        ViewAreaDockPane.Close();
-                        return; // 不需要刷新计算，因为窗口已关闭
-                    }
-                }
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
             }
-
-            RefreshCalculation();
         }
 
         /// <summary>
-        /// 检查是否有任何选择的要素
+        /// 地图选择变化事件处理
+        /// </summary>
+        private async void OnMapSelectionChanged(MapSelectionChangedEventArgs args)
+        {
+            try
+            {
+                // 检查是否启用了自动关闭功能
+                if (SettingsManager.Settings.ViewArea.AutoCloseOnClearSelection)
+                {
+                    // 在MCT线程上检查是否有选择的要素
+                    bool hasSelection = await QueuedTask.Run(() => HasAnySelectedFeatures());
+                    if (!hasSelection)
+                    {
+                        // 如果窗口可见，则关闭它
+                        if (ViewAreaDockPane.IsVisible())
+                        {
+                            ViewAreaDockPane.Close();
+                            return; // 不需要刷新计算，因为窗口已关闭
+                        }
+                    }
+                }
+
+                RefreshCalculation();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"处理选择变化事件时出错: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 检查是否有任何选择的要素（必须在MCT线程上调用）
         /// </summary>
         private bool HasAnySelectedFeatures()
         {
@@ -280,6 +303,10 @@ namespace XIAOFUTools.Tools.ViewArea
                         System.Diagnostics.Debug.WriteLine($"计算选中要素时出错: {ex.Message}");
                     }
                 });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"错误: {ex.Message}");
             }
             finally
             {
@@ -584,9 +611,9 @@ namespace XIAOFUTools.Tools.ViewArea
         }
 
         /// <summary>
-        /// 计算结果（多线程优化）
+        /// 计算结果（所有ArcGIS API调用在QueuedTask/MCT线程内执行）
         /// </summary>
-        private async void CalculateResults(Dictionary<string, List<Feature>> layerData, CoordinateSystemType coordinateSystemType, Dictionary<string, SpatialReference> layerSpatialReferences)
+        private void CalculateResults(Dictionary<string, List<Feature>> layerData, CoordinateSystemType coordinateSystemType, Dictionary<string, SpatialReference> layerSpatialReferences)
         {
             if (!layerData.Any())
             {
@@ -596,13 +623,12 @@ namespace XIAOFUTools.Tools.ViewArea
 
             try
             {
-                // 并行提取几何图形
                 var allPolygons = new List<Polygon>();
                 var allPolylines = new List<Polyline>();
                 var layerSummaries = new List<LayerCalculationSummary>();
 
-                // 并行处理每个图层
-                var layerTasks = layerData.Select(async kvp =>
+                // 在MCT线程上顺序处理每个图层
+                foreach (var kvp in layerData)
                 {
                     var layerName = kvp.Key;
                     var features = kvp.Value;
@@ -616,53 +642,39 @@ namespace XIAOFUTools.Tools.ViewArea
                     var layerPolygons = new List<Polygon>();
                     var layerPolylines = new List<Polyline>();
 
-                    // 并行提取几何图形
-                    await Task.Run(() =>
+                    foreach (var feature in features)
                     {
-                        foreach (var feature in features)
+                        var geometry = feature.GetShape();
+                        if (geometry != null)
                         {
-                            var geometry = feature.GetShape();
-                            if (geometry != null)
+                            // 获取图层的坐标系
+                            var layerSpatialRef = layerSpatialReferences.ContainsKey(layerName) ? layerSpatialReferences[layerName] : null;
+
+                            // 如果图层有坐标系，确保几何图形使用正确的坐标系
+                            if (layerSpatialRef != null && geometry.SpatialReference == null)
                             {
-                                // 获取图层的坐标系
-                                var layerSpatialRef = GetLayerSpatialReference(layerName);
+                                geometry = GeometryEngine.Instance.Project(geometry, layerSpatialRef);
+                            }
 
-                                // 如果图层有坐标系，确保几何图形使用正确的坐标系
-                                if (layerSpatialRef != null && geometry.SpatialReference == null)
-                                {
-                                    geometry = GeometryEngine.Instance.Project(geometry, layerSpatialRef);
-                                }
-
-                                if (geometry is Polygon polygon)
-                                {
-                                    lock (allPolygons) { allPolygons.Add(polygon); }
-                                    layerPolygons.Add(polygon);
-                                }
-                                else if (geometry is Polyline polyline)
-                                {
-                                    lock (allPolylines) { allPolylines.Add(polyline); }
-                                    layerPolylines.Add(polyline);
-                                }
+                            if (geometry is Polygon polygon)
+                            {
+                                allPolygons.Add(polygon);
+                                layerPolygons.Add(polygon);
+                            }
+                            else if (geometry is Polyline polyline)
+                            {
+                                allPolylines.Add(polyline);
+                                layerPolylines.Add(polyline);
                             }
                         }
-                    });
+                    }
 
-                    // 并行计算图层结果
-                    await Task.Run(() => CalculateLayerResults(layerSummary, layerPolygons, layerPolylines, coordinateSystemType));
+                    CalculateLayerResults(layerSummary, layerPolygons, layerPolylines, coordinateSystemType);
+                    layerSummaries.Add(layerSummary);
+                }
 
-                    return layerSummary;
-                });
-
-                // 等待所有图层处理完成
-                var completedLayerSummaries = await Task.WhenAll(layerTasks);
-                layerSummaries.AddRange(completedLayerSummaries);
-
-                // 并行计算合并结果
-                var combinedAreaTask = Task.Run(() => CalculateAreaResults(allPolygons, coordinateSystemType));
-                var combinedLengthTask = Task.Run(() => CalculateLengthResults(allPolylines, coordinateSystemType));
-
-                var combinedAreaResults = await combinedAreaTask;
-                var combinedLengthResults = await combinedLengthTask;
+                var combinedAreaResults = CalculateAreaResults(allPolygons, coordinateSystemType);
+                var combinedLengthResults = CalculateLengthResults(allPolylines, coordinateSystemType);
 
                 // 更新UI（在UI线程中）
                 if (System.Windows.Application.Current?.Dispatcher != null)
@@ -691,93 +703,11 @@ namespace XIAOFUTools.Tools.ViewArea
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"并行计算时出错: {ex.Message}");
-                // 如果并行计算失败，回退到单线程计算
-                CalculateResultsSingleThread(layerData, coordinateSystemType, layerSpatialReferences);
+                System.Diagnostics.Debug.WriteLine($"计算时出错: {ex.Message}");
             }
         }
 
-        /// <summary>
-        /// 单线程计算结果（备用方法）
-        /// </summary>
-        private void CalculateResultsSingleThread(Dictionary<string, List<Feature>> layerData, CoordinateSystemType coordinateSystemType, Dictionary<string, SpatialReference> layerSpatialReferences)
-        {
-            var allPolygons = new List<Polygon>();
-            var allPolylines = new List<Polyline>();
-            var layerSummaries = new List<LayerCalculationSummary>();
 
-            foreach (var kvp in layerData)
-            {
-                var layerName = kvp.Key;
-                var features = kvp.Value;
-                var layerSummary = new LayerCalculationSummary
-                {
-                    LayerName = layerName,
-                    FeatureCount = features.Count
-                };
-
-                var layerPolygons = new List<Polygon>();
-                var layerPolylines = new List<Polyline>();
-
-                foreach (var feature in features)
-                {
-                    var geometry = feature.GetShape();
-                    if (geometry != null)
-                    {
-                        // 获取图层的坐标系
-                        var layerSpatialRef = GetLayerSpatialReference(layerName);
-
-                        // 如果图层有坐标系，确保几何图形使用正确的坐标系
-                        if (layerSpatialRef != null && geometry.SpatialReference == null)
-                        {
-                            geometry = GeometryEngine.Instance.Project(geometry, layerSpatialRef);
-                        }
-
-                        if (geometry is Polygon polygon)
-                        {
-                            allPolygons.Add(polygon);
-                            layerPolygons.Add(polygon);
-                        }
-                        else if (geometry is Polyline polyline)
-                        {
-                            allPolylines.Add(polyline);
-                            layerPolylines.Add(polyline);
-                        }
-                    }
-                }
-
-                CalculateLayerResults(layerSummary, layerPolygons, layerPolylines, coordinateSystemType);
-                layerSummaries.Add(layerSummary);
-            }
-
-            var combinedAreaResults = CalculateAreaResults(allPolygons, coordinateSystemType);
-            var combinedLengthResults = CalculateLengthResults(allPolylines, coordinateSystemType);
-
-            // 更新UI
-            if (System.Windows.Application.Current?.Dispatcher != null)
-            {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    CombinedAreaResults.Clear();
-                    CombinedLengthResults.Clear();
-                    LayerResults.Clear();
-
-                    foreach (var result in combinedAreaResults)
-                        CombinedAreaResults.Add(result);
-
-                    foreach (var result in combinedLengthResults)
-                        CombinedLengthResults.Add(result);
-
-                    foreach (var summary in layerSummaries)
-                        LayerResults.Add(summary);
-
-                    HasAreaResults = combinedAreaResults.Any();
-                    HasLengthResults = combinedLengthResults.Any();
-                    ShowLayerResults = layerData.Count > 1;
-                    NotifyPropertyChanged(() => HasResults);
-                });
-            }
-        }
 
 
 
@@ -823,20 +753,20 @@ namespace XIAOFUTools.Tools.ViewArea
                 {
                     case CoordinateSystemType.None:
                         // 无坐标系：只计算平面面积
-                        planarArea = polygons.AsParallel().Sum(p => GeometryEngine.Instance.Area(p));
+                        planarArea = polygons.Sum(p => GeometryEngine.Instance.Area(p));
                         System.Diagnostics.Debug.WriteLine($"无坐标系 - 只计算平面面积: {planarArea}");
                         break;
 
                     case CoordinateSystemType.Geographic:
                         // 地理坐标系：只计算椭球面积（无法计算平面）
-                        geodesicArea = polygons.AsParallel().Sum(p => CalculateGeodesicArea(p));
+                        geodesicArea = polygons.Sum(p => CalculateGeodesicArea(p));
                         System.Diagnostics.Debug.WriteLine($"地理坐标系 - 只计算椭球面积: {geodesicArea}");
                         break;
 
                     case CoordinateSystemType.Projected:
                         // 投影坐标系：计算两种面积
-                        planarArea = polygons.AsParallel().Sum(p => GeometryEngine.Instance.Area(p));
-                        geodesicArea = polygons.AsParallel().Sum(p => CalculateGeodesicArea(p));
+                        planarArea = polygons.Sum(p => GeometryEngine.Instance.Area(p));
+                        geodesicArea = polygons.Sum(p => CalculateGeodesicArea(p));
                         System.Diagnostics.Debug.WriteLine($"投影坐标系 - 平面面积: {planarArea}, 椭球面积: {geodesicArea}");
                         break;
                 }
@@ -932,20 +862,20 @@ namespace XIAOFUTools.Tools.ViewArea
                 {
                     case CoordinateSystemType.None:
                         // 无坐标系：只计算平面长度
-                        planarLength = polylines.AsParallel().Sum(p => GeometryEngine.Instance.Length(p));
+                        planarLength = polylines.Sum(p => GeometryEngine.Instance.Length(p));
                         System.Diagnostics.Debug.WriteLine($"无坐标系 - 只计算平面长度: {planarLength}");
                         break;
 
                     case CoordinateSystemType.Geographic:
                         // 地理坐标系：只计算测地线长度（无法计算平面）
-                        geodesicLength = polylines.AsParallel().Sum(p => CalculateGeodesicLength(p));
+                        geodesicLength = polylines.Sum(p => CalculateGeodesicLength(p));
                         System.Diagnostics.Debug.WriteLine($"地理坐标系 - 只计算测地线长度: {geodesicLength}");
                         break;
 
                     case CoordinateSystemType.Projected:
                         // 投影坐标系：计算两种长度
-                        planarLength = polylines.AsParallel().Sum(p => GeometryEngine.Instance.Length(p));
-                        geodesicLength = polylines.AsParallel().Sum(p => CalculateGeodesicLength(p));
+                        planarLength = polylines.Sum(p => GeometryEngine.Instance.Length(p));
+                        geodesicLength = polylines.Sum(p => CalculateGeodesicLength(p));
                         System.Diagnostics.Debug.WriteLine($"投影坐标系 - 平面长度: {planarLength}, 测地线长度: {geodesicLength}");
                         break;
                 }

@@ -15,6 +15,7 @@ using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 using XIAOFUTools.Common;
 
 namespace XIAOFUTools.Tools.Edit.Boundary.MapBoundaryPointLineGenerator
@@ -25,6 +26,10 @@ namespace XIAOFUTools.Tools.Edit.Boundary.MapBoundaryPointLineGenerator
     /// </summary>
     internal class MapBoundaryPointLineGeneratorDockPaneViewModel : PropertyChangedBase
     {
+        private dynamic _mapViewInitializedToken;
+        private dynamic _activeMapViewChangedToken;
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
         private bool _isProcessing;
         public bool IsProcessing
@@ -311,9 +316,9 @@ namespace XIAOFUTools.Tools.Edit.Boundary.MapBoundaryPointLineGenerator
             LoadLayouts();
 
             // 订阅事件
-            MapViewInitializedEvent.Subscribe((args) => { LoadPolygonLayers(); });
-            ActiveMapViewChangedEvent.Subscribe((args) => { LoadPolygonLayers(); });
-            MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+            _mapViewInitializedToken = MapViewInitializedEvent.Subscribe((args) => { LoadPolygonLayers(); });
+            _activeMapViewChangedToken = ActiveMapViewChangedEvent.Subscribe((args) => { LoadPolygonLayers(); });
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
         }
         #endregion
 
@@ -423,6 +428,37 @@ namespace XIAOFUTools.Tools.Edit.Boundary.MapBoundaryPointLineGenerator
         {
             LoadPolygonLayers();
             LoadLayouts();
+        }
+
+        /// <summary>
+        /// 刷新图层列表（供View的Loaded调用）
+        /// </summary>
+        public void RefreshLayers()
+        {
+            LoadPolygonLayers();
+            LoadLayouts();
+        }
+
+        /// <summary>
+        /// 清理事件订阅
+        /// </summary>
+        public void Cleanup()
+        {
+            if (_mapViewInitializedToken != null)
+            {
+                MapViewInitializedEvent.Unsubscribe(_mapViewInitializedToken);
+                _mapViewInitializedToken = null;
+            }
+            if (_activeMapViewChangedToken != null)
+            {
+                ActiveMapViewChangedEvent.Unsubscribe(_activeMapViewChangedToken);
+                _activeMapViewChangedToken = null;
+            }
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
+            }
         }
         #endregion
 

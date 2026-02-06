@@ -22,6 +22,7 @@ using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Core.Geoprocessing;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 using XIAOFUTools.Common;
 
 namespace XIAOFUTools.Tools.BoundaryPointGenerator
@@ -31,6 +32,8 @@ namespace XIAOFUTools.Tools.BoundaryPointGenerator
     /// </summary>
     internal class BoundaryPointGeneratorDockPaneViewModel : PropertyChangedBase
     {
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
 
         // 取消操作标志
@@ -323,7 +326,7 @@ namespace XIAOFUTools.Tools.BoundaryPointGenerator
             LoadPolygonLayers();
 
             // 订阅地图选择变化事件并初始化一次选择信息
-            MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
             UpdateSelectionInfo();
 
             // 初始化生成模式
@@ -1291,6 +1294,18 @@ namespace XIAOFUTools.Tools.BoundaryPointGenerator
             catch (Exception ex)
             {
                 LogError($"获取字段列表失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 清理事件订阅
+        /// </summary>
+        public void Cleanup()
+        {
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
             }
         }
 

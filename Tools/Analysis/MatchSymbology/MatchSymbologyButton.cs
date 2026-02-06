@@ -14,6 +14,10 @@ namespace XIAOFUTools.Tools.Analysis.MatchSymbology
             {
                 return; // 授权无效时，退出操作
             }
+
+            // 检查活动地图视图
+            if (MapView.Active == null) return;
+
             // 获取当前活动视图中选中的单个图层
             var selectedLayers = MapView.Active.GetSelectedLayers();
 

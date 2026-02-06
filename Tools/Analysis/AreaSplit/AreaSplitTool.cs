@@ -42,7 +42,13 @@ namespace XIAOFUTools.Tools.AreaSplit
             await QueuedTask.Run(async () =>
             {
                 // 检查选择集是否只有一个多边形要素
-                var selection = MapView.Active.Map.GetSelection();
+                var mapView = MapView.Active;
+                if (mapView?.Map == null)
+                {
+                    MessageBox.Show("当前没有活动地图！", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+                var selection = mapView.Map.GetSelection();
                 int totalSelected = selection.ToDictionary().Values.Sum(v => v.Count);
                 if (totalSelected != 1)
                 {
@@ -127,7 +133,10 @@ namespace XIAOFUTools.Tools.AreaSplit
                     Polyline currentSketch = null;
                     try { currentSketch = await GetCurrentSketchAsync() as Polyline; }
                     catch (Exception) { }
-                    MapPoint mouseMapPoint = MapView.Active.ClientToMap(e.ClientPoint);
+                    MapPoint mouseMapPoint = null;
+                    var mapView = MapView.Active;
+                    if (mapView != null)
+                        mouseMapPoint = mapView.ClientToMap(e.ClientPoint);
 
                     if (currentSketch != null)
                     {
@@ -174,7 +183,9 @@ namespace XIAOFUTools.Tools.AreaSplit
                 try
                 {
                     // 获取选中图斑要素
-                    var selection = MapView.Active.Map.GetSelection();
+                    var mapView = MapView.Active;
+                    if (mapView?.Map == null) return;
+                    var selection = mapView.Map.GetSelection();
                     FeatureLayer featureLayer = null;
                     long oid = -1;
                     foreach (var kvp in selection.ToDictionary())
@@ -345,7 +356,10 @@ namespace XIAOFUTools.Tools.AreaSplit
                     await UpdateCandidatePreview(null);
 
                     // 执行最终分割操作
-                    var selection = MapView.Active.Map.GetSelection();
+                    var splitMapView = MapView.Active;
+                    if (splitMapView?.Map == null)
+                        return false;
+                    var selection = splitMapView.Map.GetSelection();
                     FeatureLayer featureLayer = null;
                     long oid = -1;
                     foreach (var kvp in selection.ToDictionary())
@@ -376,7 +390,11 @@ namespace XIAOFUTools.Tools.AreaSplit
 
                                     var editOp = new EditOperation { Name = "动态面积分割" };
                                     editOp.Split(featureLayer, oid, projLine);
-                                    await editOp.ExecuteAsync();
+                                    bool result = await editOp.ExecuteAsync();
+                                    if (!result)
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"分割操作失败: {editOp.ErrorMessage}");
+                                    }
                                 }
                             }
                         }

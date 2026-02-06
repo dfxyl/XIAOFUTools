@@ -13,7 +13,7 @@ using Word = Microsoft.Office.Interop.Word;
 
 namespace XIAOFUTools.Tools.WordToPdf
 {
-    internal class WordToPdfDockPaneViewModel : DockPane, INotifyPropertyChanged
+    internal class WordToPdfDockPaneViewModel : INotifyPropertyChanged
     {
         #region 属性
 
@@ -233,6 +233,7 @@ namespace XIAOFUTools.Tools.WordToPdf
             }
 
             IsProcessing = true;
+            _cancellationTokenSource?.Dispose();
             _cancellationTokenSource = new CancellationTokenSource();
             Progress = 0;
             IsProgressIndeterminate = false;
@@ -521,7 +522,7 @@ namespace XIAOFUTools.Tools.WordToPdf
 
         #region INotifyPropertyChanged
 
-        public new event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler PropertyChanged;
 
         protected virtual void OnPropertyChanged(string propertyName)
         {

@@ -16,6 +16,7 @@ using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Mapping.Events;
+using ArcGIS.Desktop.Framework.Events;
 
 namespace XIAOFUTools.Tools.GroupNumbering
 {
@@ -62,6 +63,8 @@ namespace XIAOFUTools.Tools.GroupNumbering
     /// </summary>
     internal class GroupNumberingViewModel : PropertyChangedBase
     {
+        private dynamic _mapSelectionChangedToken;
+
         #region 属性
 
         private ObservableCollection<FeatureLayer> _layerList;
@@ -305,7 +308,7 @@ namespace XIAOFUTools.Tools.GroupNumbering
             LoadLayersAsync();
 
             // 订阅地图选择变化事件，实时更新选择信息
-            MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
+            _mapSelectionChangedToken = MapSelectionChangedEvent.Subscribe(OnMapSelectionChanged);
         }
 
         /// <summary>
@@ -599,6 +602,18 @@ namespace XIAOFUTools.Tools.GroupNumbering
         {
             // 简单处理：任意选择变化均尝试刷新显示
             UpdateSelectionInfo();
+        }
+
+        /// <summary>
+        /// 清理事件订阅
+        /// </summary>
+        public void Cleanup()
+        {
+            if (_mapSelectionChangedToken != null)
+            {
+                MapSelectionChangedEvent.Unsubscribe(_mapSelectionChangedToken);
+                _mapSelectionChangedToken = null;
+            }
         }
 
         /// <summary>

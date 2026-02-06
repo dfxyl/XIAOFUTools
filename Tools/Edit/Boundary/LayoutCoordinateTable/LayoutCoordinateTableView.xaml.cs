@@ -143,11 +143,11 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                         position: (-30, -30),
                         size: (50, 20),
                         symbol: null);
-                    Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已创建图形模板 XF_TX (白底、黑边，位于版面外)"));
+                    _ = Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已创建图形模板 XF_TX (白底、黑边，位于版面外)"));
                 }
                 else
                 {
-                    Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已存在图形模板 XF_TX"));
+                    _ = Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已存在图形模板 XF_TX"));
                 }
 
                 // 查找并创建 XF_WB（文本模板）
@@ -160,11 +160,11 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                         position: (-30, -30),
                         text: "模板文本",
                         symbol: null);
-                    Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已创建文本模板 XF_WB (Arial, 黑色，位于版面外)"));
+                    _ = Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已创建文本模板 XF_WB (Arial, 黑色，位于版面外)"));
                 }
                 else
                 {
-                    Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已存在文本模板 XF_WB"));
+                    _ = Application.Current.Dispatcher.BeginInvoke(() => LogMessage("已存在文本模板 XF_WB"));
                 }
             });
         }
@@ -494,7 +494,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                                             processedCount++;
                                             // 记录处理进度，稍后在UI线程显示
                                             var logMsg = $"已处理面要素: {uniqueValue} ({processedCount})";
-                                            Application.Current.Dispatcher.BeginInvoke(() => LogMessage(logMsg));
+                                            _ = Application.Current.Dispatcher.BeginInvoke(() => LogMessage(logMsg));
                                             
                                             // 添加短暂延迟，让布局有时间刷新渲染
                                             await Task.Delay(100);
@@ -506,13 +506,13 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                     }
                     catch (Exception ex)
                     {
-                        Application.Current.Dispatcher.BeginInvoke(() => LogMessage($"处理过程中发生错误: {ex.Message}"));
+                        _ = Application.Current.Dispatcher.BeginInvoke(() => LogMessage($"处理过程中发生错误: {ex.Message}"));
                         throw;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Application.Current.Dispatcher.BeginInvoke(() => LogMessage($"生成坐标表时发生错误: {ex.Message}"));
+                    _ = Application.Current.Dispatcher.BeginInvoke(() => LogMessage($"生成坐标表时发生错误: {ex.Message}"));
                     throw;
                 }
             });
@@ -692,7 +692,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
             string placementCorner, double cornerOffset)
         {
             // 使用BeginInvoke避免线程阻塞
-            Application.Current.Dispatcher.BeginInvoke(() => 
+            _ = Application.Current.Dispatcher.BeginInvoke(() => 
                 LogMessage($"正在为 {uniqueValue} 创建表格元素..."));
 
             try
@@ -709,12 +709,12 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                             pointColWidth, xyColWidth, edgeColWidth, rowHeight, generateEdge, placementCorner, cornerOffset));
                 }
 
-                Application.Current.Dispatcher.BeginInvoke(() => 
+                _ = Application.Current.Dispatcher.BeginInvoke(() => 
                     LogMessage($"面要素 {uniqueValue} 的表格元素创建完成"));
             }
             catch (Exception ex)
             {
-                Application.Current.Dispatcher.BeginInvoke(() => 
+                _ = Application.Current.Dispatcher.BeginInvoke(() => 
                     LogMessage($"创建表格元素时发生错误: {ex.Message}"));
                 throw;
             }
@@ -742,12 +742,12 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                 {
                     rectSymbol = polygonGraphic.Symbol.Symbol as CIMPolygonSymbol;
                 }
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                _ = Application.Current.Dispatcher.BeginInvoke(() =>
                     LogMessage(rectSymbol != null ? "检测到图形模板 XF_TX，将使用模板样式" : "图形模板 XF_TX 格式不正确，使用默认样式"));
             }
             else
             {
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                _ = Application.Current.Dispatcher.BeginInvoke(() =>
                     LogMessage("未找到图形模板 XF_TX，使用默认样式"));
             }
             
@@ -758,12 +758,12 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                 {
                     textSymbol = textGraphic.Symbol.Symbol as CIMTextSymbol;
                 }
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                _ = Application.Current.Dispatcher.BeginInvoke(() =>
                     LogMessage(textSymbol != null ? "检测到文本模板 XF_WB，将使用模板样式" : "文本模板 XF_WB 格式不正确，使用默认样式"));
             }
             else
             {
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                _ = Application.Current.Dispatcher.BeginInvoke(() =>
                     LogMessage("未找到文本模板 XF_WB，使用默认样式"));
             }
             
@@ -778,7 +778,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
             var widthsStr = generateEdge 
                 ? $"{pointColWidth:F2},{xyColWidth:F2},{xyColWidth:F2},{edgeColWidth:F2}"
                 : $"{pointColWidth:F2},{xyColWidth:F2},{xyColWidth:F2}";
-            Application.Current.Dispatcher.BeginInvoke(() =>
+            _ = Application.Current.Dispatcher.BeginInvoke(() =>
                 LogMessage($"列宽(mm)={widthsStr}；行高(mm)={rowHeight:F2}；表宽(mm)={tableWidth:F2}"));
 
             // 先计算每个子表的有效行数（不含空行）。最后一个子表会额外增加面积行。
@@ -828,7 +828,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                         break;
                 }
                 
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                _ = Application.Current.Dispatcher.BeginInvoke(() =>
                     LogMessage($"地图框: ({mapBounds.XMin:F2},{mapBounds.YMin:F2})-({mapBounds.XMax:F2},{mapBounds.YMax:F2}), 起始位置: ({startX:F2},{startY:F2}), 角落={placementCorner}"));
             }
             else
@@ -836,7 +836,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                 // 如果没有地图框，使用默认位置
                 startX = 10;
                 startY = 300;
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                _ = Application.Current.Dispatcher.BeginInvoke(() =>
                     LogMessage($"警告: 未找到地图框，使用默认位置 ({startX},{startY})"));
             }
             
@@ -1028,7 +1028,7 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
                     layoutView.Refresh();
                 }
                 
-                Application.Current.Dispatcher.BeginInvoke(() =>
+                _ = Application.Current.Dispatcher.BeginInvoke(() =>
                     LogMessage($"坐标表组创建完成: {mainGroupName}"));
             }
         }

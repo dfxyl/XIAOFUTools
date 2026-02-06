@@ -38,10 +38,12 @@ namespace XIAOFUTools.Tools.Analysis.ExportExcel
                 // 获取当前活动视图中的所有选中独立表
                 var selectedStandaloneTables = mapView.GetSelectedStandaloneTables().Cast<MapMember>().ToList();
 
-                // 如果没有选中内容，尝试获取所有独立表
+                // 如果没有选中内容，尝试获取所有独立表（需要在MCT线程上访问）
                 if (!selectedLayers.Any() && !selectedStandaloneTables.Any())
                 {
-                    selectedStandaloneTables = mapView.Map.StandaloneTables.Cast<MapMember>().ToList(); // 使用所有独立表
+                    selectedStandaloneTables = await QueuedTask.Run(() =>
+                        mapView.Map.StandaloneTables.Cast<MapMember>().ToList()
+                    );
                 }
 
                 // 使用 LINQ 收集所有有效的图层或表格 URI

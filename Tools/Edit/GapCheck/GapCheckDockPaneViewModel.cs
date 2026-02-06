@@ -222,10 +222,20 @@ namespace XIAOFUTools.Tools.GapCheck
         /// <summary>
         /// 加载面要素图层
         /// </summary>
-        private void LoadPolygonLayers()
+        private async void LoadPolygonLayers()
         {
             try
             {
+                var layers = await QueuedTask.Run(() =>
+                {
+                    var map = MapView.Active?.Map;
+                    if (map == null) return new List<FeatureLayer>();
+                    return map.GetLayersAsFlattenedList()
+                        ?.OfType<FeatureLayer>()
+                        .Where(fl => fl != null && fl.ShapeType == esriGeometryType.esriGeometryPolygon)
+                        .ToList() ?? new List<FeatureLayer>();
+                });
+
                 // 确保PolygonLayers不为null
                 if (PolygonLayers == null)
                 {
@@ -236,33 +246,15 @@ namespace XIAOFUTools.Tools.GapCheck
                     PolygonLayers.Clear();
                 }
 
-                var map = MapView.Active?.Map;
-                if (map == null)
+                if (layers.Count == 0)
                 {
                     AddLog("当前没有活动地图");
                     return;
                 }
 
-                var featureLayers = map.GetLayersAsFlattenedList()?.OfType<FeatureLayer>();
-                if (featureLayers == null)
+                foreach (var layer in layers)
                 {
-                    AddLog("无法获取图层列表");
-                    return;
-                }
-
-                foreach (var layer in featureLayers)
-                {
-                    try
-                    {
-                        if (layer != null && layer.ShapeType == esriGeometryType.esriGeometryPolygon)
-                        {
-                            PolygonLayers.Add(layer);
-                        }
-                    }
-                    catch (Exception layerEx)
-                    {
-                        AddLog($"处理图层时出错: {layerEx.Message}");
-                    }
+                    PolygonLayers.Add(layer);
                 }
 
                 AddLog($"已加载 {PolygonLayers.Count} 个面要素图层");
@@ -415,6 +407,7 @@ namespace XIAOFUTools.Tools.GapCheck
                 IsProcessing = true;
                 IsProgressIndeterminate = true;
                 StatusMessage = "正在检查缝隙...";
+                _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 AddLog("开始执行缝隙检查...");

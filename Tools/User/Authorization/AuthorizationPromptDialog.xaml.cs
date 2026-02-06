@@ -11,14 +11,14 @@ namespace XIAOFUTools.Tools.Authorization
     {
         #region 属性
 
-        private string _title = "需要授权";
-        public string Title
+        private string _headerTitle = "需要授权";
+        public string HeaderTitle
         {
-            get => _title;
+            get => _headerTitle;
             set
             {
-                _title = value;
-                OnPropertyChanged(nameof(Title));
+                _headerTitle = value;
+                OnPropertyChanged(nameof(HeaderTitle));
             }
         }
 
@@ -168,6 +168,7 @@ namespace XIAOFUTools.Tools.Authorization
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"授权提示对话框失败: {ex.Message}");
                 // 如果自定义对话框失败，回退到标准MessageBox
                 string message = $"{toolName}需要授权才能使用。\n\n";
                 message += $"授权状态: {status.Message}\n";
