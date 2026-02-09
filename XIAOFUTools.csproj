@@ -46,6 +46,8 @@
     <None Remove="Images\ExportCAD_32.png" />
     <None Remove="Images\ExportExcel_16.png" />
     <None Remove="Images\ExportExcel_32.png" />
+    <None Remove="Images\DataPivot_16.png" />
+    <None Remove="Images\DataPivot_32.png" />
     <None Remove="Images\FieldCopyTool_16.png" />
     <None Remove="Images\FieldCopyTool_32.png" />
     <None Remove="Images\Globe16.png" />
@@ -159,6 +161,8 @@
     <Content Include="Images\ExportCAD_32.png" />
     <Content Include="Images\ExportExcel_16.png" />
     <Content Include="Images\ExportExcel_32.png" />
+    <Content Include="Images\DataPivot_16.png" />
+    <Content Include="Images\DataPivot_32.png" />
     <Content Include="Images\ExportToKml_16.png" />
     <Content Include="Images\ExportToKml_32.png" />
     <Content Include="Images\FieldCopyTool_16.png" />

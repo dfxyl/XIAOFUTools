@@ -40,8 +40,8 @@
           <inlineGallery refID="XIAOFUTools_PresetLayersGallery" />
           <button refID="XIAOFUTools_HistoricalImageryButton" />
         </group>
-        <!-- 编辑/计算工具组 -->
-        <group id="XIAOFUTools_EditGroup" caption="编辑/计算工具" appearsOnAddInTab="false">
+        <!-- 编辑/分析/计算工具组 -->
+        <group id="XIAOFUTools_EditGroup" caption="编辑/分析/计算工具" appearsOnAddInTab="false">
           <buttonPalette refID="XIAOFUTools_EditButtonPalette" />
           <buttonPalette refID="XIAOFUTools_BoundaryButtonPalette" />
           <buttonPalette refID="XIAOFUTools_DynamicToolsButtonPalette" />
@@ -116,11 +116,12 @@
         <buttonPalette id="XIAOFUTools_DynamicToolsButtonPalette" caption="动态工具" dropDown="true" menuStyle="false">
           <tool refID="XIAOFUTools_AreaSplitTool" />
         </buttonPalette>
-        <!-- 计算工具按钮面板 -->
-        <buttonPalette id="XIAOFUTools_AnalysisButtonPalette" caption="计算" dropDown="true" menuStyle="false">
+        <!-- 分析/计算工具按钮面板 -->
+        <buttonPalette id="XIAOFUTools_AnalysisButtonPalette" caption="分析/计算" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_AreaCalculatorButton" />
           <button refID="XIAOFUTools_IntersectSummaryButton" />
           <button refID="XIAOFUTools_MultiOverlaySummaryButton" />
+          <button refID="XIAOFUTools_DataPivotButton" />
           <!-- 在此添加计算工具按钮引用 -->
         </buttonPalette>
         <!-- 转换工具按钮面板 -->
@@ -220,6 +221,8 @@
         <dockPane id="XIAOFUTools_IntersectSummaryDockPane" caption="交集汇总表" className="XIAOFUTools.Tools.IntersectSummary.IntersectSummaryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 多图层压盖汇总停靠窗格 -->
         <dockPane id="XIAOFUTools_MultiOverlaySummaryDockPane" caption="多图层压盖汇总" className="XIAOFUTools.Tools.MultiOverlaySummary.MultiOverlaySummaryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 数据透视停靠窗格 -->
+        <dockPane id="XIAOFUTools_DataPivotDockPane" caption="数据透视" className="XIAOFUTools.Tools.DataPivot.DataPivotDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 批量定义投影停靠窗格 -->
         <dockPane id="XIAOFUTools_BatchProjectionDefinitionDockPane" caption="批量定义投影" className="XIAOFUTools.Tools.BatchProjectionDefinition.BatchProjectionDefinitionDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 批量修复几何停靠窗格 -->
@@ -364,6 +367,12 @@
           <tooltip heading="多图层压盖汇总">
             计算主图层与多个压盖图层的交集面积，以图层名称为列名输出汇总表
             <disabledText>无权限使用多图层压盖汇总工具</disabledText></tooltip>
+        </button>
+        <!-- 数据透视按钮 -->
+        <button id="XIAOFUTools_DataPivotButton" caption="数据透视" className="XIAOFUTools.Tools.DataPivot.DataPivotButton" loadOnClick="true" smallImage="Images\DataPivot_16.png" largeImage="Images\DataPivot_32.png">
+          <tooltip heading="数据透视">
+            将输入表按区域字段分组，按透视字段展开列并输出汇总透视表
+            <disabledText>无权限使用数据透视工具</disabledText></tooltip>
         </button>
         <!-- 批量定义投影按钮 -->
         <button id="XIAOFUTools_BatchProjectionDefinitionButton" caption="批量定义投影" className="XIAOFUTools.Tools.BatchProjectionDefinition.BatchProjectionDefinitionButton" loadOnClick="true" smallImage="Images\BatchProjectionDefinition_16.png" largeImage="Images\BatchProjectionDefinition_32.png">

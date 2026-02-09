@@ -8,13 +8,29 @@
 
 ## 新增功能
 
-*暂无*
+### 数据透视工具（分析/计算组）(2026-02-09)
+- 新增“数据透视”工具，支持从地图中的要素图层/独立表选择输入数据。
+- 支持多区域字段分组、透视字段展开、数值字段汇总，汇总方式支持：求和、计数、平均值、最大值、最小值、中位数、极差、标准差、方差。
+- 新增默认命名规则：输出表名自动为 `TS_输入数据名称`，并在窗格加载时自动回到项目默认 GDB。
+- 修改“计算”面板名称为“分析/计算”，并同步分组文案为“编辑/分析/计算工具”。
+- 修改的文件:
+  - `Tools/Analysis/DataPivot/DataPivotButton.cs` - 新增按钮入口与授权校验
+  - `Tools/Analysis/DataPivot/DataPivotDockPane.cs` - 新增停靠窗格容器
+  - `Tools/Analysis/DataPivot/DataPivotDockPaneView.xaml` - 新增工具界面
+  - `Tools/Analysis/DataPivot/DataPivotDockPaneView.xaml.cs` - 新增视图初始化与加载逻辑
+  - `Tools/Analysis/DataPivot/DataPivotDockPaneViewModel.cs` - 新增数据透视主流程、参数与日志
+  - `Config.daml` - 新增按钮/停靠窗格注册并更新分组与面板名称
 
 ---
 
 ## Bug 修复
 
-*暂无*
+### 数据透视临时表不存在问题修复 (2026-02-09)
+- 修复 `in_memory` 临时表在连续 GP 调用中可能失效导致 `ERROR 000732` 的问题。
+- 临时工作空间改为输出 GDB（或项目默认 GDB），并新增可用性校验与日志输出。
+- 修复下拉框偶发显示对象类型名（代码名）的问题，统一回退显示为可读名称。
+- 修改的文件:
+  - `Tools/Analysis/DataPivot/DataPivotDockPaneViewModel.cs` - 临时工作空间策略、显示文本回退与错误防护
 
 ---
 
@@ -31,6 +47,15 @@
   - `Tools/Convert/MapSeriesExport/MapSeriesSettingsWindow.xaml.cs` - 新增参数读取、保存与校验
   - `Tools/Convert/MapSeriesExport/MapSeriesExportDockPaneView.xaml` - 新增搜索框与搜索模式下拉
   - `Tools/Convert/MapSeriesExport/MapSeriesExportViewModel.cs` - 实现压缩省略、边长联动省略与页面过滤逻辑
+
+### 数据透视工具图标更新 (2026-02-09)
+- 新增数据透视专用 SVG 图标并转换生成 16/32 PNG 图标，替换原复用图标。
+- 修改的文件:
+  - `IconTools/Icons/DataPivot.svg` - 新增矢量图标源文件
+  - `Images/DataPivot_16.png` - 新增小图标
+  - `Images/DataPivot_32.png` - 新增大图标
+  - `Config.daml` - 数据透视按钮图标路径改为专用图标
+  - `XIAOFUTools.csproj` - 添加新图标内容清单
 
 ---
 
