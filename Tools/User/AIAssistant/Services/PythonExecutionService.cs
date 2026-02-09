@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -29,6 +30,22 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Services
     {
         private static PythonExecutionService _instance;
         private static readonly object _lock = new object();
+        private static readonly List<(System.Text.RegularExpressions.Regex Pattern, string Reason)> DangerousPatterns =
+            new List<(System.Text.RegularExpressions.Regex, string)>
+            {
+                (new System.Text.RegularExpressions.Regex(@"\bos\.remove\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "删除文件"),
+                (new System.Text.RegularExpressions.Regex(@"\bos\.rmdir\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "删除目录"),
+                (new System.Text.RegularExpressions.Regex(@"\bshutil\.rmtree\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "递归删除目录"),
+                (new System.Text.RegularExpressions.Regex(@"\barcpy\.Delete(_management)?\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "删除地理数据"),
+                (new System.Text.RegularExpressions.Regex(@"\barcpy\.management\.Delete\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "删除地理数据"),
+                (new System.Text.RegularExpressions.Regex(@"\barcpy\.management\.DeleteFeatures\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "删除要素"),
+                (new System.Text.RegularExpressions.Regex(@"\barcpy\.DeleteRows_management\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "删除表行"),
+                (new System.Text.RegularExpressions.Regex(@"\barcpy\.management\.DeleteRows\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "删除表行"),
+                (new System.Text.RegularExpressions.Regex(@"\barcpy\.Truncate(Table)?(?:_management)?\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "截断表"),
+                (new System.Text.RegularExpressions.Regex(@"\barcpy\.management\.TruncateTable\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "截断表"),
+                (new System.Text.RegularExpressions.Regex(@"\bsubprocess\.(run|call|Popen)\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "执行外部进程"),
+                (new System.Text.RegularExpressions.Regex(@"\bos\.system\s*\(", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "执行系统命令")
+            };
         
         // 固定工具箱目录（用于"不询问"模式）
         private readonly string _fixedToolboxDir;
@@ -215,14 +232,44 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Services
             CancellationToken cancellationToken = default,
             int timeoutMs = 30000)
         {
+            if (string.IsNullOrWhiteSpace(code))
+            {
+                return new PythonExecutionResult
+                {
+                    Success = false,
+                    Error = "代码不能为空",
+                    ExitCode = -1,
+                    ExecutionTimeMs = 0
+                };
+            }
+
+            if (TryGetSafetyBlockReason(code, out var reason))
+            {
+                return new PythonExecutionResult
+                {
+                    Success = false,
+                    Error = $"检测到高风险操作（{reason}），已拦截执行。请改为只读分析代码后再试。",
+                    ExitCode = -2,
+                    ExecutionTimeMs = 0
+                };
+            }
+
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            if (timeoutMs > 0)
+            {
+                timeoutCts.CancelAfter(timeoutMs);
+            }
+
+            var effectiveToken = timeoutCts.Token;
+
             // 根据设置选择执行模式
             if (UseFixedLocation)
             {
-                return await ExecuteWithFixedToolbox(code, cancellationToken, timeoutMs);
+                return await ExecuteWithFixedToolbox(code, effectiveToken, timeoutMs);
             }
             else
             {
-                return await ExecuteWithTempToolbox(code, cancellationToken, timeoutMs);
+                return await ExecuteWithTempToolbox(code, effectiveToken, timeoutMs);
             }
         }
         
@@ -644,6 +691,22 @@ except Exception as e:
     print(f'ArcPy错误: {e}')
 ";
             return await ExecuteCodeAsync(testCode);
+        }
+
+        private static bool TryGetSafetyBlockReason(string code, out string reason)
+        {
+            reason = null;
+
+            foreach (var rule in DangerousPatterns)
+            {
+                if (rule.Pattern.IsMatch(code))
+                {
+                    reason = rule.Reason;
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

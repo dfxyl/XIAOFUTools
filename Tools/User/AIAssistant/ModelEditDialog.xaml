@@ -134,6 +134,22 @@
                 </CheckBox>
                 <TextBlock Text="勾选此项表示该模型支持图片输入（如 GPT-4o、Claude 3 等）" 
                            Foreground="#9ca3af" FontSize="10" Margin="20,0,0,0"/>
+                
+                <!-- API 连通性测试 -->
+                <Border Background="#f8fafc" CornerRadius="6" Padding="12" Margin="0,16,0,0" BorderBrush="#e2e8f0" BorderThickness="1">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="连通性测试" Style="{StaticResource LabelStyle}" VerticalAlignment="Center" Margin="0"/>
+                            <Button x:Name="btnTestApi" Grid.Column="1" Content="测试连接" Style="{StaticResource SecondaryButton}" 
+                                    Click="BtnTestApi_Click" Padding="12,6"/>
+                        </Grid>
+                        <TextBlock x:Name="txtTestResult" Text="" FontSize="11" Margin="0,6,0,0" TextWrapping="Wrap" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Border>
             </StackPanel>
         </ScrollViewer>
         

@@ -407,6 +407,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const confirmDialogSessionName = document.getElementById('confirmDialogSessionName');
     const confirmDialogCancel = document.getElementById('confirmDialogCancel');
     const confirmDialogConfirm = document.getElementById('confirmDialogConfirm');
+    const toolApprovalDialog = document.getElementById('toolApprovalDialog');
+    const toolApprovalBody = document.getElementById('toolApprovalBody');
+    const toolApprovalCancelBtn = document.getElementById('toolApprovalCancelBtn');
+    const toolApprovalAllowOnceBtn = document.getElementById('toolApprovalAllowOnceBtn');
+    const toolApprovalAllowBtn = document.getElementById('toolApprovalAllowBtn');
     const imageUploadBtn = document.getElementById('imageUploadBtn');
     const imageInput = document.getElementById('imageInput');
     const imagePreviewContainer = document.getElementById('imagePreviewContainer');
@@ -414,14 +419,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let isStreaming = false;
     let currentAiMsgContent = null;
-    let hasCollapsedThinking = false;
     let currentSessionId = null;
     let pendingDeleteSession = null;
     let currentMode = 'chat'; // 'chat' or 'agent'
     let currentStreamText = ''; // 用于累积流式输出的文本
+    let currentTurnId = null;
+    const turnMessageMap = new Map();
+    const turnTextMap = new Map();
     let selectedImages = []; // 存储选中的图片(base64)
     let currentModelSupportsVision = false; // 当前模型是否支持视觉
     let pythonExecutionHistory = new Map(); // 存储Python执行历史 (code -> execData)
+    let pendingToolApprovalRequestId = null;
 
     // 自动调整高度 & 按钮状态
     inputText.addEventListener('input', function() {
@@ -470,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // 模型切换事件
     modelSelect.addEventListener('change', handleModelChange);
-    
+
     // 监听聊天列表滚动
     let scrollTimeout;
     chatList.addEventListener('scroll', () => {
@@ -498,6 +506,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const text = inputText.value.trim();
         if (!text) return;
+
+        // 检查是否已配置模型
+        if (!modelSelect.value) {
+            showSystemNotice('请先在设置中配置AI模型。点击右上角 ⚙️ 按钮打开设置。');
+            return;
+        }
 
         console.log('[Frontend] sendMessage 被调用, 消息:', text, '图片数量:', selectedImages.length);
 
@@ -532,7 +546,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.pythonExecReferences.forEach((data, id) => {
                 execReferences.push({
                     id: id,
-                    code: data.code,
                     output: data.output,
                     error: data.error,
                     success: data.success
@@ -579,6 +592,410 @@ document.addEventListener('DOMContentLoaded', () => {
         chatList.innerHTML = '';
         scrollToBottomBtn.style.display = 'none';
         appendMessage('ai', '你好！我是你的GIS助手，有什么可以帮你的吗？');
+    }
+
+    // 显示系统提示（非对话消息，用于提醒用户操作）
+    function showSystemNotice(message) {
+        const div = document.createElement('div');
+        div.style.cssText = 'text-align:center;padding:12px 16px;margin:8px 0;background:#fef3c7;border-radius:8px;font-size:12px;color:#92400e;';
+        div.textContent = message;
+        chatList.appendChild(div);
+        forceScrollToBottom();
+    }
+
+    function resolveTurnId(rawTurnId) {
+        if (rawTurnId) return rawTurnId;
+        if (currentTurnId) return currentTurnId;
+        const fallback = `turn-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        currentTurnId = fallback;
+        return fallback;
+    }
+
+    function ensureTurnContext(turnId) {
+        if (!turnId) return null;
+
+        let targetAiMsg = turnMessageMap.get(turnId);
+        if (!targetAiMsg) {
+            targetAiMsg = appendMessage('ai', '', true);
+            turnMessageMap.set(turnId, targetAiMsg);
+            if (!turnTextMap.has(turnId)) {
+                turnTextMap.set(turnId, '');
+            }
+        }
+
+        return targetAiMsg;
+    }
+
+    function finalizeTurnMessage(turnId) {
+        const targetAiMsg = turnMessageMap.get(turnId);
+        if (!targetAiMsg || !targetAiMsg.content) return;
+
+        const finalText = turnTextMap.get(turnId) || '';
+        if (finalText) {
+            targetAiMsg.content.innerHTML = formatContent(finalText);
+            const spinners = targetAiMsg.content.querySelectorAll('.loading-spinner');
+            spinners.forEach(spinner => spinner.remove());
+        }
+    }
+
+    function upsertToolCallCard(targetAiMsg, data) {
+        if (!targetAiMsg || !targetAiMsg.toolCallsContainer) {
+            return;
+        }
+
+        const callId = data.callId || (`call-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+        const toolName = data.toolName || 'tool';
+        const status = data.status || 'running';
+        const message = data.message || '';
+        const preview = data.preview || '';
+        const title = getToolDisplayName(toolName);
+        const icon = status === 'success' ? '🌐' : (status === 'failed' ? '⚠️' : '⏳');
+
+        if (!targetAiMsg.toolCallMap) {
+            targetAiMsg.toolCallMap = new Map();
+        }
+        if (!targetAiMsg.toolCallDataMap) {
+            targetAiMsg.toolCallDataMap = new Map();
+        }
+
+        const mergedData = {
+            ...(targetAiMsg.toolCallDataMap.get(callId) || {}),
+            ...data,
+            callId
+        };
+        targetAiMsg.toolCallDataMap.set(callId, mergedData);
+
+        let card = targetAiMsg.toolCallMap.get(callId);
+        if (!card) {
+            card = document.createElement('div');
+            card.className = 'tool-call-item';
+            card.dataset.callId = callId;
+            card.innerHTML = `
+                <div class="tool-call-item-header">
+                    <span class="tool-call-toggle">▼</span>
+                    <span class="tool-call-icon"></span>
+                    <span class="tool-call-title"></span>
+                    <span class="tool-call-status"></span>
+                    <span class="tool-call-actions">
+                        <button type="button" class="tool-call-export" title="导出为Excel">导出Excel</button>
+                    </span>
+                </div>
+                <div class="tool-call-item-body"></div>`;
+
+            const header = card.querySelector('.tool-call-item-header');
+            header.addEventListener('click', () => {
+                card.classList.toggle('collapsed');
+            });
+
+            const exportBtn = card.querySelector('.tool-call-export');
+            if (exportBtn) {
+                exportBtn.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    exportToolCall(targetAiMsg, callId);
+                });
+            }
+
+            targetAiMsg.toolCallsContainer.appendChild(card);
+            targetAiMsg.toolCallMap.set(callId, card);
+
+            if (targetAiMsg.root) {
+                targetAiMsg.root.classList.add('has-tool-calls');
+            }
+        }
+
+        card.classList.remove('running', 'success', 'failed');
+        card.classList.add(status);
+
+        const iconEl = card.querySelector('.tool-call-icon');
+        const titleEl = card.querySelector('.tool-call-title');
+        const statusEl = card.querySelector('.tool-call-status');
+        const bodyEl = card.querySelector('.tool-call-item-body');
+
+        if (iconEl) iconEl.textContent = icon;
+        if (titleEl) titleEl.textContent = title;
+        if (statusEl) statusEl.textContent = message;
+        if (bodyEl) {
+            bodyEl.innerHTML = preview.trim()
+                ? `<pre class="tool-call-preview">${escapeHtml(preview)}</pre>`
+                : '<span class="tool-call-empty">暂无详情</span>';
+        }
+
+        if (status === 'running') {
+            card.classList.remove('collapsed');
+        } else if (status === 'success') {
+            card.classList.add('collapsed');
+        } else {
+            card.classList.remove('collapsed');
+        }
+
+        scrollToBottom();
+    }
+
+    function exportToolCall(targetAiMsg, callId) {
+        if (!window.chrome?.webview) {
+            return;
+        }
+
+        const toolData = targetAiMsg?.toolCallDataMap?.get(callId);
+        if (!toolData) {
+            appendMessage('ai', '⚠️ 未找到可导出的工具结果。');
+            return;
+        }
+
+        window.chrome.webview.postMessage({
+            type: 'exportToolCall',
+            payload: {
+                callId,
+                turnId: toolData.turnId || currentTurnId || '',
+                toolName: toolData.toolName || 'tool',
+                status: toolData.status || '',
+                message: toolData.message || '',
+                preview: toolData.preview || '',
+                parameters: toolData.parameters || '',
+                result: toolData.result || '',
+                timestamp: new Date().toISOString()
+            }
+        });
+    }
+
+    function updateSensitiveModeBanner(isEnabled) {
+        const statusEl = document.getElementById('sensitiveModeStatus');
+        if (!statusEl) {
+            return;
+        }
+
+        const enabled = isEnabled !== false;
+        statusEl.textContent = enabled ? '开启' : '关闭';
+        statusEl.classList.toggle('on', enabled);
+        statusEl.classList.toggle('off', !enabled);
+    }
+
+    function getToolDisplayName(toolName) {
+        const map = {
+            web_fetch: '网页抓取',
+            project_snapshot: '工程快照',
+            list_map_layers: '图层列表',
+            describe_layer_schema: '图层结构',
+            selection_summary: '选择集摘要',
+            layer_query: '记录查询',
+            field_profile: '字段画像',
+            overlay_intersect_summary: '叠加汇总',
+            buffer_analysis: '缓冲区分析',
+            clip_analysis: '裁剪分析'
+        };
+
+        return map[toolName] || toolName || 'tool';
+    }
+
+    function mapHistoryToolStatus(status) {
+        const normalized = (status || '').toLowerCase();
+        if (normalized === 'success') return 'success';
+        if (normalized === 'failed' || normalized === 'error' || normalized === 'denied' || normalized === 'cancel') return 'failed';
+        return 'running';
+    }
+
+    function tryParseJson(text) {
+        if (!text || typeof text !== 'string') return null;
+        try {
+            return JSON.parse(text);
+        } catch {
+            return null;
+        }
+    }
+
+    function truncateText(text, maxLength) {
+        if (!text) return '';
+        if (text.length <= maxLength) return text;
+        return text.substring(0, maxLength) + '...';
+    }
+
+    function parseReplayTimestamp(value) {
+        if (value === null || value === undefined) return null;
+
+        if (typeof value === 'number') {
+            return Number.isFinite(value) ? value : null;
+        }
+
+        if (value instanceof Date) {
+            const t = value.getTime();
+            return Number.isFinite(t) ? t : null;
+        }
+
+        const raw = String(value).trim();
+        if (!raw) return null;
+
+        let t = Date.parse(raw);
+        if (Number.isFinite(t)) return t;
+
+        const normalized = raw.includes(' ') && !raw.includes('T') ? raw.replace(' ', 'T') : raw;
+        t = Date.parse(normalized);
+        if (Number.isFinite(t)) return t;
+
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(normalized)) {
+            t = Date.parse(normalized + 'Z');
+            if (Number.isFinite(t)) return t;
+        }
+
+        return null;
+    }
+
+    function buildToolHistoryMessage(tool) {
+        const status = mapHistoryToolStatus(tool?.status);
+        const parsed = tryParseJson(tool?.result);
+
+        if (parsed && typeof parsed === 'object') {
+            const msg = parsed.Message || parsed.message || parsed.Error || parsed.error;
+            if (msg && String(msg).trim()) {
+                return String(msg).trim();
+            }
+        }
+
+        if (status === 'success') return '执行完成';
+        if (status === 'failed') return '执行失败';
+        return '执行中';
+    }
+
+    function buildToolHistoryPreview(tool) {
+        const blocks = [];
+
+        const parsedParams = tryParseJson(tool?.parameters);
+        if (parsedParams && typeof parsedParams === 'object') {
+            blocks.push(`执行参数:\n${JSON.stringify(parsedParams, null, 2)}`);
+        } else if (tool?.parameters && String(tool.parameters).trim()) {
+            blocks.push(`执行参数:\n${String(tool.parameters).trim()}`);
+        }
+
+        const parsedResult = tryParseJson(tool?.result);
+        if (parsedResult && typeof parsedResult === 'object') {
+            if (parsedResult.Data !== undefined || parsedResult.data !== undefined) {
+                const dataObj = parsedResult.Data !== undefined ? parsedResult.Data : parsedResult.data;
+                blocks.push(`执行结果:\n${JSON.stringify(dataObj, null, 2)}`);
+            } else {
+                blocks.push(`执行结果:\n${JSON.stringify(parsedResult, null, 2)}`);
+            }
+        } else if (tool?.result && String(tool.result).trim()) {
+            blocks.push(`执行结果:\n${String(tool.result).trim()}`);
+        }
+
+        if (blocks.length === 0) {
+            return '';
+        }
+
+        return truncateText(blocks.join('\n\n'), 3000);
+    }
+
+    function findAssistantForToolByTime(toolTimestamp, assistantTimeline) {
+        if (!assistantTimeline || assistantTimeline.length === 0) {
+            return null;
+        }
+
+        if (!Number.isFinite(toolTimestamp)) {
+            return assistantTimeline[assistantTimeline.length - 1].msg;
+        }
+
+        let target = null;
+        for (let i = 0; i < assistantTimeline.length; i++) {
+            const item = assistantTimeline[i];
+            if (Number.isFinite(item.timestamp) && item.timestamp <= toolTimestamp) {
+                target = item.msg;
+                continue;
+            }
+
+            if (target) {
+                break;
+            }
+        }
+
+        return target || assistantTimeline[assistantTimeline.length - 1].msg;
+    }
+
+    function replayToolHistory(messages, toolCalls) {
+        if ((!messages || messages.length === 0) && (!toolCalls || toolCalls.length === 0)) {
+            return;
+        }
+
+        const turnMessageMap = new Map();
+        const assistantTimeline = [];
+        let lastAssistantMsg = null;
+
+        (messages || []).forEach(msg => {
+            let images = null;
+            if (msg.images && msg.images.trim() !== '') {
+                try {
+                    images = JSON.parse(msg.images);
+                } catch (e) {
+                    console.warn('解析图片JSON失败:', e);
+                }
+            }
+
+            if (msg.role === 'user') {
+                appendMessage('user', msg.content, false, images);
+                return;
+            }
+
+            const hasThinking = msg.thinking && msg.thinking.trim() !== '';
+            const aiMsg = appendMessage('ai', msg.content, hasThinking, images);
+            if (hasThinking && aiMsg && aiMsg.thinking) {
+                aiMsg.thinkingContainer.style.display = 'block';
+                aiMsg.thinking.innerHTML = escapeHtml(msg.thinking).replace(/\n/g, '<br>');
+                if (aiMsg.thinkingTitle) {
+                    aiMsg.thinkingTitle.textContent = '思考过程（点击展开）';
+                }
+            }
+
+            const turnId = (msg.turnId || '').trim();
+            if (turnId && !turnMessageMap.has(turnId)) {
+                turnMessageMap.set(turnId, aiMsg);
+            }
+
+            assistantTimeline.push({
+                msg: aiMsg,
+                timestamp: parseReplayTimestamp(msg.timestamp)
+            });
+            lastAssistantMsg = aiMsg;
+        });
+
+        const sortedToolCalls = [...(toolCalls || [])].sort((a, b) => {
+            const aTime = parseReplayTimestamp(a.timestamp);
+            const bTime = parseReplayTimestamp(b.timestamp);
+            if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
+                return aTime - bTime;
+            }
+
+            const aId = Number.isFinite(Number(a.id)) ? Number(a.id) : 0;
+            const bId = Number.isFinite(Number(b.id)) ? Number(b.id) : 0;
+            return aId - bId;
+        });
+
+        sortedToolCalls.forEach((tool, index) => {
+            const turnId = (tool.turnId || '').trim();
+            let targetAiMsg = turnId ? turnMessageMap.get(turnId) : null;
+
+            if (!targetAiMsg) {
+                targetAiMsg = findAssistantForToolByTime(parseReplayTimestamp(tool.timestamp), assistantTimeline) || lastAssistantMsg;
+            }
+
+            if (!targetAiMsg) {
+                targetAiMsg = appendMessage('ai', '', false);
+                assistantTimeline.push({ msg: targetAiMsg, timestamp: parseReplayTimestamp(tool.timestamp) });
+                lastAssistantMsg = targetAiMsg;
+            }
+
+            if (turnId && !turnMessageMap.has(turnId)) {
+                turnMessageMap.set(turnId, targetAiMsg);
+            }
+
+            upsertToolCallCard(targetAiMsg, {
+                callId: tool.callId || `history-tool-${tool.id || index}`,
+                toolName: tool.toolName,
+                status: mapHistoryToolStatus(tool.status),
+                message: buildToolHistoryMessage(tool),
+                preview: buildToolHistoryPreview(tool),
+                parameters: tool.parameters || '',
+                result: tool.result || '',
+                turnId
+            });
+        });
     }
 
     function appendMessage(role, text, hasThinking = false, images = null, execRefs = null) {
@@ -635,6 +1052,11 @@ document.addEventListener('DOMContentLoaded', () => {
         contentHtml += '</div>';
         
         html += contentHtml;
+
+        // 工具调用模块放在回复文本后，保持阅读顺序
+        if (role === 'ai') {
+            html += '<div class="tool-calls-container"></div>';
+        }
         
         div.innerHTML = html;
         chatList.appendChild(div);
@@ -642,10 +1064,15 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (role === 'ai') {
             return {
+                root: div,
                 content: div.querySelector('.msg-content'),
                 thinking: div.querySelector('.thinking-content'),
                 thinkingContainer: div.querySelector('.thinking-container'),
-                thinkingTitle: div.querySelector('.thinking-title')
+                thinkingTitle: div.querySelector('.thinking-title'),
+                toolCallsContainer: div.querySelector('.tool-calls-container'),
+                toolCallMap: new Map(),
+                toolCallDataMap: new Map(),
+                hasCollapsedThinking: false
             };
         }
     }
@@ -897,12 +1324,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 填充模型选择器
     function populateModelSelect(models) {
+        // 清空现有选项
+        modelSelect.innerHTML = '';
+        
         if (!models || models.length === 0) {
+            // 空状态：提示用户去设置
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = '未配置模型 - 请点击设置';
+            option.disabled = true;
+            option.selected = true;
+            modelSelect.appendChild(option);
+            modelSelect.style.color = '#9ca3af';
             return;
         }
         
-        // 清空现有选项
-        modelSelect.innerHTML = '';
+        modelSelect.style.color = '';
         
         // 添加模型选项
         models.forEach(model => {
@@ -1008,6 +1445,44 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmDialog.classList.remove('show');
         pendingDeleteSession = null;
     }
+
+    function showToolApprovalDialog(data) {
+        if (!toolApprovalDialog || !toolApprovalBody) return;
+
+        pendingToolApprovalRequestId = data.requestId || null;
+
+        const toolNames = Array.isArray(data.toolNames) ? data.toolNames : [];
+        const callCount = Number(data.callCount || 0);
+        const toolListHtml = toolNames.length > 0
+            ? `<ul style="margin:6px 0 0 18px;padding:0;color:#4b5563;font-size:12px;line-height:1.5;">${toolNames.map(name => `<li>${escapeHtml(name)}</li>`).join('')}</ul>`
+            : '';
+
+        toolApprovalBody.innerHTML = `
+            <div style="margin-bottom:8px;color:#111827;">AI 请求调用工具执行任务。</div>
+            <div style="font-size:12px;color:#6b7280;">调用次数：${callCount > 0 ? callCount : '未知'}</div>
+            ${toolListHtml}
+            <div style="margin-top:10px;padding:8px 10px;background:#eff6ff;border-radius:6px;color:#1e3a8a;font-size:12px;">
+                选择“允许”后，将自动切换为不再提示（可在设置中改回）。
+            </div>
+        `;
+
+        toolApprovalDialog.classList.add('show');
+    }
+
+    function sendToolApprovalDecision(decision) {
+        if (!pendingToolApprovalRequestId) return;
+
+        if (window.chrome?.webview) {
+            window.chrome.webview.postMessage({
+                type: 'toolApprovalResponse',
+                requestId: pendingToolApprovalRequestId,
+                decision: decision
+            });
+        }
+
+        pendingToolApprovalRequestId = null;
+        toolApprovalDialog?.classList.remove('show');
+    }
     
     function formatTime(timestamp) {
         const date = new Date(timestamp);
@@ -1052,6 +1527,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 // 更新历史列表中的active状态
                 updateHistoryActiveState();
+                break;
+            case 'toolPolicy':
+                updateSensitiveModeBanner(data.sensitiveMode);
                 break;
             case 'historySessions':
                 // 收到历史会话列表
@@ -1100,38 +1578,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
                 
-                // 显示历史消息
-                if (data.messages && data.messages.length > 0) {
-                    data.messages.forEach((msg, index) => {
-                        // 解析图片JSON
-                        let images = null;
-                        if (msg.images && msg.images.trim() !== '') {
-                            try {
-                                images = JSON.parse(msg.images);
-                            } catch (e) {
-                                console.warn('解析图片JSON失败:', e);
-                            }
-                        }
-                        
-                        if (msg.role === 'user') {
-                            appendMessage('user', msg.content, false, images);
-                        } else {
-                            // AI消息,如果有thinking字段则显示思考模块
-                            console.log(`[sessionLoaded] 消息${index} thinking:`, msg.thinking ? msg.thinking.substring(0, 50) + '...' : 'null');
-                            const hasThinking = msg.thinking && msg.thinking.trim() !== '';
-                            const msgContent = appendMessage('ai', msg.content, hasThinking, images);
-                            
-                            // 如果有思考内容,填充到思考模块
-                            if (hasThinking && msgContent && msgContent.thinking) {
-                                msgContent.thinkingContainer.style.display = 'block';
-                                msgContent.thinking.innerHTML = escapeHtml(msg.thinking).replace(/\n/g, '<br>');
-                                // 默认折叠状态
-                                if (msgContent.thinkingTitle) {
-                                    msgContent.thinkingTitle.textContent = '思考过程（点击展开）';
-                                }
-                            }
-                        }
-                    });
+                // 显示历史消息与工具调用
+                if ((data.messages && data.messages.length > 0) || (data.toolCalls && data.toolCalls.length > 0)) {
+                    replayToolHistory(data.messages || [], data.toolCalls || []);
                     
                     // 在消息加载完成后，恢复Python执行结果
                     setTimeout(() => {
@@ -1147,88 +1596,142 @@ document.addEventListener('DOMContentLoaded', () => {
                 break;
             case 'streamStart':
                 isStreaming = true;
-                hasCollapsedThinking = false;
                 currentStreamText = ''; // 重置累积文本
                 toggleSendBtn();
-                // 创建带思考模块的AI消息
-                currentAiMsgContent = appendMessage('ai', '', true);
+                currentTurnId = null;
+                turnMessageMap.clear();
+                turnTextMap.clear();
+                currentAiMsgContent = null;
                 break;
+            case 'assistantTurnStart':
+                {
+                const turnId = resolveTurnId(data.turnId);
+                currentTurnId = turnId;
+                const targetAiMsg = ensureTurnContext(turnId);
+                currentAiMsgContent = targetAiMsg;
+                turnTextMap.set(turnId, '');
+                }
+                break;
+            case 'assistantTurnEnd':
+                {
+                const turnId = resolveTurnId(data.turnId);
+                finalizeTurnMessage(turnId);
+                break;
+                }
             case 'streamThinking':
+                {
+                const turnId = resolveTurnId(data.turnId);
+                const targetAiMsg = ensureTurnContext(turnId);
+                if (!targetAiMsg) break;
+
                 // 收到思考内容
-                if (currentAiMsgContent && currentAiMsgContent.thinking) {
+                if (targetAiMsg.thinking) {
                     // 第一次收到思考内容，显示并展开思考模块
-                    if (currentAiMsgContent.thinkingContainer.style.display === 'none') {
-                        currentAiMsgContent.thinkingContainer.style.display = 'block';
-                        currentAiMsgContent.thinkingContainer.classList.add('expanded');
+                    if (targetAiMsg.thinkingContainer.style.display === 'none') {
+                        targetAiMsg.thinkingContainer.style.display = 'block';
+                        targetAiMsg.thinkingContainer.classList.add('expanded');
                         
                         // 更新标题为"思考过程"
-                        if (currentAiMsgContent.thinkingTitle) {
-                            currentAiMsgContent.thinkingTitle.textContent = '思考过程';
+                        if (targetAiMsg.thinkingTitle) {
+                            targetAiMsg.thinkingTitle.textContent = '思考过程';
                         }
                         
                         // 移除"正在思考..."占位符
-                        const loading = currentAiMsgContent.thinking.querySelector('.thinking-loading');
+                        const loading = targetAiMsg.thinking.querySelector('.thinking-loading');
                         if (loading) loading.remove();
                     }
                     
                     // 追加思考内容
-                    currentAiMsgContent.thinking.innerHTML += escapeHtml(data.content).replace(/\n/g, '<br>');
+                    targetAiMsg.thinking.innerHTML += escapeHtml(data.content).replace(/\n/g, '<br>');
                     
                     // 思考模块内部滚动到底部
-                    currentAiMsgContent.thinking.scrollTop = currentAiMsgContent.thinking.scrollHeight;
+                    targetAiMsg.thinking.scrollTop = targetAiMsg.thinking.scrollHeight;
                     
                     // 整个聊天列表也滚动到底部
                     scrollToBottom();
                 }
+                }
+                break;
+            case 'toolCall':
+                {
+                const turnId = resolveTurnId(data.turnId);
+                const targetAiMsg = ensureTurnContext(turnId);
+                upsertToolCallCard(targetAiMsg, data);
+                }
+                break;
+            case 'toolExported':
+                appendMessage('ai', `✅ 工具结果已导出：${data.fileName || data.filePath || ''}`);
+                break;
+            case 'toolExportFailed':
+                appendMessage('ai', `❌ 工具结果导出失败：${data.message || '未知错误'}`);
+                break;
+            case 'toolApprovalRequest':
+                showToolApprovalDialog(data);
                 break;
             case 'streamChunk':
-                if (currentAiMsgContent && currentAiMsgContent.content) {
+                {
+                const turnId = resolveTurnId(data.turnId);
+                const targetAiMsg = ensureTurnContext(turnId);
+                if (!targetAiMsg || !targetAiMsg.content) break;
+
+                currentAiMsgContent = targetAiMsg;
+
                     // 收到第一个回复chunk时，自动收起思考模块
-                    if (!hasCollapsedThinking && currentAiMsgContent.thinkingContainer && 
-                        currentAiMsgContent.thinkingContainer.classList.contains('expanded')) {
-                        if (currentAiMsgContent.thinkingTitle) {
-                            currentAiMsgContent.thinkingTitle.textContent = '思考过程（点击展开）';
+                    if (!targetAiMsg.hasCollapsedThinking && targetAiMsg.thinkingContainer && 
+                        targetAiMsg.thinkingContainer.classList.contains('expanded')) {
+                        if (targetAiMsg.thinkingTitle) {
+                            targetAiMsg.thinkingTitle.textContent = '思考过程（点击展开）';
                         }
-                        currentAiMsgContent.thinkingContainer.classList.remove('expanded');
-                        hasCollapsedThinking = true;
+                        targetAiMsg.thinkingContainer.classList.remove('expanded');
+                        targetAiMsg.hasCollapsedThinking = true;
                     }
                     
                     // 累积文本
-                    currentStreamText += data.content;
+                    const currentText = turnTextMap.get(turnId) || '';
+                    const nextText = currentText + data.content;
+                    turnTextMap.set(turnId, nextText);
+                    currentStreamText = nextText;
                     
                     // 检测是否在代码块中
-                    const inCodeBlock = (currentStreamText.match(/```/g) || []).length % 2 === 1;
+                    const inCodeBlock = (nextText.match(/```/g) || []).length % 2 === 1;
                     
                     if (inCodeBlock) {
                         // 在代码块中 - 智能追加模式
-                        updateContentIncremental(currentStreamText);
+                        updateContentIncremental(nextText);
                     } else {
                         // 不在代码块中 - 完整重渲染
-                        currentAiMsgContent.content.innerHTML = formatContent(currentStreamText);
+                        targetAiMsg.content.innerHTML = formatContent(nextText);
                     }
                     
                     scrollToBottom();
                 }
                 break;
             case 'streamEnd':
+                {
                 isStreaming = false;
                 toggleSendBtn();
-                // 最后一次解析Markdown确保完整
-                if (currentAiMsgContent && currentAiMsgContent.content && currentStreamText) {
-                    currentAiMsgContent.content.innerHTML = formatContent(currentStreamText);
-                    
-                    // 移除所有加载动画
-                    const spinners = currentAiMsgContent.content.querySelectorAll('.loading-spinner');
-                    spinners.forEach(spinner => spinner.remove());
-                }
+                pendingToolApprovalRequestId = null;
+                toolApprovalDialog?.classList.remove('show');
+                turnTextMap.forEach((_, turnId) => finalizeTurnMessage(turnId));
+                turnMessageMap.clear();
+                turnTextMap.clear();
+                currentTurnId = null;
                 currentAiMsgContent = null;
                 currentStreamText = '';
                 // 更新滚动按钮状态
                 updateScrollButton();
+                }
                 break;
             case 'error':
                 appendMessage('ai', `❌ ${data.message}`);
                 isStreaming = false;
+                pendingToolApprovalRequestId = null;
+                toolApprovalDialog?.classList.remove('show');
+                turnMessageMap.clear();
+                turnTextMap.clear();
+                currentTurnId = null;
+                currentAiMsgContent = null;
+                currentStreamText = '';
                 toggleSendBtn();
                 break;
             case 'pythonRunning':
@@ -1438,6 +1941,16 @@ document.addEventListener('DOMContentLoaded', () => {
     confirmDialog.addEventListener('click', (e) => {
         if (e.target === confirmDialog) {
             closeConfirmDialog();
+        }
+    });
+
+    // 工具调用确认对话框事件
+    toolApprovalCancelBtn?.addEventListener('click', () => sendToolApprovalDecision('cancel'));
+    toolApprovalAllowOnceBtn?.addEventListener('click', () => sendToolApprovalDecision('allow_once'));
+    toolApprovalAllowBtn?.addEventListener('click', () => sendToolApprovalDecision('allow'));
+    toolApprovalDialog?.addEventListener('click', (e) => {
+        if (e.target === toolApprovalDialog) {
+            sendToolApprovalDecision('cancel');
         }
     });
     

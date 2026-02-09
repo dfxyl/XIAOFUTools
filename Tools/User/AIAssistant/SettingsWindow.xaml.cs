@@ -62,6 +62,14 @@ namespace XIAOFUTools.Tools.User.AIAssistant
     public partial class SettingsWindow : ProWindow
     {
         private List<ModelConfigViewModel> _models = new List<ModelConfigViewModel>();
+        private readonly Dictionary<string, (CheckBox chatSwitch, CheckBox agentSwitch)> _toolSwitchMap =
+            new Dictionary<string, (CheckBox chatSwitch, CheckBox agentSwitch)>(StringComparer.OrdinalIgnoreCase);
+
+        private RadioButton ToolNavButton => FindName("navTool") as RadioButton;
+        private ScrollViewer ToolPanel => FindName("panelTool") as ScrollViewer;
+        private ComboBox ToolRunModeInChatComboBox => FindName("cmbToolRunModeInChat") as ComboBox;
+        private CheckBox SensitiveModeCheckBox => FindName("chkSensitiveMode") as CheckBox;
+        private StackPanel ToolListPanel => FindName("toolListPanel") as StackPanel;
         
         public SettingsWindow()
         {
@@ -80,16 +88,21 @@ namespace XIAOFUTools.Tools.User.AIAssistant
         /// </summary>
         private void NavItem_Checked(object sender, RoutedEventArgs e)
         {
-            if (panelPython == null || panelModel == null || panelAbout == null)
+            var toolPanel = ToolPanel;
+            var toolNav = ToolNavButton;
+
+            if (panelPython == null || toolPanel == null || panelModel == null || panelAbout == null)
                 return;
-                
+                 
             if (sender is RadioButton rb)
             {
                 panelPython.Visibility = Visibility.Collapsed;
+                toolPanel.Visibility = Visibility.Collapsed;
                 panelModel.Visibility = Visibility.Collapsed;
                 panelAbout.Visibility = Visibility.Collapsed;
-                
+                 
                 if (rb == navPython) panelPython.Visibility = Visibility.Visible;
+                else if (toolNav != null && rb == toolNav) toolPanel.Visibility = Visibility.Visible;
                 else if (rb == navModel)
                 {
                     panelModel.Visibility = Visibility.Visible;
@@ -105,6 +118,7 @@ namespace XIAOFUTools.Tools.User.AIAssistant
         private void LoadSettings()
         {
             LoadPythonSettings();
+            LoadToolSettings();
         }
         
         /// <summary>
@@ -158,6 +172,11 @@ namespace XIAOFUTools.Tools.User.AIAssistant
         {
             modelListPanel.Children.Clear();
             
+            // 更新模型数量统计
+            var defaultModel = _models.FirstOrDefault(m => m.IsDefault);
+            txtModelCount.Text = $"共 {_models.Count} 个模型" + 
+                (defaultModel != null ? $"，默认: {defaultModel.Name}" : "");
+            
             foreach (var model in _models)
             {
                 var card = CreateModelCard(model);
@@ -176,6 +195,235 @@ namespace XIAOFUTools.Tools.User.AIAssistant
                 };
                 modelListPanel.Children.Add(emptyText);
             }
+        }
+
+        /// <summary>
+        /// 加载工具执行设置
+        /// </summary>
+        private void LoadToolSettings()
+        {
+            try
+            {
+                var settings = DatabaseManager.Instance.GetToolExecutionSettings();
+                settings.EnsureDefaults();
+
+                if (ToolRunModeInChatComboBox != null)
+                {
+                    ToolRunModeInChatComboBox.SelectedIndex = settings.PromptBeforeToolInChat ? 1 : 0;
+                }
+
+                if (SensitiveModeCheckBox != null)
+                {
+                    SensitiveModeCheckBox.IsChecked = settings.SensitiveMode;
+                }
+
+                RenderToolSwitches(settings);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[SettingsWindow] 加载工具设置失败: {ex.Message}");
+            }
+        }
+
+        private void RenderToolSwitches(ToolExecutionSettings settings)
+        {
+            var toolListPanel = ToolListPanel;
+            if (toolListPanel == null)
+            {
+                return;
+            }
+
+            toolListPanel.Children.Clear();
+            _toolSwitchMap.Clear();
+
+            var groupedTools = AIAssistantToolCatalog.Tools
+                .GroupBy(t => NormalizeToolGroup(t.ToolGroup))
+                .OrderBy(g => GetToolGroupOrder(g.Key))
+                .ThenBy(g => g.Key, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var group in groupedTools)
+            {
+                toolListPanel.Children.Add(CreateToolGroupHeader(group.Key));
+
+                foreach (var tool in group.OrderBy(t => t.DisplayName, StringComparer.OrdinalIgnoreCase))
+                {
+                    var row = new Grid { Margin = new Thickness(0, 6, 0, 6) };
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(70) });
+
+                    var textPanel = new StackPanel();
+                    textPanel.Children.Add(new TextBlock
+                    {
+                        Text = tool.DisplayName,
+                        FontSize = 12,
+                        FontWeight = FontWeights.SemiBold,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#1f2937"))
+                    });
+                    textPanel.Children.Add(new TextBlock
+                    {
+                        Text = BuildToolDescription(tool),
+                        FontSize = 11,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6b7280")),
+                        TextWrapping = TextWrapping.Wrap
+                    });
+                    Grid.SetColumn(textPanel, 0);
+                    row.Children.Add(textPanel);
+
+                    var chatSwitch = new CheckBox
+                    {
+                        Style = FindResource("SwitchCheckBox") as Style,
+                        IsChecked = settings.IsToolEnabled(tool.ToolName, "chat"),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        ToolTip = $"{tool.DisplayName} - Chat"
+                    };
+                    Grid.SetColumn(chatSwitch, 1);
+                    row.Children.Add(chatSwitch);
+
+                    var agentSwitch = new CheckBox
+                    {
+                        Style = FindResource("SwitchCheckBox") as Style,
+                        IsChecked = settings.IsToolEnabled(tool.ToolName, "agent"),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center,
+                        ToolTip = $"{tool.DisplayName} - Agent"
+                    };
+                    Grid.SetColumn(agentSwitch, 2);
+                    row.Children.Add(agentSwitch);
+
+                    AttachEnableWarning(tool, chatSwitch, "Chat");
+                    AttachEnableWarning(tool, agentSwitch, "Agent");
+
+                    _toolSwitchMap[tool.ToolName] = (chatSwitch, agentSwitch);
+                    toolListPanel.Children.Add(row);
+                }
+            }
+        }
+
+        private Border CreateToolGroupHeader(string groupName)
+        {
+            return new Border
+            {
+                Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#f3f4f6")),
+                CornerRadius = new CornerRadius(6),
+                Padding = new Thickness(10, 6, 10, 6),
+                Margin = new Thickness(0, 12, 0, 6),
+                Child = new TextBlock
+                {
+                    Text = groupName,
+                    FontSize = 12,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#374151"))
+                }
+            };
+        }
+
+        private static string NormalizeToolGroup(string groupName)
+        {
+            return string.IsNullOrWhiteSpace(groupName) ? "其他" : groupName.Trim();
+        }
+
+        private static int GetToolGroupOrder(string groupName)
+        {
+            return groupName switch
+            {
+                "基础与联网" => 1,
+                "工程与图层只读" => 2,
+                "数据读取与画像" => 3,
+                "空间分析工具" => 4,
+                _ => 99
+            };
+        }
+
+        private static string BuildToolDescription(ToolDescriptor tool)
+        {
+            if (tool == null)
+            {
+                return string.Empty;
+            }
+
+            var description = tool.Description ?? string.Empty;
+            if (tool.RequiresSafetyWarning)
+            {
+                return description + "（写入型：仅新增输出，不修改或删除输入）";
+            }
+
+            if (tool.RequiresDataAccess)
+            {
+                return description + "（涉及实际数据）";
+            }
+
+            return description;
+        }
+
+        private void AttachEnableWarning(ToolDescriptor tool, CheckBox toggle, string modeLabel)
+        {
+            if (tool == null || toggle == null || !tool.RequiresSafetyWarning)
+            {
+                return;
+            }
+
+            RoutedEventHandler handler = null;
+            handler = (sender, args) =>
+            {
+                if (toggle.IsChecked != true)
+                {
+                    return;
+                }
+
+                var result = MessageBox.Show(
+                    $"你正在启用【{tool.DisplayName}】({modeLabel})。\n\n" +
+                    "该工具会创建新的输出数据，但不会修改或删除输入数据。\n" +
+                    "请确认输出路径和数据范围后再运行。\n\n" +
+                    "是否继续启用？",
+                    "工具安全提醒",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    return;
+                }
+
+                toggle.Checked -= handler;
+                toggle.IsChecked = false;
+                toggle.Checked += handler;
+            };
+
+            toggle.Checked += handler;
+        }
+        
+        /// <summary>
+        /// 显示操作成功提示（自动消失）
+        /// </summary>
+        private void ShowToast(string message, bool isSuccess = true)
+        {
+            try
+            {
+                toastBorder.Background = isSuccess 
+                    ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#dcfce7"))
+                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#fee2e2"));
+                toastText.Foreground = isSuccess
+                    ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#16a34a"))
+                    : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#dc2626"));
+                toastText.Text = message;
+                toastBorder.Visibility = Visibility.Visible;
+                
+                // 3秒后自动隐藏
+                var timer = new System.Windows.Threading.DispatcherTimer
+                {
+                    Interval = TimeSpan.FromSeconds(3)
+                };
+                timer.Tick += (s, e) =>
+                {
+                    toastBorder.Visibility = Visibility.Collapsed;
+                    timer.Stop();
+                };
+                timer.Start();
+            }
+            catch { }
         }
         
         /// <summary>
@@ -318,10 +566,11 @@ namespace XIAOFUTools.Tools.User.AIAssistant
                     
                     DatabaseManager.Instance.InsertService(config);
                     LoadModels();
+                    ShowToast($"模型「{config.Name}」添加成功");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"添加失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowToast($"添加失败: {ex.Message}", false);
                 }
             }
         }
@@ -356,10 +605,11 @@ namespace XIAOFUTools.Tools.User.AIAssistant
                         
                         DatabaseManager.Instance.UpdateService(config);
                         LoadModels();
+                        ShowToast($"模型「{config.Name}」已更新");
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"更新失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        ShowToast($"更新失败: {ex.Message}", false);
                     }
                 }
             }
@@ -385,12 +635,14 @@ namespace XIAOFUTools.Tools.User.AIAssistant
                 {
                     try
                     {
+                        var modelName = model.Name;
                         DatabaseManager.Instance.DeleteService(id);
                         LoadModels();
+                        ShowToast($"模型「{modelName}」已删除");
                     }
                     catch (Exception ex)
                     {
-                        MessageBox.Show($"删除失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                        ShowToast($"删除失败: {ex.Message}", false);
                     }
                 }
             }
@@ -407,10 +659,12 @@ namespace XIAOFUTools.Tools.User.AIAssistant
                 {
                     DatabaseManager.Instance.SetDefaultService(id);
                     LoadModels();
+                    var model = _models.FirstOrDefault(m => m.Id == id);
+                    ShowToast($"已将「{model?.Name}」设为默认模型");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"设置失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowToast($"设置失败: {ex.Message}", false);
                 }
             }
         }
@@ -432,11 +686,11 @@ namespace XIAOFUTools.Tools.User.AIAssistant
                 {
                     DatabaseManager.Instance.ResetToDefaultServices();
                     LoadModels();
-                    MessageBox.Show("已重置为默认配置。", "重置成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                    ShowToast("已重置为默认模型配置");
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"重置失败: {ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                    ShowToast($"重置失败: {ex.Message}", false);
                 }
             }
         }
@@ -449,10 +703,14 @@ namespace XIAOFUTools.Tools.User.AIAssistant
             try
             {
                 SavePythonSettings();
-                
+                SaveToolSettings();
+                 
                 var modeText = PythonExecutionService.Instance.UseFixedLocation ? "不询问（固定位置）" : "每次询问";
+                var chatPrompt = ToolRunModeInChatComboBox?.SelectedIndex == 1 ? "运行前提示" : "自动运行";
+                var sensitiveModeText = SensitiveModeCheckBox?.IsChecked == true ? "开启" : "关闭";
+                var enabledCount = _toolSwitchMap.Count(kv => kv.Value.chatSwitch?.IsChecked == true || kv.Value.agentSwitch?.IsChecked == true);
                 MessageBox.Show(
-                    $"设置已保存！\n\nPython执行模式：{modeText}",
+                    $"设置已保存！\n\nPython执行模式：{modeText}\nChat工具策略：{chatPrompt}\n敏感模式：{sensitiveModeText}\n启用工具数：{enabledCount}/{_toolSwitchMap.Count}",
                     "保存成功",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -473,6 +731,35 @@ namespace XIAOFUTools.Tools.User.AIAssistant
         {
             PythonExecutionService.Instance.UseFixedLocation = cmbExecutionMode.SelectedIndex == 1;
             PythonExecutionService.Instance.SaveSettings();
+        }
+
+        /// <summary>
+        /// 保存工具执行设置
+        /// </summary>
+        private void SaveToolSettings()
+        {
+            var settings = new ToolExecutionSettings
+            {
+                PromptBeforeToolInChat = ToolRunModeInChatComboBox?.SelectedIndex == 1,
+                SensitiveMode = SensitiveModeCheckBox?.IsChecked == true
+            };
+
+            foreach (var tool in AIAssistantToolCatalog.Tools)
+            {
+                if (_toolSwitchMap.TryGetValue(tool.ToolName, out var switches))
+                {
+                    settings.SetToolMode(
+                        tool.ToolName,
+                        switches.chatSwitch?.IsChecked == true,
+                        switches.agentSwitch?.IsChecked == true);
+                }
+                else
+                {
+                    settings.SetToolMode(tool.ToolName, tool.DefaultChatEnabled, tool.DefaultAgentEnabled);
+                }
+            }
+
+            DatabaseManager.Instance.SaveToolExecutionSettings(settings);
         }
         
         /// <summary>

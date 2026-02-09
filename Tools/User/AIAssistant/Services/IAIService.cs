@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace XIAOFUTools.Tools.User.AIAssistant.Services
 {
@@ -27,6 +28,26 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Services
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// 使用OpenAI原生tools协议发送消息
+        /// </summary>
+        Task<AICompletionResult> SendWithToolsAsync(
+            List<ChatMessage> messages,
+            List<AIToolDefinition> tools,
+            object toolChoice = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// 使用OpenAI原生tools协议发送流式消息
+        /// </summary>
+        Task<AICompletionResult> SendWithToolsStreamAsync(
+            List<ChatMessage> messages,
+            List<AIToolDefinition> tools,
+            Action<string> onChunkReceived,
+            Action<string> onReasoningReceived = null,
+            object toolChoice = null,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// 验证API密钥是否有效
         /// </summary>
         Task<bool> ValidateApiKeyAsync();
@@ -40,6 +61,9 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Services
         public string Role { get; set; }
         public object Content { get; set; }
         public List<string> Images { get; set; }
+        public string ToolCallId { get; set; }
+        public List<AIToolCall> ToolCalls { get; set; }
+        public string ReasoningContent { get; set; }
         
         public ChatMessage(string role, string content, List<string> images = null)
         {
@@ -64,5 +88,36 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Services
         public string Content { get; set; }
         public string Error { get; set; }
         public int TokensUsed { get; set; }
+    }
+
+    /// <summary>
+    /// OpenAI原生工具定义
+    /// </summary>
+    public class AIToolDefinition
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public JObject ParametersSchema { get; set; }
+    }
+
+    /// <summary>
+    /// OpenAI原生工具调用
+    /// </summary>
+    public class AIToolCall
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Arguments { get; set; }
+    }
+
+    /// <summary>
+    /// OpenAI completion结果
+    /// </summary>
+    public class AICompletionResult
+    {
+        public string Content { get; set; }
+        public string ReasoningContent { get; set; }
+        public string FinishReason { get; set; }
+        public List<AIToolCall> ToolCalls { get; set; } = new List<AIToolCall>();
     }
 }

@@ -53,15 +53,37 @@ body {
 .header-left { display: flex; gap: 8px; }
 .header-actions { display: flex; gap: 8px; }
 
-/* 免责声明栏 */
-.disclaimer-bar {
-    background: linear-gradient(90deg, #fef3c7, #fde68a);
-    color: #92400e;
+/* 风险提示栏 */
+.risk-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: linear-gradient(90deg, #fff7ed, #fef3c7);
+    color: #9a3412;
+    border-bottom: 1px solid #fdba74;
     font-size: 10px;
-    text-align: center;
-    padding: 3px 10px;
-    border-bottom: 1px solid #fcd34d;
     flex-shrink: 0;
+}
+
+.risk-status {
+    padding: 0 6px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    font-weight: 600;
+}
+
+.risk-status.on {
+    color: #166534;
+    background: #dcfce7;
+    border-color: #86efac;
+}
+
+.risk-status.off {
+    color: #9a3412;
+    background: #ffedd5;
+    border-color: #fdba74;
 }
 
 /* 模式切换开关 */
@@ -160,10 +182,10 @@ input:checked + .slider:before {
 }
 
 .msg-item {
-    padding: 4px 0;
+    padding: 2px 0;
     display: flex;
     flex-direction: column;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
 }
 
 /* 用户消息靠右 */
@@ -175,6 +197,10 @@ input:checked + .slider:before {
 .msg-item.ai {
     align-items: flex-start;
     width: 100%;
+}
+
+.msg-item.ai.has-tool-calls {
+    margin-bottom: 1px;
 }
 
 /* 隐藏角色标签 */
@@ -297,6 +323,111 @@ input:checked + .slider:before {
     max-height: 300px;
     overflow-y: auto;
     scroll-behavior: smooth;
+}
+
+/* 工具调用模块（同一条AI消息内，支持折叠） */
+.tool-calls-container {
+    margin: 4px 0 2px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    align-self: stretch;
+}
+
+.tool-call-item {
+    border: 1px solid #dbeafe;
+    background: #f8fbff;
+    border-radius: 8px;
+    font-size: 12px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.tool-call-item.running {
+    border-color: #fde68a;
+    background: #fffbeb;
+}
+
+.tool-call-item.failed {
+    border-color: #fecaca;
+    background: #fef2f2;
+}
+
+.tool-call-item-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    cursor: pointer;
+    color: #334155;
+}
+
+.tool-call-toggle {
+    font-size: 10px;
+    color: #64748b;
+    transition: transform 0.2s;
+}
+
+.tool-call-item.collapsed .tool-call-toggle {
+    transform: rotate(-90deg);
+}
+
+.tool-call-title {
+    font-weight: 600;
+}
+
+.tool-call-icon {
+    width: 14px;
+    text-align: center;
+}
+
+.tool-call-status {
+    color: #64748b;
+}
+
+.tool-call-actions {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+}
+
+.tool-call-export {
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 2px 8px;
+    cursor: pointer;
+}
+
+.tool-call-export:hover {
+    background: #dbeafe;
+}
+
+.tool-call-item-body {
+    padding: 8px 10px;
+    color: #475569;
+    line-height: 1.5;
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.tool-call-preview {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    color: #334155;
+}
+
+.tool-call-item.collapsed .tool-call-item-body {
+    display: none;
+}
+
+.tool-call-empty {
+    color: #94a3b8;
 }
 
 /* 思考中加载动画 */
@@ -1016,6 +1147,36 @@ input:checked + .slider:before {
 .confirm-dialog-btn-confirm:hover {
     background: #b91c1c;
     border-color: #b91c1c;
+}
+
+.tool-approval-dialog {
+    width: 460px;
+}
+
+.tool-approval-footer {
+    justify-content: space-between;
+}
+
+.tool-approval-once-btn {
+    background: #1d4ed8;
+    color: #fff;
+    border-color: #1d4ed8;
+}
+
+.tool-approval-once-btn:hover {
+    background: #1e40af;
+    border-color: #1e40af;
+}
+
+.tool-approval-allow-btn {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
+}
+
+.tool-approval-allow-btn:hover {
+    background: #047857;
+    border-color: #047857;
 }
 
 /* 图片预览区 */

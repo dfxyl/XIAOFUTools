@@ -170,6 +170,33 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <!-- 滑动开关样式 -->
+        <Style TargetType="CheckBox" x:Key="SwitchCheckBox">
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Grid Width="46" Height="24">
+                            <Border x:Name="Track" Background="#d1d5db" CornerRadius="12"/>
+                            <Ellipse x:Name="Thumb" Width="20" Height="20" Fill="White" Margin="2,2,24,2"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Track" Property="Background" Value="#2563eb"/>
+                                <Setter TargetName="Thumb" Property="Margin" Value="24,2,2,2"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Track" Property="Opacity" Value="0.5"/>
+                                <Setter TargetName="Thumb" Property="Opacity" Value="0.6"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </controls:ProWindow.Resources>
     
     <Grid Background="#f9fafb">
@@ -187,6 +214,7 @@
             <StackPanel Margin="8,12">
                 <TextBlock Text="设置" FontSize="16" FontWeight="SemiBold" Foreground="#111827" Margin="8,0,8,16"/>
                 <RadioButton x:Name="navPython" Content="Python 执行" Tag="🐍" Style="{StaticResource NavButton}" IsChecked="True"/>
+                <RadioButton x:Name="navTool" Content="工具开关" Tag="🧰" Style="{StaticResource NavButton}" Checked="NavItem_Checked"/>
                 <RadioButton x:Name="navModel" Content="模型配置" Tag="🤖" Style="{StaticResource NavButton}" Checked="NavItem_Checked"/>
                 <RadioButton x:Name="navAbout" Content="关于" Tag="ℹ️" Style="{StaticResource NavButton}" Checked="NavItem_Checked"/>
             </StackPanel>
@@ -209,7 +237,14 @@
                             </ComboBox>
                         </StackPanel>
                     </Border>
-                    
+
+                    <Border Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="工具设置入口" Style="{StaticResource LabelStyle}" FontWeight="SemiBold"/>
+                            <TextBlock Style="{StaticResource DescStyle}" Text="工具开关已拆分到「工具开关」页，可分别控制 Chat/Agent 模式。"/>
+                        </StackPanel>
+                    </Border>
+
                     <Border Background="#eff6ff" CornerRadius="8" Padding="12">
                         <StackPanel>
                             <TextBlock Text="💡 关于「不询问」模式" FontSize="11" FontWeight="SemiBold" Foreground="#1d4ed8" Margin="0,0,0,4"/>
@@ -219,7 +254,67 @@
                     </Border>
                 </StackPanel>
             </ScrollViewer>
-            
+
+            <!-- 工具开关 -->
+            <ScrollViewer x:Name="panelTool" VerticalScrollBarVisibility="Auto" Padding="20" Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="工具开关设置" FontSize="18" FontWeight="SemiBold" Margin="0,0,0,20"/>
+
+                    <Border Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="Chat 模式工具执行策略" Style="{StaticResource LabelStyle}" FontWeight="SemiBold"/>
+                            <TextBlock Style="{StaticResource DescStyle}" Text="控制 Chat 模式下工具执行前是否弹窗确认。"/>
+                            <ComboBox x:Name="cmbToolRunModeInChat" Style="{StaticResource ModernComboBox}" SelectedIndex="1">
+                                <ComboBoxItem Content="自动运行 - 由AI自行决定并直接执行"/>
+                                <ComboBoxItem Content="运行前提示 - 每次调用前弹窗确认"/>
+                            </ComboBox>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="敏感模式" Style="{StaticResource LabelStyle}" FontWeight="SemiBold" Margin="0,0,0,0"/>
+                                    <TextBlock Style="{StaticResource DescStyle}" Margin="0,2,0,0"
+                                               Text="开启后，工具详细结果仅本地显示，不回传到外部模型；联网抓取工具会被禁用（默认开启）。"/>
+                                </StackPanel>
+                                <CheckBox x:Name="chkSensitiveMode"
+                                          Grid.Column="1"
+                                          Style="{StaticResource SwitchCheckBox}"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Center"
+                                          ToolTip="开启敏感模式"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="White" CornerRadius="8" Padding="16" Margin="0,0,0,12">
+                        <StackPanel>
+                            <TextBlock Text="工具模式开关" Style="{StaticResource LabelStyle}" FontWeight="SemiBold"/>
+                            <TextBlock Style="{StaticResource DescStyle}" Text="分别控制每个工具在 Chat 与 Agent 模式是否可用。涉及数据读取/分析的工具默认关闭；写入型工具开启时会弹出安全提醒。"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="70"/>
+                                    <ColumnDefinition Width="70"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="工具" FontWeight="SemiBold" Foreground="#374151"/>
+                                <TextBlock Grid.Column="1" Text="Chat" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#374151"/>
+                                <TextBlock Grid.Column="2" Text="Agent" HorizontalAlignment="Center" FontWeight="SemiBold" Foreground="#374151"/>
+                            </Grid>
+
+                            <StackPanel x:Name="toolListPanel"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+             
             <!-- 模型配置 -->
             <ScrollViewer x:Name="panelModel" VerticalScrollBarVisibility="Auto" Padding="20" Visibility="Collapsed">
                 <StackPanel>
@@ -228,12 +323,20 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="模型配置" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="模型配置" FontSize="18" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="txtModelCount" Text="" FontSize="11" Foreground="#6b7280" Margin="0,2,0,0"/>
+                        </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal">
                             <Button Content="+ 添加模型" Style="{StaticResource PrimaryButton}" Click="BtnAddModel_Click" Margin="0,0,8,0"/>
                             <Button Content="重置默认" Style="{StaticResource SecondaryButton}" Click="BtnResetModels_Click"/>
                         </StackPanel>
                     </Grid>
+                    
+                    <!-- 操作提示 -->
+                    <Border x:Name="toastBorder" Background="#dcfce7" CornerRadius="6" Padding="10,8" Margin="0,0,0,12" Visibility="Collapsed">
+                        <TextBlock x:Name="toastText" Text="" FontSize="11" Foreground="#16a34a"/>
+                    </Border>
                     
                     <!-- 模型列表（由代码动态生成） -->
                     <StackPanel x:Name="modelListPanel"/>

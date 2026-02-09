@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GIS AI Assistant</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=20260209-2">
     <link rel="stylesheet" href="lib/github.min.css">
     <script src="lib/marked.min.js"></script>
     <script src="lib/highlight.min.js"></script>
@@ -24,9 +24,10 @@
         </div>
     </div>
 
-    <!-- 免责声明 -->
-    <div class="disclaimer-bar">
-        ⚠️ 回答由AI生成，仅供参考 · 数据无价，谨慎操作 · 操作前请自行验证
+    <!-- 风险提示 -->
+    <div class="risk-bar" id="privacyRiskBar">
+        <span>⚠️ AI内容仅供参考，请勿输入敏感数据 · 敏感模式</span>
+        <span class="risk-status on" id="sensitiveModeStatus">开启</span>
     </div>
 
     <!-- 历史对话面板 -->
@@ -54,7 +55,7 @@
             <!-- 图片预览区 -->
             <div class="image-preview-container" id="imagePreviewContainer" style="display: none;"></div>
             
-            <textarea id="input-text" rows="1" placeholder="输入您的问题... (Shift+Enter换行)"></textarea>
+            <textarea id="input-text" rows="1" placeholder="输入您的问题... (Shift+Enter换行，/抓取 URL，可带 start/max/raw)"></textarea>
             <div class="input-footer">
                 <div class="footer-left">
                     <!-- 图片上传按钮(仅支持视觉模型时显示) -->
@@ -96,6 +97,24 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 工具调用确认对话框（非Agent模式） -->
+    <div class="confirm-dialog-overlay" id="toolApprovalDialog">
+        <div class="confirm-dialog tool-approval-dialog">
+            <div class="confirm-dialog-header">
+                <div class="confirm-dialog-title">
+                    <span class="confirm-dialog-icon">🧰</span>
+                    <span>工具调用确认</span>
+                </div>
+            </div>
+            <div class="confirm-dialog-body" id="toolApprovalBody"></div>
+            <div class="confirm-dialog-footer tool-approval-footer">
+                <button class="confirm-dialog-btn confirm-dialog-btn-cancel" id="toolApprovalCancelBtn">取消</button>
+                <button class="confirm-dialog-btn tool-approval-once-btn" id="toolApprovalAllowOnceBtn">本轮对话允许</button>
+                <button class="confirm-dialog-btn tool-approval-allow-btn" id="toolApprovalAllowBtn">允许</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=20260209-2"></script>
 </body>
 </html>

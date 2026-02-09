@@ -6,7 +6,7 @@
 ## 架构说明
 
 ### 1. 数据库管理层 (Database/)
-- **DatabaseManager.cs**: DuckDB数据库管理器,管理AI服务配置和对话历史
+- **DatabaseManager.cs**: SQLite数据库管理器,管理AI服务配置和对话历史
 - **Models.cs**: 数据模型定义(AIServiceConfig, ConversationMessage, Session等)
 
 ### 2. AI服务层 (Services/)
@@ -16,24 +16,31 @@
 ### 3. GIS Agent层 (Agent/)
 - **IGISTool.cs**: GIS工具接口定义
 - **GISAgentCore.cs**: GIS Agent核心,协调AI服务和工具调用
+- **Tools/WebSearchTool.cs**: 联网查资料工具(内置)
 
-### 4. UI层 (UI/)
+### 4. 应用编排层 (Application/)
+- **AIAssistantApplicationService.cs**: 会话、消息、模型、Python执行统一编排
+
+### 5. UI层 (UI/)
 - **chat.html**: 现代化聊天界面(响应式设计,流式输出)
 - **AIAssistantDockPaneView.xaml**: WPF视图(嵌入WebView2)
 - **AIAssistantDockPaneView.xaml.cs**: 视图代码后台
 
-### 5. 视图模型和按钮
+### 6. 视图模型和按钮
 - **AIAssistantDockPaneViewModel.cs**: DockPane ViewModel
 - **AIAssistantButton.cs**: 工具箱按钮
 
 ## 内置功能特性
 
 ### 已实现
-- ✅ DuckDB数据库管理(配置、历史、会话)
+- ✅ SQLite数据库管理(配置、历史、会话)
 - ✅ 双AI服务支持(DeepSeek、SiliconFlow GLM-4.5V)
 - ✅ 流式响应输出
 - ✅ 对话上下文管理
+- ✅ OpenAI原生Tools协议(tool_choice / tool_calls)
+- ✅ 联网工具自动调用（AI自主判断，无需手动开启）
 - ✅ 现代化UI界面(渐变色、动画效果)
+- ✅ 工具模块UI（联网查资料）
 - ✅ WebView2集成
 - ✅ 多轮对话支持
 - ✅ 会话管理(新建、切换、清空)
@@ -49,7 +56,7 @@
 ## 配置说明
 
 ### AI服务配置
-系统内置两个AI服务,存储在DuckDB数据库中:
+系统内置两个AI服务,存储在SQLite数据库中:
 
 1. **DeepSeek**
    - 端点: https://api.deepseek.com/v1
@@ -101,7 +108,7 @@ DatabaseManager.Instance.InsertService(new AIServiceConfig
 - .NET 8.0
 - ArcGIS Pro SDK 3.5.2
 - WebView2
-- DuckDB
+- Microsoft.Data.Sqlite
 - Newtonsoft.Json
 - OpenAI兼容API
 

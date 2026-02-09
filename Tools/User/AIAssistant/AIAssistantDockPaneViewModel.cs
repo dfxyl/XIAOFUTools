@@ -25,16 +25,23 @@ namespace XIAOFUTools.Tools.User.AIAssistant
             try
             {
                 _agentCore = new GISAgentCore();
-                System.Diagnostics.Debug.WriteLine("GIS Agent初始化成功");
+                
+                if (_agentCore.IsFullyInitialized)
+                {
+                    System.Diagnostics.Debug.WriteLine("GIS Agent完全初始化成功");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"GIS Agent部分初始化: {_agentCore.InitializationError}");
+                    // 不弹窗，让用户在使用时看到具体错误
+                }
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"GIS Agent初始化失败: {ex.Message}");
-                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
-                    $"AI助手初始化失败: {ex.Message}",
-                    "错误",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
+                // 即使初始化失败也不弹窗阻塞，允许界面加载
+                // 用户发送消息时会看到具体错误提示
+                _agentCore = null;
             }
         }
 

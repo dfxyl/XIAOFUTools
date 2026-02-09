@@ -1,6 +1,9 @@
 using System;
 using System.Windows;
+using System.Windows.Media;
 using ArcGIS.Desktop.Framework.Controls;
+using XIAOFUTools.Tools.User.AIAssistant.Database;
+using XIAOFUTools.Tools.User.AIAssistant.Services;
 
 namespace XIAOFUTools.Tools.User.AIAssistant
 {
@@ -163,6 +166,72 @@ namespace XIAOFUTools.Tools.User.AIAssistant
         {
             DialogResult = false;
             Close();
+        }
+
+        /// <summary>
+        /// 测试API连通性
+        /// </summary>
+        private async void BtnTestApi_Click(object sender, RoutedEventArgs e)
+        {
+            // 验证必填字段
+            if (string.IsNullOrWhiteSpace(txtEndpoint.Text) || string.IsNullOrWhiteSpace(txtModelId.Text))
+            {
+                ShowTestResult("请先填写 API 端点和模型 ID", false);
+                return;
+            }
+
+            btnTestApi.IsEnabled = false;
+            btnTestApi.Content = "测试中...";
+            ShowTestResult("正在连接...", null);
+
+            try
+            {
+                var config = new AIServiceConfig
+                {
+                    ApiEndpoint = txtEndpoint.Text.Trim(),
+                    ModelName = txtModelId.Text.Trim(),
+                    ApiKey = ApiKey,
+                    MaxTokens = 50,
+                    Temperature = 0.1
+                };
+
+                var service = new OpenAICompatibleService(config);
+                var isValid = await service.ValidateApiKeyAsync();
+                service.Dispose();
+
+                if (isValid)
+                {
+                    ShowTestResult("连接成功，API 可用", true);
+                }
+                else
+                {
+                    ShowTestResult("连接失败，请检查端点和密钥", false);
+                }
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.Message;
+                if (msg.Length > 100) msg = msg.Substring(0, 100) + "...";
+                ShowTestResult($"连接失败: {msg}", false);
+            }
+            finally
+            {
+                btnTestApi.IsEnabled = true;
+                btnTestApi.Content = "测试连接";
+            }
+        }
+
+        private void ShowTestResult(string message, bool? success)
+        {
+            txtTestResult.Text = message;
+            txtTestResult.Visibility = Visibility.Visible;
+            
+            if (success == true)
+                txtTestResult.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#16a34a"));
+            else if (success == false)
+                txtTestResult.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#dc2626"));
+            else
+                txtTestResult.Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#6b7280"));
         }
     }
 }
