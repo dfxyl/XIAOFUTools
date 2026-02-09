@@ -78,6 +78,12 @@
                                 <TextBox x:Name="RowsPerColumnTextBox" Text="20" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"/>
                             </StackPanel>
                         </Grid>
+
+                        <StackPanel Margin="0,0,0,6">
+                            <TextBlock Text="压缩总行数(0不压缩):" FontSize="10" Margin="0,0,0,2"/>
+                            <TextBox x:Name="CompressTotalRowsTextBox" Text="0" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                     ToolTip="总点数超过该值时，压缩后总显示行数控制在该值内"/>
+                        </StackPanel>
                         
                         <Grid Margin="0,0,0,6">
                             <Grid.ColumnDefinitions>

@@ -57,11 +57,25 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding MapSeriesStatus}" 
                            Foreground="{Binding MapSeriesStatusColor}"
                            FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="4,0,0,0">
+                    <TextBox Width="120" Height="22" FontSize="12"
+                             Style="{StaticResource TextBoxStyle}"
+                             Text="{Binding PageSearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="输入关键字搜索" VerticalContentAlignment="Center"/>
+                    <ComboBox Width="62" Height="22" Margin="2,0,0,0" FontSize="11"
+                              Style="{StaticResource ComboBoxStyle}"
+                              ItemsSource="{Binding PageSearchModes}"
+                              SelectedItem="{Binding SelectedPageSearchMode}"
+                              ToolTip="选择搜索页码或名称"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="4,0,0,0">
                     <Button Content="全" Command="{Binding SelectAllCommand}"
                             Style="{StaticResource DefaultButtonStyle}" Width="28" Height="22" Margin="0,0,2,0" FontSize="12" ToolTip="全选"/>
                     <Button Content="反" Command="{Binding InvertSelectionCommand}"
@@ -97,7 +111,7 @@
                     </Grid>
                     
                     <!-- 列表 - 启用虚拟化支持大量数据 -->
-                    <ListBox Grid.Row="1" x:Name="PageListBox" ItemsSource="{Binding MapSeriesPages}" Background="White"
+                    <ListBox Grid.Row="1" x:Name="PageListBox" ItemsSource="{Binding MapSeriesPagesView}" Background="White"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" BorderThickness="0"
                              VirtualizingPanel.IsVirtualizing="True"
                              VirtualizingPanel.VirtualizationMode="Recycling"

@@ -270,6 +270,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             RowHeightTextBox.Text = settings.RowHeight.ToString(CultureInfo.InvariantCulture);
             CornerOffsetTextBox.Text = settings.CornerOffset.ToString(CultureInfo.InvariantCulture);
             RowsPerColumnTextBox.Text = settings.RowsPerColumn.ToString();
+            CompressTotalRowsTextBox.Text = settings.CompressTotalRows.ToString();
             AreaDecimalTextBox.Text = settings.AreaDecimal.ToString();
             MuDecimalTextBox.Text = settings.MuDecimal.ToString();
             
@@ -408,6 +409,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                 AreaDecimal = int.Parse(AreaDecimalTextBox.Text),
                 MuDecimal = int.Parse(MuDecimalTextBox.Text),
                 RowsPerColumn = int.Parse(RowsPerColumnTextBox.Text),
+                CompressTotalRows = int.Parse(CompressTotalRowsTextBox.Text),
                 ExportDelay = int.Parse(ExportDelayTextBox.Text),
                 // 界址点设置
                 EnableBoundaryPoints = EnableBoundaryPointsCheckBox.IsChecked == true,
@@ -526,6 +528,12 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             if (!int.TryParse(RowsPerColumnTextBox.Text, out int rpc) || rpc < 1)
             {
                 MessageBox.Show("每列行数必须是正整数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!int.TryParse(CompressTotalRowsTextBox.Text, out int ctr) || ctr < 0)
+            {
+                MessageBox.Show("压缩总行数必须是大于等于0的整数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
@@ -783,6 +791,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         public int AreaDecimal { get; set; } = 2;
         public int MuDecimal { get; set; } = 4;
         public int RowsPerColumn { get; set; } = 20;
+        public int CompressTotalRows { get; set; } = 0;
         public bool SwapXY { get; set; } = true;
         public int ExportDelay { get; set; } = 1000;  // 导出前等待时间（毫秒）
         

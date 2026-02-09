@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using ArcGIS.Core.CIM;
@@ -44,6 +45,10 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         private CoordinateTableSettings _coordinateTableSettings;
         private string _currentCoordinateTableGroupName = null;
         private int _lastNavigatedPageIndex = -1;
+        private const string EllipsisMarker = "•••";
+        private ICollectionView _mapSeriesPagesView;
+        private string _pageSearchText = string.Empty;
+        private string _selectedPageSearchMode = "页码";
         
         private static readonly string SettingsFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -51,6 +56,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
 
         public MapSeriesExportViewModel()
         {
+            RebuildMapSeriesPageView();
             InitializeCommands();
             LoadLayouts();
             _outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "地图系列导出");
@@ -110,7 +116,42 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         public ObservableCollection<MapSeriesPageItem> MapSeriesPages
         {
             get => _mapSeriesPages;
-            set { _mapSeriesPages = value; OnPropertyChanged(); }
+            set
+            {
+                _mapSeriesPages = value ?? new ObservableCollection<MapSeriesPageItem>();
+                OnPropertyChanged();
+                RebuildMapSeriesPageView();
+            }
+        }
+
+        public ICollectionView MapSeriesPagesView
+        {
+            get => _mapSeriesPagesView;
+            private set { _mapSeriesPagesView = value; OnPropertyChanged(); }
+        }
+
+        public ObservableCollection<string> PageSearchModes { get; } = new ObservableCollection<string> { "页码", "名称" };
+
+        public string SelectedPageSearchMode
+        {
+            get => _selectedPageSearchMode;
+            set
+            {
+                _selectedPageSearchMode = string.IsNullOrWhiteSpace(value) ? "页码" : value;
+                OnPropertyChanged();
+                ApplyMapSeriesPageFilter();
+            }
+        }
+
+        public string PageSearchText
+        {
+            get => _pageSearchText;
+            set
+            {
+                _pageSearchText = value ?? string.Empty;
+                OnPropertyChanged();
+                ApplyMapSeriesPageFilter();
+            }
         }
 
         public string OutputFolder
@@ -408,9 +449,66 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             LoadMapSeriesPages();
         }
 
-        private void SelectAll() { foreach (var page in MapSeriesPages) page.IsSelected = true; }
+        private void RebuildMapSeriesPageView()
+        {
+            MapSeriesPagesView = CollectionViewSource.GetDefaultView(MapSeriesPages);
+            if (MapSeriesPagesView != null)
+            {
+                MapSeriesPagesView.Filter = MapSeriesPageFilter;
+            }
+            ApplyMapSeriesPageFilter();
+        }
 
-        private void InvertSelection() { foreach (var page in MapSeriesPages) page.IsSelected = !page.IsSelected; }
+        private void ApplyMapSeriesPageFilter()
+        {
+            MapSeriesPagesView?.Refresh();
+        }
+
+        private bool MapSeriesPageFilter(object obj)
+        {
+            if (obj is not MapSeriesPageItem page)
+            {
+                return false;
+            }
+
+            var keyword = PageSearchText?.Trim();
+            if (string.IsNullOrEmpty(keyword))
+            {
+                return true;
+            }
+
+            if (SelectedPageSearchMode == "名称")
+            {
+                return (page.PageName ?? string.Empty).IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0;
+            }
+
+            return page.PageIndex.ToString().Contains(keyword, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private IEnumerable<MapSeriesPageItem> GetVisiblePages()
+        {
+            if (MapSeriesPagesView != null)
+            {
+                return MapSeriesPagesView.Cast<object>().OfType<MapSeriesPageItem>();
+            }
+            return MapSeriesPages;
+        }
+
+        private void SelectAll()
+        {
+            foreach (var page in GetVisiblePages())
+            {
+                page.IsSelected = true;
+            }
+        }
+
+        private void InvertSelection()
+        {
+            foreach (var page in GetVisiblePages())
+            {
+                page.IsSelected = !page.IsSelected;
+            }
+        }
 
         private async void NavigateToPage(MapSeriesPageItem page)
         {
@@ -475,6 +573,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                 "• 页面列表：显示所有页面，勾选要导出的页面\n" +
                 "  - 双击行可切换到该页面预览\n" +
                 "  - 全选/反选按钮快速选择\n" +
+                "  - 搜索支持按页码或名称筛选\n" +
                 "• 输出文件夹：导出文件保存位置\n" +
                 "• 导出方式：\n" +
                 "  - 全部导出：导出所有页面\n" +
@@ -489,6 +588,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                 "  - 锚点定位：相对于指定锚点元素定位\n" +
                 "• 表格尺寸：点号宽、坐标宽、边长宽、行高\n" +
                 "• 每列行数：超过此行数自动分列\n" +
+                "• 压缩总行数：点数过多时自动省略中间行（如1-5...25-30）\n" +
                 "• 面积显示：不显示/仅面积/面积+亩数\n" +
                 "• 自定义文本：支持字段占位符如 [面积]\n" +
                 "• 生成模板：创建XF_TX和XF_WB模板元素\n" +
@@ -899,8 +999,8 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                 }
                 
                 // 生成表格文本
-                var tableData = GenerateTableData(coordinates, titleText, settings.PointPrefix, settings.GenerateEdge, 
-                    edgeLengths, settings.EdgeDecimal, settings.RowsPerColumn, settings.SwapXY);
+                var tableData = GenerateTableData(coordinates, titleText, settings.PointPrefix, settings.GenerateEdge,
+                    edgeLengths, settings.EdgeDecimal, settings.RowsPerColumn, settings.SwapXY, settings.CompressTotalRows);
                 
                 // 在布局上创建表格元素（同步）
                 CreateTableElements(layout, tableData, uniqueValue, areaFormatted, muAreaFormatted, settings, fieldValues);
@@ -979,65 +1079,236 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         }
 
         private List<string> GenerateTableData(List<(double X, double Y, string XStr, string YStr)> coordinates,
-            string titleText, string prefixStr, bool generateEdge, List<double> edgeLengths, 
-            int edgeDecimal, int rowsPerColumn, bool surveyStyle)
+            string titleText, string prefixStr, bool generateEdge, List<double> edgeLengths,
+            int edgeDecimal, int rowsPerColumn, bool surveyStyle, int compressTotalRows)
         {
             var tableData = new List<string>();
+            int splitRowsPerColumn = Math.Max(2, rowsPerColumn);
             
             string headerInfo = generateEdge ? 
                 $"{titleText}\n点号    X坐标    Y坐标    边长" : 
                 $"{titleText}\n点号    X坐标    Y坐标";
-            
-            var dataLines = new List<string>();
+
+            var dataRows = new List<string[]>();
             for (int i = 0; i < coordinates.Count; i++)
             {
                 int displayNo = (i == coordinates.Count - 1) ? 1 : i + 1;
                 string pointName = $"{prefixStr}{displayNo}";
+                string xOut = surveyStyle ? coordinates[i].YStr : coordinates[i].XStr;
+                string yOut = surveyStyle ? coordinates[i].XStr : coordinates[i].YStr;
+
                 if (generateEdge && i < edgeLengths.Count)
                 {
                     string edgeStr = edgeLengths[i].ToString($"F{edgeDecimal}");
-                    string xOut = surveyStyle ? coordinates[i].YStr : coordinates[i].XStr;
-                    string yOut = surveyStyle ? coordinates[i].XStr : coordinates[i].YStr;
-                    string dataLine = $"{pointName}    {xOut}    {yOut}    {edgeStr}";
-                    dataLines.Add(dataLine);
+                    dataRows.Add(new[] { pointName, xOut, yOut, edgeStr });
                 }
                 else
                 {
-                    string xOut = surveyStyle ? coordinates[i].YStr : coordinates[i].XStr;
-                    string yOut = surveyStyle ? coordinates[i].XStr : coordinates[i].YStr;
-                    string dataLine = $"{pointName}    {xOut}    {yOut}";
-                    dataLines.Add(dataLine);
+                    if (generateEdge)
+                    {
+                        dataRows.Add(new[] { pointName, xOut, yOut, string.Empty });
+                    }
+                    else
+                    {
+                        dataRows.Add(new[] { pointName, xOut, yOut });
+                    }
                 }
             }
+
+            if (compressTotalRows > 0 && dataRows.Count > compressTotalRows)
+            {
+                int compressedDataRows = ResolveCompressedDataRowCount(dataRows.Count, splitRowsPerColumn, compressTotalRows);
+                if (compressedDataRows < dataRows.Count)
+                {
+                    dataRows = CompressRowsToTargetCount(dataRows, compressedDataRows, generateEdge, splitRowsPerColumn);
+                }
+            }
+
+            var dataLines = dataRows.Select(row => FormatTableDataLine(row, generateEdge)).ToList();
             
-            if (dataLines.Count <= rowsPerColumn)
+            if (dataLines.Count <= splitRowsPerColumn)
             {
                 string subtable = headerInfo + "\n" + string.Join("\n", dataLines);
                 tableData.Add(subtable);
             }
             else
             {
-                var firstChunk = dataLines.Take(rowsPerColumn);
+                var firstChunk = dataLines.Take(splitRowsPerColumn);
                 string firstSubtable = headerInfo + "\n" + string.Join("\n", firstChunk);
                 tableData.Add(firstSubtable);
                 
-                int index = rowsPerColumn;
+                int index = splitRowsPerColumn;
                 while (index < dataLines.Count)
                 {
                     var lines = new List<string> { headerInfo.Split('\n')[0], headerInfo.Split('\n')[1] };
                     lines.Add(dataLines[index - 1]);
                     
-                    var nextChunk = dataLines.Skip(index).Take(rowsPerColumn - 1);
+                    var nextChunk = dataLines.Skip(index).Take(splitRowsPerColumn - 1);
                     lines.AddRange(nextChunk);
                     
                     string subtable = string.Join("\n", lines);
                     tableData.Add(subtable);
                     
-                    index += rowsPerColumn - 1;
+                    index += splitRowsPerColumn - 1;
                 }
             }
             
             return tableData;
+        }
+
+        private int ResolveCompressedDataRowCount(int sourceRowCount, int rowsPerColumn, int maxDisplayRows)
+        {
+            if (sourceRowCount <= 0 || maxDisplayRows <= 0)
+            {
+                return sourceRowCount;
+            }
+
+            if (rowsPerColumn <= 1)
+            {
+                return Math.Min(sourceRowCount, maxDisplayRows);
+            }
+
+            int upper = Math.Min(sourceRowCount, maxDisplayRows);
+            int best = 1;
+
+            for (int candidate = 1; candidate <= upper; candidate++)
+            {
+                int displayed = CalculateDisplayedRowCount(candidate, rowsPerColumn);
+                if (displayed <= maxDisplayRows)
+                {
+                    best = candidate;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return best;
+        }
+
+        private int CalculateDisplayedRowCount(int dataRowCount, int rowsPerColumn)
+        {
+            if (dataRowCount <= 0)
+            {
+                return 0;
+            }
+
+            if (dataRowCount <= rowsPerColumn)
+            {
+                return dataRowCount;
+            }
+
+            int displayed = rowsPerColumn;
+            int index = rowsPerColumn;
+            while (index < dataRowCount)
+            {
+                int take = Math.Min(rowsPerColumn - 1, dataRowCount - index);
+                displayed += 1 + take;
+                index += rowsPerColumn - 1;
+            }
+
+            return displayed;
+        }
+
+        private List<string[]> CompressRowsToTargetCount(List<string[]> sourceRows, int targetCount,
+            bool generateEdge, int rowsPerColumn)
+        {
+            if (sourceRows == null || sourceRows.Count == 0 || targetCount >= sourceRows.Count)
+            {
+                return sourceRows;
+            }
+
+            if (targetCount <= 1)
+            {
+                return new List<string[]> { sourceRows[0] };
+            }
+
+            if (targetCount == 2)
+            {
+                return new List<string[]> { sourceRows[0], sourceRows[^1] };
+            }
+
+            int bestHeadCount = 1;
+            int bestTailCount = targetCount - bestHeadCount - 1;
+            double totalDisplayedCenter = (CalculateDisplayedRowCount(targetCount, rowsPerColumn) + 1) / 2.0;
+            double bestScore = double.MaxValue;
+
+            for (int headCount = 1; headCount <= targetCount - 2; headCount++)
+            {
+                int tailCount = targetCount - headCount - 1;
+                if (headCount + tailCount >= sourceRows.Count)
+                {
+                    continue;
+                }
+
+                int ellipsisDataIndex = headCount + 1;
+                int ellipsisDisplayIndex = CalculateDisplayedIndexForDataRow(ellipsisDataIndex, rowsPerColumn);
+                double centerDistance = Math.Abs(ellipsisDisplayIndex - totalDisplayedCenter);
+                double balancePenalty = Math.Abs(headCount - tailCount) * 0.01;
+                double score = centerDistance + balancePenalty;
+
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestHeadCount = headCount;
+                    bestTailCount = tailCount;
+                }
+            }
+
+            var compressed = new List<string[]>();
+            compressed.AddRange(sourceRows.Take(bestHeadCount));
+            compressed.Add(CreateEllipsisRow(generateEdge));
+            compressed.AddRange(sourceRows.Skip(sourceRows.Count - bestTailCount));
+            return compressed;
+        }
+
+        private int CalculateDisplayedIndexForDataRow(int dataRowIndex, int rowsPerColumn)
+        {
+            if (dataRowIndex <= 0)
+            {
+                return 0;
+            }
+
+            if (dataRowIndex <= rowsPerColumn)
+            {
+                return dataRowIndex;
+            }
+
+            int displayed = rowsPerColumn;
+            int index = rowsPerColumn;
+            while (index < dataRowIndex)
+            {
+                displayed += 1;
+                int take = Math.Min(rowsPerColumn - 1, dataRowIndex - index);
+                displayed += take;
+                index += rowsPerColumn - 1;
+            }
+
+            return displayed;
+        }
+
+        private string[] CreateEllipsisRow(bool generateEdge)
+        {
+            return generateEdge
+                ? new[] { EllipsisMarker, EllipsisMarker, EllipsisMarker, EllipsisMarker }
+                : new[] { EllipsisMarker, EllipsisMarker, EllipsisMarker };
+        }
+
+        private bool IsEllipsisRow(string[] tokens)
+        {
+            return tokens != null && tokens.Length > 0 && tokens[0] == EllipsisMarker;
+        }
+
+        private string FormatTableDataLine(string[] tokens, bool generateEdge)
+        {
+            if (generateEdge)
+            {
+                string edgeText = tokens.Length > 3 ? tokens[3] : string.Empty;
+                return $"{tokens[0]}    {tokens[1]}    {tokens[2]}    {edgeText}";
+            }
+
+            return $"{tokens[0]}    {tokens[1]}    {tokens[2]}";
         }
 
         private void CreateTableElements(Layout layout, List<string> tableData, string uniqueValue,
@@ -1295,7 +1566,11 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
 
                         for (int e = 0; e < dataRowTokens.Count - 1; e++)
                         {
-                            string edgeText = dataRowTokens[e].Length > 3 ? dataRowTokens[e][3] : string.Empty;
+                            bool currentIsEllipsis = IsEllipsisRow(dataRowTokens[e]);
+                            bool nextIsEllipsis = IsEllipsisRow(dataRowTokens[e + 1]);
+                            string edgeText = (currentIsEllipsis || nextIsEllipsis)
+                                ? "•••"
+                                : (dataRowTokens[e].Length > 3 ? dataRowTokens[e][3] : string.Empty);
                             double edgeTopY = firstDataRowTopY - (e + 0.5) * tableRowHeight;
 
                             var edgeElems = LayoutElementHelper.CreateTableCellSync(

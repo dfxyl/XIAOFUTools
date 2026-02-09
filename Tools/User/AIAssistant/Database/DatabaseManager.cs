@@ -17,6 +17,12 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Database
         private static readonly object _lock = new object();
         private static int _sqlitePclInitialized;
         private static string _lastInitError;
+        private static readonly byte[] SqliteHeader =
+        {
+            0x53, 0x51, 0x4C, 0x69, 0x74, 0x65, 0x20, 0x66,
+            0x6F, 0x72, 0x6D, 0x61, 0x74, 0x20, 0x33, 0x00
+        };
+
         private readonly string _dbPath;
         private readonly string _connectionString;
         private bool _isInitialized;
@@ -43,6 +49,7 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Database
             }
             
             _dbPath = Path.Combine(appDataPath, "aiassistant.db");
+            EnsureDatabaseFileIntegrity();
             
             // SQLite连接字符串，启用WAL模式支持多进程并发
             _connectionString = $"Data Source={_dbPath};Mode=ReadWriteCreate;Cache=Shared";
@@ -145,6 +152,153 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Database
             }
         }
 
+        private void EnsureDatabaseFileIntegrity()
+        {
+            try
+            {
+                if (Directory.Exists(_dbPath))
+                {
+                    BackupInvalidDatabase("数据库路径被目录占用");
+                    return;
+                }
+
+                if (!File.Exists(_dbPath))
+                {
+                    return;
+                }
+
+                var fileInfo = new FileInfo(_dbPath);
+                if (fileInfo.Length <= 0)
+                {
+                    BackupInvalidDatabase("数据库文件为空");
+                    return;
+                }
+
+                if (!LooksLikeSqliteDatabase(_dbPath))
+                {
+                    BackupInvalidDatabase("数据库文件头不是SQLite格式");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"数据库完整性预检查失败: {ex.Message}");
+            }
+        }
+
+        private static bool LooksLikeSqliteDatabase(string path)
+        {
+            try
+            {
+                var header = new byte[SqliteHeader.Length];
+                using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    if (stream.Length < SqliteHeader.Length)
+                    {
+                        return false;
+                    }
+
+                    var read = stream.Read(header, 0, header.Length);
+                    if (read < SqliteHeader.Length)
+                    {
+                        return false;
+                    }
+                }
+
+                for (var i = 0; i < SqliteHeader.Length; i++)
+                {
+                    if (header[i] != SqliteHeader[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void BackupInvalidDatabase(string reason, Exception ex = null)
+        {
+            var backupTag = $"invalid_{DateTime.Now:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}";
+            var backupPath = $"{_dbPath}.{backupTag}.bak";
+
+            try
+            {
+                if (Directory.Exists(_dbPath))
+                {
+                    Directory.Move(_dbPath, backupPath);
+                }
+                else if (File.Exists(_dbPath))
+                {
+                    File.Move(_dbPath, backupPath);
+                }
+
+                MoveSidecarFileIfExists($"{_dbPath}-wal", $"{backupPath}-wal");
+                MoveSidecarFileIfExists($"{_dbPath}-shm", $"{backupPath}-shm");
+
+                System.Diagnostics.Debug.WriteLine($"检测到无效SQLite数据库，已备份: {backupPath}，原因: {reason}");
+                if (ex != null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"触发异常: {ex.Message}");
+                }
+            }
+            catch (Exception backupEx)
+            {
+                System.Diagnostics.Debug.WriteLine($"备份无效数据库失败: {backupEx.Message}，将尝试直接删除");
+
+                SafeDeleteFile(_dbPath);
+                SafeDeleteFile($"{_dbPath}-wal");
+                SafeDeleteFile($"{_dbPath}-shm");
+            }
+        }
+
+        private static void MoveSidecarFileIfExists(string sourcePath, string targetPath)
+        {
+            if (!File.Exists(sourcePath))
+            {
+                return;
+            }
+
+            try
+            {
+                File.Move(sourcePath, targetPath);
+            }
+            catch
+            {
+                SafeDeleteFile(sourcePath);
+            }
+        }
+
+        private static void SafeDeleteFile(string path)
+        {
+            try
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
+            catch
+            {
+                // 忽略清理失败，后续初始化会继续尝试。
+            }
+        }
+
+        private static bool IsNotDatabaseError(SqliteException ex)
+        {
+            if (ex == null)
+            {
+                return false;
+            }
+
+            return ex.SqliteErrorCode == 26 ||
+                   ex.SqliteExtendedErrorCode == 26 ||
+                   ex.Message.IndexOf("file is not a database", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         /// <summary>
         /// 获取新的数据库连接（每次操作使用独立连接，避免并发问题）
         /// </summary>
@@ -164,6 +318,20 @@ namespace XIAOFUTools.Tools.User.AIAssistant.Database
         }
 
         private void InitializeDatabase()
+        {
+            try
+            {
+                InitializeDatabaseCore();
+            }
+            catch (SqliteException ex) when (IsNotDatabaseError(ex))
+            {
+                // 某些机器上残留了非SQLite文件，自动备份并重建可避免AI助手启动失败。
+                BackupInvalidDatabase("初始化数据库时检测到非SQLite文件", ex);
+                InitializeDatabaseCore();
+            }
+        }
+
+        private void InitializeDatabaseCore()
         {
             try
             {
