@@ -108,7 +108,7 @@ A:
 
 ### Q: 如何反馈问题或建议？
 A: 
-- 在 GitHub/Gitee 提交 Issue
+- 在 GitHub 提交 Issue
 - 加入 QQ 群反馈
 - 联系开发者微信
 
@@ -125,4 +125,4 @@ A: 部分功能免费，完整功能需要授权。
 - **QQ群**: 967758553
 - **微信**: fu76488
 - **哔哩哔哩**: XIAOFUGIS
-- **Gitee**: https://gitee.com/XFTools/xiaofutools
+- **GitHub**: https://github.com/xiaofuX1/XIAOFUTools

@@ -76,7 +76,7 @@ XIAOFUTools 是一款基于 ArcGIS Pro SDK 开发的专业 GIS 扩展工具箱�
 ### 方式二：从源码构建
 ```bash
 # 克隆仓库
-git clone https://gitee.com/XFTools/xiaofutools.git
+git clone https://github.com/xiaofuX1/XIAOFUTools.git
 
 # 使用 Visual Studio 2022 打开解决方案
 # 编译 Release 版本
@@ -96,7 +96,7 @@ dotnet build -c Release
 | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) | 用户使用手册 |
 | [docs/FAQ.md](docs/FAQ.md) | 常见问题解答 |
 | [AGENTS.md](AGENTS.md) | 开发规范与架构指南 |
-| [RELEASE.md](RELEASE.md) | 版本发布指南（Gitee） |
+| [RELEASE.md](RELEASE.md) | 版本发布指南（GitHub） |
 | [CHANGELOG.md](CHANGELOG.md) | 版本更新日志 |
 
 ## 项目结构
