@@ -8,6 +8,35 @@
 
 ## 新增功能
 
+### 属性表建SHP工具（数据分析/处理组）(2026-02-10)
+- 新增“属性表建SHP”工具，支持读取 Excel 属性结构模板并批量创建 Shapefile。
+- 复用“属性表建库”模板体系，支持中文几何/字段类型解析，并提供坐标系选择、日志输出、停止执行与模板导出能力。
+- 针对 SHP 约束新增自动兼容：忽略要素集定义、字段名自动压缩到 10 字符并去重、跳过 BLOB/GUID 等不支持字段类型。
+- 新增专用模板 `建SHP模板.xls`，并将“导出模板”改为导出该模板，便于直接用于属性表建SHP。
+- 修改的文件:
+  - `Config.daml` - 新增按钮、停靠窗格与“数据库”面板入口
+  - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderButton.cs` - 新增按钮入口与授权校验
+  - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderDockPane.cs` - 新增停靠窗格容器
+  - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderDockPaneView.xaml` - 新增工具界面与参数项
+  - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderDockPaneView.xaml.cs` - 新增视图初始化逻辑与布尔反转转换器
+  - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderViewModel.cs` - 新增建SHP流程、模板解析、字段类型转换与日志管理
+  - `Data/Excel模板/建SHP模板.xls` - 新增属性表建SHP专用模板
+  - `XIAOFUTools.csproj` - 新增建SHP模板复制到输出目录配置
+  - `README.md` - 更新功能清单
+  - `Docs/USER_GUIDE.md` - 新增“属性表建SHP”使用说明
+
+### SHP目录处理工具（数据分析/处理组）(2026-02-10)
+- 新增“SHP输字段表”工具，支持按文件夹批量读取 Shapefile 字段结构并导出为 Excel 字段表。
+- 修改的文件:
+  - `Config.daml` - 新增“SHP输字段表”按钮、停靠窗格与数据库面板入口
+  - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableButton.cs` - 新增按钮入口与授权校验
+  - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableDockPane.cs` - 新增停靠窗格容器
+  - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableDockPaneView.xaml` - 新增工具界面
+  - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableDockPaneView.xaml.cs` - 新增视图初始化逻辑
+  - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableViewModel.cs` - 新增SHP结构读取、Excel导出与日志控制
+  - `README.md` - 更新功能清单
+  - `Docs/USER_GUIDE.md` - 新增“SHP输字段表”使用说明
+
 ### 提取面扣岛工具（分析/计算组）(2026-02-10)
 - 新增“提取面扣岛”工具，支持从输入面要素中提取所有扣洞并输出为面要素图层。
 - 输出结果保留源图层属性；多个洞可按开关选择逐洞输出或按源要素合并为多部件输出。

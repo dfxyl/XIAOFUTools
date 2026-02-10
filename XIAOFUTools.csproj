@@ -270,6 +270,10 @@
     <Content Include="Images\DatabaseBuilder_32.png" />
     <Content Include="Images\ExportDatabaseSchema_16.png" />
     <Content Include="Images\ExportDatabaseSchema_32.png" />
+    <Content Include="Images\ShapefileBuilder_16.png" />
+    <Content Include="Images\ShapefileBuilder_32.png" />
+    <Content Include="Images\ExportShpFieldTable_16.png" />
+    <Content Include="Images\ExportShpFieldTable_32.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tools\Common\PresetLayers\PresetLayersGalleryTemplate.xaml" />
@@ -487,6 +491,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Data\Excel模板\建库模板-带要素集.xls">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\Excel模板\建SHP模板.xls">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

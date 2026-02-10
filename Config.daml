@@ -177,6 +177,8 @@
         <!-- 建库等按钮面板 -->
         <buttonPalette id="XIAOFUTools_DatabaseBuilderButtonPalette" caption="数据库" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_DatabaseBuilderButton" />
+          <button refID="XIAOFUTools_ShapefileBuilderButton" />
+          <button refID="XIAOFUTools_ExportShpFieldTableButton" />
           <button refID="XIAOFUTools_MirrorDatabaseButton" />
           <button refID="XIAOFUTools_ExportDatabaseSchemaButton" />
         </buttonPalette>
@@ -298,6 +300,10 @@
         </dockPane>
         <!-- 属性表建库停靠窗格 -->
         <dockPane id="XIAOFUTools_DatabaseBuilderDockPane" caption="属性表建库" className="XIAOFUTools.Tools.DataProcessing.DatabaseBuilder.DatabaseBuilderDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 属性表建SHP停靠窗格 -->
+        <dockPane id="XIAOFUTools_ShapefileBuilderDockPane" caption="属性表建SHP" className="XIAOFUTools.Tools.DataProcessing.ShapefileBuilder.ShapefileBuilderDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- SHP输字段表停靠窗格 -->
+        <dockPane id="XIAOFUTools_ExportShpFieldTableDockPane" caption="SHP输字段表" className="XIAOFUTools.Tools.DataProcessing.ExportShpFieldTable.ExportShpFieldTableDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 镜像数据库停靠窗格 -->
         <dockPane id="XIAOFUTools_MirrorDatabaseDockPane" caption="镜像数据库" className="XIAOFUTools.Tools.DataProcessing.MirrorDatabase.MirrorDatabaseDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 输出数据库属性结构表停靠窗格 -->
@@ -683,6 +689,18 @@
           <tooltip heading="属性表建库">
             根据Excel属性结构表自动创建文件地理数据库及要素类
             <disabledText>无权限使用属性表建库功能</disabledText></tooltip>
+        </button>
+        <!-- 属性表建SHP按钮 -->
+        <button id="XIAOFUTools_ShapefileBuilderButton" caption="属性表建SHP" className="XIAOFUTools.Tools.DataProcessing.ShapefileBuilder.ShapefileBuilderButton" loadOnClick="true" smallImage="Images\ShapefileBuilder_16.png" largeImage="Images\ShapefileBuilder_32.png">
+          <tooltip heading="属性表建SHP">
+            根据Excel属性结构表批量创建Shapefile
+            <disabledText>无权限使用属性表建SHP功能</disabledText></tooltip>
+        </button>
+        <!-- SHP输字段表按钮 -->
+        <button id="XIAOFUTools_ExportShpFieldTableButton" caption="SHP输字段表" className="XIAOFUTools.Tools.DataProcessing.ExportShpFieldTable.ExportShpFieldTableButton" loadOnClick="true" smallImage="Images\ExportShpFieldTable_16.png" largeImage="Images\ExportShpFieldTable_32.png">
+          <tooltip heading="SHP输字段表">
+            将输入目录中的SHP字段结构导出为Excel表
+            <disabledText>无权限使用SHP输字段表功能</disabledText></tooltip>
         </button>
         <!-- 镜像数据库按钮 -->
         <button id="XIAOFUTools_MirrorDatabaseButton" caption="镜像数据库" className="XIAOFUTools.Tools.DataProcessing.MirrorDatabase.MirrorDatabaseButton" loadOnClick="true" smallImage="Images\MirrorDatabase_16.png" largeImage="Images\MirrorDatabase_32.png">
