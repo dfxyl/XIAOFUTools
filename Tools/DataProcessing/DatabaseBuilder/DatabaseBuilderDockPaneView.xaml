@@ -44,7 +44,6 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -90,6 +89,8 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <TextBlock Grid.Row="0" Text="输出数据库位置:"
@@ -118,32 +119,38 @@
                             Text="{Binding DatabaseName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                             IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}"
                             ToolTip="输入要创建的文件地理数据库名称（不含.gdb后缀）"/>
+
+                    <TextBlock Grid.Row="4" Text="图层坐标系:"
+                              Style="{StaticResource FormLabelStyle}"/>
+                    <Grid Grid.Row="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0"
+                                Margin="0,2,0,8"
+                                Height="26"
+                                BorderBrush="#CDCDCD"
+                                BorderThickness="1"
+                                Background="#F5F5F5">
+                            <TextBlock Text="{Binding SelectedCoordinateSystemName}"
+                                      VerticalAlignment="Center"
+                                      Margin="8,0,8,0"
+                                      TextTrimming="CharacterEllipsis"
+                                      ToolTip="当前用于建库的坐标系"/>
+                        </Border>
+                        <Button Grid.Column="1"
+                               Content="选择"
+                               Style="{StaticResource BrowseButtonStyle}"
+                               Command="{Binding SelectCoordinateSystemCommand}"
+                               IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}"
+                               ToolTip="设置新建要素集和要素类坐标系"/>
+                    </Grid>
                 </Grid>
             </GroupBox>
 
-            <!-- 模板导出 -->
-            <GroupBox Grid.Row="2" Header="Excel模板"
-                     Style="{StaticResource GroupBoxStyle}"
-                     Margin="0,0,0,6">
-                <StackPanel Orientation="Vertical" Margin="0,4,0,4">
-                    <Button Content="导出Excel模板"
-                           Style="{StaticResource DefaultButtonStyle}"
-                           Width="120"
-                           Height="26"
-                           HorizontalAlignment="Left"
-                           Command="{Binding ExportTemplateCommand}"
-                           IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}"
-                           ToolTip="导出建库Excel模板供参考制作"/>
-                    <TextBlock Text="点击导出模板文件，按模板格式填写"
-                              Style="{StaticResource FormLabelStyle}"
-                              Margin="0,4,0,0"
-                              Foreground="Gray"
-                              FontWeight="Normal"/>
-                </StackPanel>
-            </GroupBox>
-
             <!-- 日志区域 -->
-            <GroupBox Grid.Row="3" Header="操作日志"
+            <GroupBox Grid.Row="2" Header="操作日志"
                      Style="{StaticResource GroupBoxStyle}"
                      Margin="0,0,0,6">
                 <TextBox Text="{Binding LogText, Mode=OneWay}"
@@ -153,17 +160,26 @@
             </GroupBox>
 
             <!-- 底部按钮 -->
-            <Grid Grid.Row="4">
+            <Grid Grid.Row="3">
                 <Border BorderBrush="{StaticResource DividerBrush}"
                        BorderThickness="0,1,0,0"
                        Margin="0,4,0,0"
                        Padding="0,6,0,0">
                     <Grid>
-                        <Button x:Name="HelpButton" Content="?"
-                                Style="{StaticResource HelpButtonStyle}"
-                                Command="{Binding ShowHelpCommand}"
-                                ToolTip="查看工具使用说明"
-                                HorizontalAlignment="Left"/>
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button x:Name="HelpButton" Content="?"
+                                    Style="{StaticResource HelpButtonStyle}"
+                                    Command="{Binding ShowHelpCommand}"
+                                    ToolTip="查看工具使用说明"/>
+                            <Button Content="导出模板"
+                                    Style="{StaticResource DefaultButtonStyle}"
+                                    Width="80"
+                                    Height="22"
+                                    Margin="8,0,0,0"
+                                    Command="{Binding ExportTemplateCommand}"
+                                    IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}"
+                                    ToolTip="导出建库Excel模板供参考制作"/>
+                        </StackPanel>
 
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Content="停止"

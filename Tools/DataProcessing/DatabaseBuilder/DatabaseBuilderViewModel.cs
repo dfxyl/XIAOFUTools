@@ -20,6 +20,7 @@ using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using Microsoft.Win32;
 using ExcelDataReader;
+using XIAOFUTools.Common;
 
 namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
 {
@@ -75,6 +76,8 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
         private string _databaseName;
         private bool _isProcessing;
         private string _logText;
+        private SpatialReference _selectedSpatialReference;
+        private string _selectedCoordinateSystemName;
         private CancellationTokenSource _cancellationTokenSource;
 
         #endregion
@@ -141,6 +144,35 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
             }
         }
 
+        /// <summary>
+        /// 选择的坐标系
+        /// </summary>
+        public SpatialReference SelectedSpatialReference
+        {
+            get { return _selectedSpatialReference; }
+            set
+            {
+                if (SetProperty(ref _selectedSpatialReference, value))
+                {
+                    SelectedCoordinateSystemName = value == null
+                        ? "未选择坐标系"
+                        : $"{value.Name} (WKID: {value.Wkid})";
+                }
+            }
+        }
+
+        /// <summary>
+        /// 选择的坐标系名称
+        /// </summary>
+        public string SelectedCoordinateSystemName
+        {
+            get { return _selectedCoordinateSystemName; }
+            set
+            {
+                SetProperty(ref _selectedCoordinateSystemName, value);
+            }
+        }
+
         #endregion
 
         #region 命令
@@ -159,6 +191,11 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
         /// 导出模板命令
         /// </summary>
         public ICommand ExportTemplateCommand { get; private set; }
+
+        /// <summary>
+        /// 选择坐标系命令
+        /// </summary>
+        public ICommand SelectCoordinateSystemCommand { get; private set; }
 
         /// <summary>
         /// 开始执行命令
@@ -202,6 +239,8 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
             _databaseName = "NewDatabase";
             _isProcessing = false;
             _logText = "";
+            _selectedSpatialReference = SpatialReferences.WGS84;
+            _selectedCoordinateSystemName = $"{_selectedSpatialReference.Name} (WKID: {_selectedSpatialReference.Wkid})";
         }
 
         /// <summary>
@@ -212,9 +251,30 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
             BrowseInputExcelCommand = new RelayCommand(() => BrowseInputExcel(), () => !IsProcessing);
             BrowseOutputFolderCommand = new RelayCommand(() => BrowseOutputFolder(), () => !IsProcessing);
             ExportTemplateCommand = new RelayCommand(() => ExportTemplate(), () => !IsProcessing);
+            SelectCoordinateSystemCommand = new RelayCommand(() => SelectCoordinateSystem(), () => !IsProcessing);
             StartCommand = new RelayCommand(() => StartBuildDatabase(), () => CanStart());
             StopCommand = new RelayCommand(() => StopBuildDatabase(), () => IsProcessing);
             ShowHelpCommand = new RelayCommand(() => ShowHelp());
+        }
+
+        /// <summary>
+        /// 选择坐标系
+        /// </summary>
+        private void SelectCoordinateSystem()
+        {
+            try
+            {
+                var selectedSpatialRef = CoordinateSystemSelector.ShowCoordinateSystemDialog();
+                if (selectedSpatialRef != null)
+                {
+                    SelectedSpatialReference = selectedSpatialRef;
+                    LogInfo($"已选择图层坐标系: {SelectedCoordinateSystemName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"选择坐标系失败: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -330,7 +390,8 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
             return !IsProcessing &&
                    !string.IsNullOrWhiteSpace(InputExcelPath) &&
                    !string.IsNullOrWhiteSpace(OutputFolderPath) &&
-                   !string.IsNullOrWhiteSpace(DatabaseName);
+                   !string.IsNullOrWhiteSpace(DatabaseName) &&
+                   SelectedSpatialReference != null;
         }
 
         /// <summary>
@@ -374,6 +435,8 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
 
                 // 创建数据库
                 string gdbPath = System.IO.Path.Combine(OutputFolderPath, DatabaseName + ".gdb");
+                var targetSpatialReference = SelectedSpatialReference ?? SpatialReferences.WGS84;
+                LogInfo($"目标坐标系: {targetSpatialReference.Name} (WKID: {targetSpatialReference.Wkid})");
 
                 await QueuedTask.Run(() =>
                 {
@@ -436,8 +499,7 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
                                     LogInfo($"正在创建要素集: {dataset.DatasetName}");
                                     
                                     // 使用 SchemaBuilder 创建要素集
-                                    var spatialRef = SpatialReferences.WGS84;
-                                    var datasetDescription = new FeatureDatasetDescription(dataset.DatasetName, spatialRef);
+                                    var datasetDescription = new FeatureDatasetDescription(dataset.DatasetName, targetSpatialReference);
                                     
                                     var schemaBuilder = new SchemaBuilder(geodatabase);
                                     schemaBuilder.Create(datasetDescription);
@@ -536,13 +598,30 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
 
                                     // 创建Shape字段描述
                                     var shapeType = ConvertToGeometryType(layer.GeometryType);
-                                    var shapeDescription = new ShapeDescription(shapeType, SpatialReferences.WGS84);
+                                    var layerSpatialReference = targetSpatialReference;
 
                                     // 创建要素类描述
                                     FeatureClassDescription fcDescription;
                                     
                                     // 检查是否需要在要素集内创建
                                     bool hasFeatureDataset = !string.IsNullOrEmpty(layer.FeatureDataset) && createdDatasets.Contains(layer.FeatureDataset);
+
+                                    FeatureDatasetDefinition datasetDef = null;
+                                    if (hasFeatureDataset)
+                                    {
+                                        datasetDef = geodatabase.GetDefinition<FeatureDatasetDefinition>(layer.FeatureDataset);
+                                        var datasetSpatialReference = datasetDef?.GetSpatialReference();
+                                        if (datasetSpatialReference != null)
+                                        {
+                                            layerSpatialReference = datasetSpatialReference;
+                                            if (datasetSpatialReference.Wkid > 0 && targetSpatialReference.Wkid > 0 && datasetSpatialReference.Wkid != targetSpatialReference.Wkid)
+                                            {
+                                                LogWarning($"要素集 {layer.FeatureDataset} 的坐标系与当前设置不一致，将使用要素集自身坐标系创建要素类 {layerName}");
+                                            }
+                                        }
+                                    }
+
+                                    var shapeDescription = new ShapeDescription(shapeType, layerSpatialReference);
                                     
                                     // 创建要素类描述
                                     fcDescription = new FeatureClassDescription(layerName, fieldDescriptions, shapeDescription);
@@ -557,10 +636,9 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
                                     // 使用 SchemaBuilder 创建要素类
                                     var schemaBuilder = new SchemaBuilder(geodatabase);
                                     
-                                    if (hasFeatureDataset)
+                                    if (hasFeatureDataset && datasetDef != null)
                                     {
                                         // 获取要素集的 Token
-                                        var datasetDef = geodatabase.GetDefinition<FeatureDatasetDefinition>(layer.FeatureDataset);
                                         var datasetToken = new FeatureDatasetDescription(datasetDef);
                                         
                                         // 在要素集内创建要素类
@@ -569,6 +647,10 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
                                     }
                                     else
                                     {
+                                        if (hasFeatureDataset && datasetDef == null)
+                                        {
+                                            LogWarning($"未找到要素集 {layer.FeatureDataset}，将改为在数据库根目录创建要素类: {layerName}");
+                                        }
                                         // 在数据库根目录创建要素类
                                         LogInfo($"正在创建要素类: {layerName}");
                                         schemaBuilder.Create(fcDescription);
@@ -632,28 +714,40 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
         {
             if (string.IsNullOrEmpty(fieldType)) return FieldType.String;
 
-            switch (fieldType.ToUpper())
+            var normalized = fieldType.Trim().ToUpperInvariant();
+
+            switch (normalized)
             {
                 case "TEXT":
                 case "STRING":
+                case "文本":
                     return FieldType.String;
                 case "SHORT":
                 case "SMALLINTEGER":
+                case "短整型":
                     return FieldType.SmallInteger;
                 case "LONG":
                 case "INTEGER":
+                case "长整型":
+                case "整型":
                     return FieldType.Integer;
                 case "FLOAT":
                 case "SINGLE":
+                case "单精度":
                     return FieldType.Single;
                 case "DOUBLE":
+                case "双精度":
                     return FieldType.Double;
                 case "DATE":
                 case "DATETIME":
+                case "日期":
+                case "日期时间":
                     return FieldType.Date;
                 case "BLOB":
+                case "二进制":
                     return FieldType.Blob;
                 case "GUID":
+                case "全局唯一标识":
                     return FieldType.GUID;
                 default:
                     return FieldType.String;
@@ -667,16 +761,22 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
         {
             if (string.IsNullOrEmpty(geometryType)) return GeometryType.Polygon;
 
-            switch (geometryType.ToUpper())
+            var normalized = geometryType.Trim().ToUpperInvariant();
+
+            switch (normalized)
             {
                 case "POINT":
+                case "点":
                     return GeometryType.Point;
                 case "POLYLINE":
                 case "LINE":
+                case "线":
                     return GeometryType.Polyline;
                 case "POLYGON":
+                case "面":
                     return GeometryType.Polygon;
                 case "MULTIPOINT":
+                case "多点":
                     return GeometryType.Multipoint;
                 default:
                     return GeometryType.Polygon;
@@ -972,7 +1072,8 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
                                "参数说明：\n" +
                                "1. 属性结构表 (Excel)：包含图层和字段定义的Excel文件\n" +
                                "2. 输出数据库位置：文件地理数据库的保存位置\n" +
-                               "3. 数据库名称：要创建的数据库名称（不含.gdb后缀）\n\n" +
+                               "3. 数据库名称：要创建的数据库名称（不含.gdb后缀）\n" +
+                               "4. 图层坐标系：设置新建要素集和要素类的坐标系（默认WGS84）\n\n" +
                                "Excel模板格式：\n" +
                                "- 必须包含名为'图层'的工作表\n" +
                                "- 可选包含名为'要素集'的工作表\n" +
@@ -997,7 +1098,8 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
                                "2. 按模板格式填写要素集、图层和字段定义\n" +
                                "3. 选择填写好的Excel文件\n" +
                                "4. 选择输出位置并输入数据库名称\n" +
-                               "5. 点击'开始建库'执行创建";
+                               "5. 选择图层坐标系\n" +
+                               "6. 点击'开始建库'执行创建";
 
             MessageBox.Show(helpContent, "属性表建库工具使用说明");
         }
