@@ -8,6 +8,26 @@
 
 ## 新增功能
 
+### 文档批量替换工具（转换工具-文档相关）(2026-02-10)
+- 新增“文档批量替换”工具，支持 `.docx/.doc/.docm` 多文件批量查找替换；支持添加文件、添加文件夹与拖拽到文件列表导入。
+- 支持多条替换规则与匹配选项（区分大小写、全字匹配、区分全/半角、通配符），并提供“另存为副本/覆盖原文件”两种保存方式。
+- 文档分组面板命名由“PDF相关”调整为“文档相关”，并在该面板新增工具入口。
+- 处理链路稳定性增强：替换任务改为 STA 线程执行，按文件创建与释放 Word COM 实例，修复批处理中 `0x800706BE` 远程过程调用失败导致的中断问题。
+- 界面布局优化：取消独立拖拽接收区，文件多时在列表内部滚动；日志框高度下调，避免挤占参数区。
+- 新增专用图标资源（SVG + 16/32 PNG），并将工具按钮图标切换为专用图标。
+- 修改的文件:
+  - `Config.daml` - 新增按钮/停靠窗格注册，面板文案改为“文档相关”，并切换专用图标
+  - `Tools/Convert/DocumentBatchReplace/DocumentBatchReplaceButton.cs` - 新增按钮入口与授权校验
+  - `Tools/Convert/DocumentBatchReplace/DocumentBatchReplaceDockPane.cs` - 新增停靠窗格容器
+  - `Tools/Convert/DocumentBatchReplace/DocumentBatchReplaceDockPaneView.xaml` - 新增并优化界面布局（文件区/规则区/日志区）
+  - `Tools/Convert/DocumentBatchReplace/DocumentBatchReplaceDockPaneView.xaml.cs` - 新增视图初始化与拖拽接收处理
+  - `Tools/Convert/DocumentBatchReplace/DocumentBatchReplaceDockPaneViewModel.cs` - 新增批量替换主流程、STA 执行、COM 稳定性处理与日志进度
+  - `IconTools/Icons/DocumentBatchReplace.svg` - 新增矢量图标源文件
+  - `Images/DocumentBatchReplace_16.png` - 新增小图标
+  - `Images/DocumentBatchReplace_32.png` - 新增大图标
+  - `XIAOFUTools.csproj` - 添加新图标内容清单
+  - `AGENTS.md` - 工具箱结构文案由“PDF相关”更新为“文档相关”
+
 ### 属性表建SHP工具（数据分析/处理组）(2026-02-10)
 - 新增“属性表建SHP”工具，支持读取 Excel 属性结构模板并批量创建 Shapefile。
 - 复用“属性表建库”模板体系，支持中文几何/字段类型解析，并提供坐标系选择、日志输出、停止执行与模板导出能力。

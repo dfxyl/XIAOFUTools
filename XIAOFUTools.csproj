@@ -124,6 +124,8 @@
     <None Remove="Images\ExportToKml_32.png" />
     <None Remove="Images\WordToPdf_16.png" />
     <None Remove="Images\WordToPdf_32.png" />
+    <None Remove="Images\DocumentBatchReplace_16.png" />
+    <None Remove="Images\DocumentBatchReplace_32.png" />
     <None Remove="Images\AIAssistant_16.png" />
     <None Remove="Images\AIAssistant_32.png" />
     <None Remove="Images\反馈表二维码.png" />
@@ -250,6 +252,8 @@
     <Content Include="Images\ExcelToPdf_32.png" />
     <Content Include="Images\WordToPdf_16.png" />
     <Content Include="Images\WordToPdf_32.png" />
+    <Content Include="Images\DocumentBatchReplace_16.png" />
+    <Content Include="Images\DocumentBatchReplace_32.png" />
     <Content Include="Images\AIAssistant_16.png" />
     <Content Include="Images\AIAssistant_32.png" />
   </ItemGroup>

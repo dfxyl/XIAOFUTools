@@ -150,12 +150,13 @@
           <button refID="XIAOFUTools_PolygonToDwgWithFillButton" />
           <button refID="XIAOFUTools_PolygonToDxfWithFillButton" />
         </buttonPalette>
-        <!-- PDF相关按钮面板 -->
-        <buttonPalette id="XIAOFUTools_PdfButtonPalette" caption="PDF相关" dropDown="true" menuStyle="false">
+        <!-- 文档相关按钮面板 -->
+        <buttonPalette id="XIAOFUTools_PdfButtonPalette" caption="文档相关" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_PdfToImagesButton" />
           <button refID="XIAOFUTools_ImagesToPdfButton" />
           <button refID="XIAOFUTools_ExcelToPdfButton" />
           <button refID="XIAOFUTools_WordToPdfButton" />
+          <button refID="XIAOFUTools_DocumentBatchReplaceButton" />
         </buttonPalette>
         <!-- 图形检查按钮面板 -->
         <buttonPalette id="XIAOFUTools_GraphicsProcessingButtonPalette" caption="图形检查" dropDown="true" menuStyle="false">
@@ -294,6 +295,8 @@
         <dockPane id="XIAOFUTools_ExcelToPdfDockPane" caption="Excel批量转PDF" className="XIAOFUTools.Tools.ExcelToPdf.ExcelToPdfDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- Word批量转PDF停靠窗格 -->
         <dockPane id="XIAOFUTools_WordToPdfDockPane" caption="Word批量转PDF" className="XIAOFUTools.Tools.WordToPdf.WordToPdfDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 文档批量替换停靠窗格 -->
+        <dockPane id="XIAOFUTools_DocumentBatchReplaceDockPane" caption="文档批量替换" className="XIAOFUTools.Tools.DocumentBatchReplace.DocumentBatchReplaceDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- AI助手停靠窗格 -->
         <dockPane id="XIAOFUTools_AIAssistantDockPane" caption="AI助手" className="XIAOFUTools.Tools.User.AIAssistant.AIAssistantDockPaneViewModel" dock="group" dockWith="esri_core_projectDockPane">
           <content className="XIAOFUTools.Tools.User.AIAssistant.AIAssistantDockPaneView" />
@@ -514,6 +517,12 @@
           <tooltip heading="Word批量转PDF">
             批量将Word文件转换为PDF格式，支持docx、doc、docm格式
             <disabledText>无权限使用Word批量转PDF工具</disabledText></tooltip>
+        </button>
+        <!-- 文档批量替换按钮 -->
+        <button id="XIAOFUTools_DocumentBatchReplaceButton" caption="文档批量替换" className="XIAOFUTools.Tools.DocumentBatchReplace.DocumentBatchReplaceButton" loadOnClick="true" smallImage="Images\DocumentBatchReplace_16.png" largeImage="Images\DocumentBatchReplace_32.png">
+          <tooltip heading="文档批量替换">
+            对多个Word文档执行批量查找与替换，支持另存副本或覆盖原文件
+            <disabledText>无权限使用文档批量替换工具</disabledText></tooltip>
         </button>
         <!-- 启动Overture按钮 -->
         <button id="XIAOFUTools_OvertureLoaderButton" caption="启动Overture" className="XIAOFUTools.Tools.OvertureLoader.Views.WizardDockpaneShowButton" loadOnClick="true" smallImage="Images\Overture16.png" largeImage="Images\Overture32.png" condition="esri_mapping_mapPane">
