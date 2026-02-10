@@ -9,6 +9,8 @@ namespace XIAOFUTools.Tools.AreaCalculator
     internal class AreaCalculatorDockPane : DockPane
     {
         private const string _dockPaneID = "XIAOFUTools_AreaCalculatorDockPane";
+        private AreaCalculatorDockPaneView _view;
+        private string _pendingLayerName;
 
         protected AreaCalculatorDockPane() { }
 
@@ -17,16 +19,35 @@ namespace XIAOFUTools.Tools.AreaCalculator
         /// </summary>
         protected override System.Windows.Controls.Control OnCreateContent()
         {
-            return new AreaCalculatorDockPaneView();
+            _view = new AreaCalculatorDockPaneView();
+
+            if (!string.IsNullOrWhiteSpace(_pendingLayerName))
+            {
+                _view.ApplyPreferredLayerName(_pendingLayerName);
+            }
+
+            return _view;
         }
 
         /// <summary>
         /// 显示停靠窗格
         /// </summary>
-        internal static void Show()
+        internal static void Show(string preferredLayerName = null)
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
+
+            if (pane is AreaCalculatorDockPane areaPane)
+            {
+                areaPane.ApplyPreferredLayerName(preferredLayerName);
+            }
+
             pane?.Activate();
+        }
+
+        private void ApplyPreferredLayerName(string layerName)
+        {
+            _pendingLayerName = layerName;
+            _view?.ApplyPreferredLayerName(layerName);
         }
     }
 }

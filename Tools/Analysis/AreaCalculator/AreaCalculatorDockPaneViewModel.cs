@@ -13,7 +13,6 @@ using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using ArcGIS.Desktop.Editing;
 
 namespace XIAOFUTools.Tools.AreaCalculator
 {
@@ -93,6 +92,14 @@ namespace XIAOFUTools.Tools.AreaCalculator
 
         // 是否有选中图层
         public bool HasSelectedLayer => SelectedPolygonLayer != null;
+
+        // 优先选中的图层名称（用于右键菜单打开时自动定位）
+        private string _preferredLayerName;
+        public string PreferredLayerName
+        {
+            get => _preferredLayerName;
+            set => SetProperty(ref _preferredLayerName, value);
+        }
 
         // 字段信息列表
         private ObservableCollection<FieldDisplayInfo> _fieldInfos;
@@ -304,6 +311,31 @@ namespace XIAOFUTools.Tools.AreaCalculator
         }
 
         /// <summary>
+        /// 设置优先选中的图层名称
+        /// </summary>
+        public void SetPreferredLayerName(string layerName)
+        {
+            if (string.IsNullOrWhiteSpace(layerName))
+            {
+                return;
+            }
+
+            PreferredLayerName = layerName;
+
+            // 图层已加载时立即尝试匹配
+            if (PolygonLayers != null && PolygonLayers.Count > 0)
+            {
+                var matchedLayer = PolygonLayers.FirstOrDefault(layer =>
+                    string.Equals(layer.Name, PreferredLayerName, StringComparison.OrdinalIgnoreCase));
+
+                if (matchedLayer != null)
+                {
+                    SelectedPolygonLayer = matchedLayer;
+                }
+            }
+        }
+
+        /// <summary>
         /// 加载面图层
         /// </summary>
         private void LoadPolygonLayers()
@@ -349,7 +381,12 @@ namespace XIAOFUTools.Tools.AreaCalculator
                                 // 如果有图层，默认选择第一个
                                 if (PolygonLayers.Count > 0)
                                 {
-                                    SelectedPolygonLayer = PolygonLayers[0];
+                                    var preferredLayer = !string.IsNullOrWhiteSpace(PreferredLayerName)
+                                        ? PolygonLayers.FirstOrDefault(layer =>
+                                            string.Equals(layer.Name, PreferredLayerName, StringComparison.OrdinalIgnoreCase))
+                                        : null;
+
+                                    SelectedPolygonLayer = preferredLayer ?? PolygonLayers[0];
                                 }
                             }
                         });
@@ -495,7 +532,7 @@ namespace XIAOFUTools.Tools.AreaCalculator
                 LogInfo($"开始计算面积 - 图层: {SelectedPolygonLayer.Name}, 字段: {SelectedFieldName}");
                 LogInfo($"单位: {SelectedAreaUnit}, 小数位数: {DecimalPlaces}, 类型: {SelectedAreaType}");
 
-                await QueuedTask.Run(async () =>
+                await QueuedTask.Run(() =>
                 {
                     try
                     {
@@ -515,8 +552,22 @@ namespace XIAOFUTools.Tools.AreaCalculator
                         }
 
                         // 获取要素总数
-                        var totalCount = (long)featureClass.GetCount(); // 显式转换为long
+                        var totalCount = (long)featureClass.GetCount();
                         LogInfo($"共有 {totalCount} 个要素需要处理");
+
+                        if (totalCount == 0)
+                        {
+                            if (System.Windows.Application.Current?.Dispatcher != null)
+                            {
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    StatusMessage = "图层中没有可处理的要素。";
+                                    Progress = 100;
+                                });
+                            }
+
+                            return;
+                        }
 
                         // 更新进度条为确定模式
                         if (System.Windows.Application.Current?.Dispatcher != null)
@@ -527,10 +578,6 @@ namespace XIAOFUTools.Tools.AreaCalculator
                                 Progress = 0;
                             });
                         }
-
-                        // 开始编辑操作
-                        var editOperation = new ArcGIS.Desktop.Editing.EditOperation();
-                        editOperation.Name = "计算面积";
 
                         // 获取字段类型信息
                         FieldType targetFieldType = FieldType.Double;
@@ -547,30 +594,20 @@ namespace XIAOFUTools.Tools.AreaCalculator
                             LogWarning($"获取字段类型失败: {ex.Message}");
                         }
 
-                        // 处理要素
-                        ProcessFeatures(featureClass, editOperation, totalCount, SelectedFieldName, SelectedAreaUnit, DecimalPlaces, SelectedAreaType, targetFieldType);
+                        // 处理要素并直接写入数据（无需手动开启编辑会话）
+                        var updatedCount = ProcessFeatures(featureClass, totalCount, SelectedFieldName, SelectedAreaUnit, DecimalPlaces, SelectedAreaType, targetFieldType);
 
                         if (!CancelRequested)
                         {
-                            // 执行编辑操作
-                            LogInfo("正在保存更改...");
-                            var result = await editOperation.ExecuteAsync();
+                            LogInfo($"面积计算完成，共写入 {updatedCount} 个要素！");
 
-                            if (result)
+                            if (System.Windows.Application.Current?.Dispatcher != null)
                             {
-                                LogInfo("面积计算完成！");
-                                if (System.Windows.Application.Current?.Dispatcher != null)
+                                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                                 {
-                                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                                    {
-                                        StatusMessage = "处理完成！";
-                                        Progress = 100;
-                                    });
-                                }
-                            }
-                            else
-                            {
-                                LogError("保存更改失败");
+                                    StatusMessage = $"处理完成，已更新 {updatedCount} 个要素。";
+                                    Progress = 100;
+                                });
                             }
                         }
                     }
@@ -595,13 +632,14 @@ namespace XIAOFUTools.Tools.AreaCalculator
         /// <summary>
         /// 处理要素
         /// </summary>
-        private void ProcessFeatures(FeatureClass featureClass, ArcGIS.Desktop.Editing.EditOperation editOperation, long totalCount,
+        private int ProcessFeatures(FeatureClass featureClass, long totalCount,
             string fieldName, string areaUnit, int decimalPlaces, string areaType, FieldType targetFieldType)
         {
-            var processedCount = 0;
+            var processedCount = 0L;
+            var updatedCount = 0;
             var batchSize = 100; // 批处理大小
 
-            using (var cursor = featureClass.Search())
+            using (var cursor = featureClass.Search(new QueryFilter(), false))
             {
                 while (cursor.MoveNext())
                 {
@@ -626,36 +664,40 @@ namespace XIAOFUTools.Tools.AreaCalculator
                                 // 格式化面积值
                                 var formattedValue = FormatAreaValueByFieldType(convertedArea, decimalPlaces, targetFieldType);
 
-                                // 更新字段值
-                                editOperation.Modify(feature, fieldName, formattedValue);
-
-                                processedCount++;
-
-                                // 更新进度
-                                if (processedCount % batchSize == 0 || processedCount == totalCount)
-                                {
-                                    var progressPercent = (int)((double)processedCount / totalCount * 100);
-
-                                    if (System.Windows.Application.Current?.Dispatcher != null)
-                                    {
-                                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                                        {
-                                            Progress = progressPercent;
-                                            StatusMessage = $"正在处理... ({processedCount}/{totalCount})";
-                                        });
-                                    }
-
-                                    LogInfo($"已处理 {processedCount}/{totalCount} 个要素");
-                                }
+                                // 直接写入目标字段（无需编辑操作）
+                                feature[fieldName] = formattedValue;
+                                feature.Store();
+                                updatedCount++;
                             }
                             catch (Exception ex)
                             {
                                 LogWarning($"处理要素 {feature.GetObjectID()} 时出错: {ex.Message}");
                             }
+
+                            processedCount++;
+
+                            // 更新进度
+                            if (processedCount % batchSize == 0 || processedCount == totalCount)
+                            {
+                                var progressPercent = (int)((double)processedCount / totalCount * 100);
+
+                                if (System.Windows.Application.Current?.Dispatcher != null)
+                                {
+                                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                                    {
+                                        Progress = progressPercent;
+                                        StatusMessage = $"正在处理... ({processedCount}/{totalCount})";
+                                    });
+                                }
+
+                                LogInfo($"已处理 {processedCount}/{totalCount} 个要素");
+                            }
                         }
                     }
                 }
             }
+
+            return updatedCount;
         }
 
         /// <summary>

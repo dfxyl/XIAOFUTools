@@ -27,5 +27,13 @@ namespace XIAOFUTools.Tools.AreaCalculator
         {
             _viewModel?.RefreshLayers();
         }
+
+        /// <summary>
+        /// 设置优先选中的图层名称
+        /// </summary>
+        public void ApplyPreferredLayerName(string layerName)
+        {
+            _viewModel?.SetPreferredLayerName(layerName);
+        }
     }
 }

@@ -119,6 +119,7 @@
         <!-- 分析/计算工具按钮面板 -->
         <buttonPalette id="XIAOFUTools_AnalysisButtonPalette" caption="分析/计算" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_AreaCalculatorButton" />
+          <button refID="XIAOFUTools_ExtractPolygonHolesButton" />
           <button refID="XIAOFUTools_IntersectSummaryButton" />
           <button refID="XIAOFUTools_MultiOverlaySummaryButton" />
           <button refID="XIAOFUTools_DataPivotButton" />
@@ -217,6 +218,8 @@
         <dockPane id="XIAOFUTools_RangeClipToolDockPane" caption="根据范围批量裁剪要素图层" className="XIAOFUTools.Tools.RangeClipTool.RangeClipToolDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 计算面积停靠窗格 -->
         <dockPane id="XIAOFUTools_AreaCalculatorDockPane" caption="计算面积" className="XIAOFUTools.Tools.AreaCalculator.AreaCalculatorDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 提取面扣岛停靠窗格 -->
+        <dockPane id="XIAOFUTools_ExtractPolygonHolesDockPane" caption="提取面扣岛" className="XIAOFUTools.Tools.ExtractPolygonHoles.ExtractPolygonHolesDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 交集汇总表停靠窗格 -->
         <dockPane id="XIAOFUTools_IntersectSummaryDockPane" caption="交集汇总表" className="XIAOFUTools.Tools.IntersectSummary.IntersectSummaryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 多图层压盖汇总停靠窗格 -->
@@ -355,6 +358,12 @@
           <tooltip heading="计算面积">
             计算面要素的面积并写入指定字段
             <disabledText>无权限使用计算面积工具</disabledText></tooltip>
+        </button>
+        <!-- 提取面扣岛按钮 -->
+        <button id="XIAOFUTools_ExtractPolygonHolesButton" caption="提取面扣岛" className="XIAOFUTools.Tools.ExtractPolygonHoles.ExtractPolygonHolesButton" loadOnClick="true" smallImage="Images\GapCheck_16.png" largeImage="Images\GapCheck_32.png">
+          <tooltip heading="提取面扣岛">
+            提取输入面要素中的所有扣洞，保留源图层属性，可选按源要素创建多部件输出
+            <disabledText>无权限使用提取面扣岛工具</disabledText></tooltip>
         </button>
         <!-- 交集汇总表按钮 -->
         <button id="XIAOFUTools_IntersectSummaryButton" caption="交集汇总表" className="XIAOFUTools.Tools.IntersectSummary.IntersectSummaryButton" loadOnClick="true" smallImage="Images\IntersectSummary_16.png" largeImage="Images\IntersectSummary_32.png">

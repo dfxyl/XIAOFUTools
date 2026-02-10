@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using ArcGIS.Desktop.Framework.Contracts;
+using ArcGIS.Desktop.Mapping;
 using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.AreaCalculator
@@ -19,8 +21,11 @@ namespace XIAOFUTools.Tools.AreaCalculator
                     return;
                 }
 
+                // 优先传递当前选中图层名称（用于图层右键打开时自动定位）
+                var selectedLayerName = MapView.Active?.GetSelectedLayers()?.FirstOrDefault()?.Name;
+
                 // 打开计算面积停靠窗格
-                AreaCalculatorDockPane.Show();
+                AreaCalculatorDockPane.Show(selectedLayerName);
             }
             catch (Exception ex)
             {
