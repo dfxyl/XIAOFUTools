@@ -4,50 +4,53 @@ using ArcGIS.Desktop.Framework.Contracts;
 namespace XIAOFUTools.Tools.AreaCalculator
 {
     /// <summary>
+    /// Context options passed from command invokers (for example layer context menu).
+    /// </summary>
+    internal class AreaCalculatorContextOptions
+    {
+        public string PreferredLayerName { get; set; }
+        public string PreferredLayerUri { get; set; }
+    }
+
+    /// <summary>
     /// 计算面积停靠窗格
     /// </summary>
     internal class AreaCalculatorDockPane : DockPane
     {
         private const string _dockPaneID = "XIAOFUTools_AreaCalculatorDockPane";
         private AreaCalculatorDockPaneView _view;
-        private string _pendingLayerName;
+        private AreaCalculatorContextOptions _pendingContextOptions;
 
         protected AreaCalculatorDockPane() { }
 
-        /// <summary>
-        /// 创建停靠窗格内容
-        /// </summary>
         protected override System.Windows.Controls.Control OnCreateContent()
         {
             _view = new AreaCalculatorDockPaneView();
 
-            if (!string.IsNullOrWhiteSpace(_pendingLayerName))
+            if (_pendingContextOptions != null)
             {
-                _view.ApplyPreferredLayerName(_pendingLayerName);
+                _view.ApplyContextOptions(_pendingContextOptions);
             }
 
             return _view;
         }
 
-        /// <summary>
-        /// 显示停靠窗格
-        /// </summary>
-        internal static void Show(string preferredLayerName = null)
+        internal static void Show(AreaCalculatorContextOptions contextOptions = null)
         {
             DockPane pane = FrameworkApplication.DockPaneManager.Find(_dockPaneID);
 
             if (pane is AreaCalculatorDockPane areaPane)
             {
-                areaPane.ApplyPreferredLayerName(preferredLayerName);
+                areaPane.ApplyContextOptions(contextOptions);
             }
 
             pane?.Activate();
         }
 
-        private void ApplyPreferredLayerName(string layerName)
+        private void ApplyContextOptions(AreaCalculatorContextOptions contextOptions)
         {
-            _pendingLayerName = layerName;
-            _view?.ApplyPreferredLayerName(layerName);
+            _pendingContextOptions = contextOptions;
+            _view?.ApplyContextOptions(contextOptions);
         }
     }
 }

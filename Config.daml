@@ -169,6 +169,7 @@
         <buttonPalette id="XIAOFUTools_DataProcessingToolsButtonPalette" caption="数据处理" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_AttributeTransferFieldsButton" />
           <button refID="XIAOFUTools_RotateGeometryButton" />
+          <button refID="XIAOFUTools_BatchMergeShpButton" />
         </buttonPalette>
         <!-- 图幅按钮面板（移入 数据分析/处理 组） -->
         <buttonPalette id="XIAOFUTools_MapSheetButtonPalette" caption="图幅" dropDown="true" menuStyle="false">
@@ -307,6 +308,8 @@
         <dockPane id="XIAOFUTools_ShapefileBuilderDockPane" caption="属性表建SHP" className="XIAOFUTools.Tools.DataProcessing.ShapefileBuilder.ShapefileBuilderDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- SHP输字段表停靠窗格 -->
         <dockPane id="XIAOFUTools_ExportShpFieldTableDockPane" caption="SHP输字段表" className="XIAOFUTools.Tools.DataProcessing.ExportShpFieldTable.ExportShpFieldTableDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 批量合并SHP停靠窗格 -->
+        <dockPane id="XIAOFUTools_BatchMergeShpDockPane" caption="批量合并SHP" className="XIAOFUTools.Tools.DataProcessing.BatchMergeShp.BatchMergeShpDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 镜像数据库停靠窗格 -->
         <dockPane id="XIAOFUTools_MirrorDatabaseDockPane" caption="镜像数据库" className="XIAOFUTools.Tools.DataProcessing.MirrorDatabase.MirrorDatabaseDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 输出数据库属性结构表停靠窗格 -->
@@ -710,6 +713,12 @@
           <tooltip heading="SHP输字段表">
             将输入目录中的SHP字段结构导出为Excel表
             <disabledText>无权限使用SHP输字段表功能</disabledText></tooltip>
+        </button>
+        <!-- 批量合并SHP按钮 -->
+        <button id="XIAOFUTools_BatchMergeShpButton" caption="批量合并SHP" className="XIAOFUTools.Tools.DataProcessing.BatchMergeShp.BatchMergeShpButton" loadOnClick="true" smallImage="Images\ShapefileBuilder_16.png" largeImage="Images\ShapefileBuilder_32.png">
+          <tooltip heading="批量合并SHP">
+            选择文件夹后自动遍历SHP并批量合并，支持子文件夹扫描与源文件名字段写入
+            <disabledText>无权限使用批量合并SHP功能</disabledText></tooltip>
         </button>
         <!-- 镜像数据库按钮 -->
         <button id="XIAOFUTools_MirrorDatabaseButton" caption="镜像数据库" className="XIAOFUTools.Tools.DataProcessing.MirrorDatabase.MirrorDatabaseButton" loadOnClick="true" smallImage="Images\MirrorDatabase_16.png" largeImage="Images\MirrorDatabase_32.png">

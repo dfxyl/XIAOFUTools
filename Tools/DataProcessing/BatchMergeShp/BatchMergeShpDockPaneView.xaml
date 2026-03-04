@@ -1,0 +1,222 @@
+<UserControl x:Class="XIAOFUTools.Tools.DataProcessing.BatchMergeShp.BatchMergeShpDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:XIAOFUTools.Tools.DataProcessing.BatchMergeShp"
+             mc:Ignorable="d"
+             d:DataContext="{Binding Path=BatchMergeShpViewModel}"
+             d:DesignHeight="620"
+             d:DesignWidth="450">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <local:BooleanInverseConverter x:Key="BooleanInverseConverter" />
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="170" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="输入文件夹" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBox Grid.Column="1"
+                         Text="{Binding InputFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource TextBoxStyle}"
+                         IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}"
+                         ToolTip="选择包含 SHP 的文件夹，选择后会自动扫描" />
+                <Button Grid.Column="2"
+                        Content="浏览"
+                        Width="60"
+                        Margin="8,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding BrowseInputFolderCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <CheckBox Grid.Column="0"
+                          Content="读取子文件夹"
+                          IsChecked="{Binding IncludeSubfolders}"
+                          Style="{StaticResource CheckBoxStyle}"
+                          IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                <Button Grid.Column="1"
+                        Content="重新扫描"
+                        Width="75"
+                        Margin="10,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding RefreshShpListCommand}"
+                        IsEnabled="{Binding CanRefresh}" />
+                <TextBlock Grid.Column="2"
+                           Text="{Binding SelectionSummary}"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Right"
+                           Foreground="{StaticResource TextSecondaryBrush}" />
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="输出位置" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBox Grid.Column="1"
+                         Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource TextBoxStyle}"
+                         IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}"
+                         ToolTip="支持输出到 GDB 要素类或 Shapefile" />
+                <Button Grid.Column="2"
+                        Content="浏览"
+                        Width="60"
+                        Margin="8,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding BrowseOutputPathCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+            </Grid>
+
+            <CheckBox Grid.Row="3"
+                      Content="创建源文件名字段（基于 MERGE_SRC）"
+                      IsChecked="{Binding AddSourceFileField}"
+                      Style="{StaticResource CheckBoxStyle}"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,0,0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                <Button Content="全选"
+                        Width="55"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding SelectAllCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                <Button Content="反选"
+                        Width="55"
+                        Margin="8,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding InvertSelectionCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                <Button Content="清空选择"
+                        Width="70"
+                        Margin="8,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding ClearSelectionCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                <Button Content="点"
+                        Width="40"
+                        Margin="12,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding SelectPointCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}"
+                        ToolTip="快捷只勾选点要素" />
+                <Button Content="线"
+                        Width="40"
+                        Margin="6,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding SelectLineCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}"
+                        ToolTip="快捷只勾选线要素" />
+                <Button Content="面"
+                        Width="40"
+                        Margin="6,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding SelectPolygonCommand}"
+                        IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}"
+                        ToolTip="快捷只勾选面要素" />
+            </StackPanel>
+            <Border Grid.Row="1" BorderBrush="#CDCDCD" BorderThickness="1">
+                <DataGrid ItemsSource="{Binding ShpItems}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserResizeRows="False"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          Background="White"
+                          BorderThickness="0"
+                          IsReadOnly="False"
+                          IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}">
+                    <DataGrid.Columns>
+                        <DataGridCheckBoxColumn Header="选中"
+                                                Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="45" />
+                        <DataGridTextColumn Header="名称" Binding="{Binding Name}" Width="130" IsReadOnly="True" />
+                        <DataGridTextColumn Header="几何" Binding="{Binding GeometryType}" Width="70" IsReadOnly="True" />
+                        <DataGridTextColumn Header="路径" Binding="{Binding Directory}" Width="*" IsReadOnly="True" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <ProgressBar Grid.Row="2"
+                     Style="{StaticResource ProgressBarStyle}"
+                     Value="{Binding Progress}"
+                     Height="6"
+                     Margin="0,0,0,8" />
+
+        <Border Grid.Row="3" BorderBrush="#CDCDCD" BorderThickness="1" Margin="0,0,0,10">
+            <TextBox Style="{StaticResource LogTextBoxStyle}"
+                     Text="{Binding LogText, Mode=OneWay}"
+                     BorderThickness="0" />
+        </Border>
+
+        <Border Grid.Row="4"
+                BorderBrush="{StaticResource DividerBrush}"
+                BorderThickness="0,1,0,0"
+                Margin="0,5,0,0"
+                Padding="0,10,0,0">
+            <Grid>
+                <Button Content="?"
+                        Width="22"
+                        Height="22"
+                        Style="{StaticResource HelpButtonStyle}"
+                        Command="{Binding ShowHelpCommand}"
+                        HorizontalAlignment="Left"
+                        ToolTip="查看工具说明" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="停止"
+                            Width="80"
+                            Margin="0,0,10,0"
+                            Style="{StaticResource CancelButtonStyle}"
+                            Command="{Binding CancelCommand}"
+                            IsEnabled="{Binding IsProcessing}" />
+                    <Button Content="运行"
+                            Width="80"
+                            Style="{StaticResource ExecuteButtonStyle}"
+                            Command="{Binding RunCommand}"
+                            IsEnabled="{Binding CanRun}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

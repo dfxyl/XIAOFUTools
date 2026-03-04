@@ -2,11 +2,27 @@
 
 记录开发中的修改，发布新版本时将内容移入 [CHANGELOG.md](CHANGELOG.md)。
 
-**最后更新**: 2026-02-10
+**最后更新**: 2026-03-05
 
 ---
 
 ## 新增功能
+
+### 批量合并SHP工具（数据分析/处理组）(2026-03-04)
+- 新增“批量合并SHP”工具，支持选择文件夹后自动遍历并列出 `.shp` 文件。
+- 支持“是否读取子文件夹”开关，切换后自动重新扫描；扫描结果默认全选。
+- 新增快捷勾选“点/线/面”按钮，可一键仅勾选对应几何类型。
+- 合并链路使用 `Merge_management`，自动进行字段并集合并。
+- 新增“是否创建源文件名字段”选项：开启后基于 `MERGE_SRC` 自动写入源文件名字段。
+- 新增几何类型严格校验：若选中项存在未知类型或混合类型，运行按钮不可用并阻止合并。
+- 支持输出位置选择（GDB 要素类或 Shapefile），并支持输出覆盖确认。
+- 修改的文件:
+  - `Config.daml` - 新增工具按钮、停靠窗格注册，并挂接到“数据处理”按钮面板
+  - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpButton.cs` - 新增按钮入口与授权校验
+  - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpDockPane.cs` - 新增停靠窗格容器
+  - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpDockPaneView.xaml` - 新增工具界面与快捷勾选按钮
+  - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpDockPaneView.xaml.cs` - 新增视图初始化逻辑与布尔反转转换器
+  - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpViewModel.cs` - 新增扫描、选择、几何校验、合并、字段写入与日志流程
 
 ### 文档批量替换工具（转换工具-文档相关）(2026-02-10)
 - 新增“文档批量替换”工具，支持 `.docx/.doc/.docm` 多文件批量查找替换；支持添加文件、添加文件夹与拖拽到文件列表导入。
@@ -86,6 +102,18 @@
 ---
 
 ## Bug 修复
+
+
+### 计算面积右键上下文图层传参修复 (2026-03-05)
+- 修复“计算面积”从图层右键菜单打开时图层定位不稳定的问题，新增右键上下文图层数据选项传递（图层 URI + 图层名称）。
+- 右键上下文优先通过 `ContextMenuDataContext` 获取目标图层，获取失败时回退到当前选中图层。
+- DockPane 与 ViewModel 新增上下文参数透传，并在图层匹配时改为 URI 优先、名称兜底，避免同名图层误匹配。
+- 修复可访问性不一致编译错误 CS0051：`AreaCalculatorDockPaneView.ApplyContextOptions(...)` 调整为 `internal`。
+- 修改的文件：
+  - `Tools/Analysis/AreaCalculator/AreaCalculatorButton.cs` - 右键上下文图层解析与参数封装。
+  - `Tools/Analysis/AreaCalculator/AreaCalculatorDockPane.cs` - 新增上下文选项对象并透传到视图。
+  - `Tools/Analysis/AreaCalculator/AreaCalculatorDockPaneView.xaml.cs` - 视图上下文入口与方法可见性修复。
+  - `Tools/Analysis/AreaCalculator/AreaCalculatorDockPaneViewModel.cs` - URI 优先图层匹配与上下文应用。
 
 ### 要素图层转KML导出链路修复与字段标注校正 (2026-02-10)
 - 将要素图层转 KML/KMZ 导出改为调用 ArcGIS Pro 内置 `Layer To KML`，解决自实现链路在部分坐标系、符号样式上的兼容问题。

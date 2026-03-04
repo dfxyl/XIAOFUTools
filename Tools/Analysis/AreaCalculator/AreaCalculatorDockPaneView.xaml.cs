@@ -4,15 +4,12 @@ using System.Windows.Controls;
 namespace XIAOFUTools.Tools.AreaCalculator
 {
     /// <summary>
-    /// AreaCalculatorDockPaneView.xaml 的交互逻辑
+    /// AreaCalculatorDockPaneView.xaml interaction logic.
     /// </summary>
     public partial class AreaCalculatorDockPaneView : UserControl
     {
-        private AreaCalculatorDockPaneViewModel _viewModel;
+        private readonly AreaCalculatorDockPaneViewModel _viewModel;
 
-        /// <summary>
-        /// 默认构造函数
-        /// </summary>
         public AreaCalculatorDockPaneView()
         {
             InitializeComponent();
@@ -20,17 +17,16 @@ namespace XIAOFUTools.Tools.AreaCalculator
             DataContext = _viewModel;
         }
 
-        /// <summary>
-        /// 当控件加载时刷新图层列表
-        /// </summary>
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel?.RefreshLayers();
         }
 
-        /// <summary>
-        /// 设置优先选中的图层名称
-        /// </summary>
+        internal void ApplyContextOptions(AreaCalculatorContextOptions contextOptions)
+        {
+            _viewModel?.ApplyContextOptions(contextOptions);
+        }
+
         public void ApplyPreferredLayerName(string layerName)
         {
             _viewModel?.SetPreferredLayerName(layerName);

@@ -37,6 +37,10 @@ namespace XIAOFUTools.Tools.AreaCalculator
     /// </summary>
     internal class AreaCalculatorDockPaneViewModel : PropertyChangedBase
     {
+        private const string SquareMetersUnit = "平方米";
+        private const int SquareMetersDecimalPlaces = 2;
+        private const int OtherUnitsDecimalPlaces = 4;
+
         #region 属性
 
         // 取消操作标志
@@ -101,6 +105,14 @@ namespace XIAOFUTools.Tools.AreaCalculator
             set => SetProperty(ref _preferredLayerName, value);
         }
 
+        // 优先选中的图层 URI（用于图层重名时精确定位）
+        private string _preferredLayerUri;
+        public string PreferredLayerUri
+        {
+            get => _preferredLayerUri;
+            set => SetProperty(ref _preferredLayerUri, value);
+        }
+
         // 字段信息列表
         private ObservableCollection<FieldDisplayInfo> _fieldInfos;
         public ObservableCollection<FieldDisplayInfo> FieldInfos
@@ -145,7 +157,10 @@ namespace XIAOFUTools.Tools.AreaCalculator
             get => _selectedAreaUnit;
             set
             {
-                SetProperty(ref _selectedAreaUnit, value);
+                if (SetProperty(ref _selectedAreaUnit, value))
+                {
+                    DecimalPlaces = GetDefaultDecimalPlacesByUnit(value);
+                }
             }
         }
 
@@ -156,7 +171,8 @@ namespace XIAOFUTools.Tools.AreaCalculator
             get => _decimalPlaces;
             set
             {
-                SetProperty(ref _decimalPlaces, value);
+                var normalizedValue = Math.Clamp(value, 0, 10);
+                SetProperty(ref _decimalPlaces, normalizedValue);
             }
         }
 
@@ -287,7 +303,7 @@ namespace XIAOFUTools.Tools.AreaCalculator
 
             // 初始化面积单位
             AreaUnits = new ObservableCollection<string> { "平方米", "公顷", "亩", "平方公里" };
-            SelectedAreaUnit = "平方米";
+            SelectedAreaUnit = SquareMetersUnit;
 
             // 初始化面积类型
             AreaTypes = new ObservableCollection<string> { "平面", "椭球" };
@@ -303,6 +319,16 @@ namespace XIAOFUTools.Tools.AreaCalculator
         }
 
         /// <summary>
+        /// 根据面积单位获取默认小数位数
+        /// </summary>
+        private int GetDefaultDecimalPlacesByUnit(string areaUnit)
+        {
+            return string.Equals(areaUnit, SquareMetersUnit, StringComparison.Ordinal)
+                ? SquareMetersDecimalPlaces
+                : OtherUnitsDecimalPlaces;
+        }
+
+        /// <summary>
         /// 刷新图层列表（供DockPane调用）
         /// </summary>
         public void RefreshLayers()
@@ -315,23 +341,75 @@ namespace XIAOFUTools.Tools.AreaCalculator
         /// </summary>
         public void SetPreferredLayerName(string layerName)
         {
-            if (string.IsNullOrWhiteSpace(layerName))
+            ApplyContextOptions(new AreaCalculatorContextOptions
+            {
+                PreferredLayerName = layerName
+            });
+        }
+
+        /// <summary>
+        /// 应用右键上下文传入的图层选项
+        /// </summary>
+        public void ApplyContextOptions(AreaCalculatorContextOptions contextOptions)
+        {
+            if (contextOptions == null)
             {
                 return;
             }
 
-            PreferredLayerName = layerName;
-
-            // 图层已加载时立即尝试匹配
-            if (PolygonLayers != null && PolygonLayers.Count > 0)
+            if (!string.IsNullOrWhiteSpace(contextOptions.PreferredLayerName))
             {
-                var matchedLayer = PolygonLayers.FirstOrDefault(layer =>
-                    string.Equals(layer.Name, PreferredLayerName, StringComparison.OrdinalIgnoreCase));
+                PreferredLayerName = contextOptions.PreferredLayerName;
+            }
 
-                if (matchedLayer != null)
+            if (!string.IsNullOrWhiteSpace(contextOptions.PreferredLayerUri))
+            {
+                PreferredLayerUri = contextOptions.PreferredLayerUri;
+            }
+
+            TrySelectPreferredLayer();
+        }
+
+        /// <summary>
+        /// 根据 URI（优先）和名称（兜底）匹配目标图层
+        /// </summary>
+        private FeatureLayer FindPreferredLayer(IEnumerable<FeatureLayer> layers)
+        {
+            if (layers == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(PreferredLayerUri))
+            {
+                var uriMatchedLayer = layers.FirstOrDefault(layer =>
+                    string.Equals(layer.URI, PreferredLayerUri, StringComparison.OrdinalIgnoreCase));
+                if (uriMatchedLayer != null)
                 {
-                    SelectedPolygonLayer = matchedLayer;
+                    return uriMatchedLayer;
                 }
+            }
+
+            if (!string.IsNullOrWhiteSpace(PreferredLayerName))
+            {
+                return layers.FirstOrDefault(layer =>
+                    string.Equals(layer.Name, PreferredLayerName, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return null;
+        }
+
+        private void TrySelectPreferredLayer()
+        {
+            if (PolygonLayers == null || PolygonLayers.Count == 0)
+            {
+                return;
+            }
+
+            var preferredLayer = FindPreferredLayer(PolygonLayers);
+            if (preferredLayer != null)
+            {
+                SelectedPolygonLayer = preferredLayer;
             }
         }
 
@@ -381,10 +459,7 @@ namespace XIAOFUTools.Tools.AreaCalculator
                                 // 如果有图层，默认选择第一个
                                 if (PolygonLayers.Count > 0)
                                 {
-                                    var preferredLayer = !string.IsNullOrWhiteSpace(PreferredLayerName)
-                                        ? PolygonLayers.FirstOrDefault(layer =>
-                                            string.Equals(layer.Name, PreferredLayerName, StringComparison.OrdinalIgnoreCase))
-                                        : null;
+                                    var preferredLayer = FindPreferredLayer(PolygonLayers);
 
                                     SelectedPolygonLayer = preferredLayer ?? PolygonLayers[0];
                                 }
