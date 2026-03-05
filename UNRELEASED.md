@@ -8,6 +8,29 @@
 
 ## 新增功能
 
+### MDB批量转GDB工具（数据分析/处理组）(2026-03-05)
+- 新增“MDB批量转GDB”工具，支持选择文件夹后自动遍历并列出 `.mdb` 文件，可按需勾选批量转换。
+- 支持“遍历子文件夹”、全选/反选/清空、输出到源路径或指定目录、覆盖确认、停止取消、进度与日志。
+- 转换引擎基于 GDAL（PGeo/FileGDB/OpenFileGDB），支持要素数据集、根目录要素类与表的批量迁移。
+- 工具代码按模块拆分，避免单文件过长，便于后续维护与扩展。
+- 修改的文件:
+  - `Config.daml` - 新增按钮、停靠窗格注册，并挂接到“数据库”按钮面板
+  - `XIAOFUTools.csproj` - 新增 GDAL/GDAL.Native 依赖
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbBatchToGdbButton.cs` - 新增按钮入口与授权校验
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbBatchToGdbDockPane.cs` - 新增停靠窗格容器
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbBatchToGdbDockPaneView.xaml` - 新增工具界面
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbBatchToGdbDockPaneView.xaml.cs` - 新增视图初始化与布尔反转转换器
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbBatchToGdbViewModel.cs` - 新增扫描、选择、转换调度、取消与日志流程
+  - `Tools/DataProcessing/MdbBatchToGdb/GdalRuntimeBootstrapper.cs` - 新增 GDAL 运行时初始化与环境配置
+  - `Tools/DataProcessing/MdbBatchToGdb/GdalMdbLayerInspector.cs` - 新增 MDB 图层/要素集元数据解析
+  - `Tools/DataProcessing/MdbBatchToGdb/GdalMdbToGdbConverter.cs` - 新增批量转换核心流程
+  - `Tools/DataProcessing/MdbBatchToGdb/OgrUtf8Interop.cs` - 新增 OGR 编码互操作封装
+  - `Tools/DataProcessing/MdbBatchToGdb/RelayCommand.cs` - 新增命令实现
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbFileItem.cs` - 新增 MDB 列表项模型
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbFileDiscovery.cs` - 新增 MDB 文件遍历逻辑
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbConversionPlan.cs` - 新增转换计划模型
+  - `Tools/DataProcessing/MdbBatchToGdb/MdbConversionPlanner.cs` - 新增输出规划与重名处理逻辑
+
 ### 批量合并SHP工具（数据分析/处理组）(2026-03-04)
 - 新增“批量合并SHP”工具，支持选择文件夹后自动遍历并列出 `.shp` 文件。
 - 支持“是否读取子文件夹”开关，切换后自动重新扫描；扫描结果默认全选。
@@ -102,6 +125,18 @@
 ---
 
 ## Bug 修复
+
+### MDB批量转GDB中文编码与性能修复 (2026-03-05)
+- 修复中文要素集/要素图层名称读取与输出乱码问题，补充 OGR 原生字符串读取与图层创建编码处理。
+- 修复字符串字段值复制到输出 GDB 时的乱码问题，新增字符串字段重写逻辑。
+- 修复编码检测阶段频繁抛出 `System.Text.DecoderFallbackException` 导致转换变慢的问题，改为无异常的字节判定流程。
+- 修复新增工具引入后的程序集特性重复编译错误（CS0579），避免 `AssemblyInfo` / `TargetFrameworkAttribute` 重复生成。
+- 修复 AddIn 分发包未包含 `Install/gdal/**` 运行时目录的问题，新增构建输出追踪确保 GDAL native/data/share 文件打入 `.esriAddinX`。
+- 修改的文件：
+  - `Tools/DataProcessing/MdbBatchToGdb/OgrUtf8Interop.cs` - 编码读取/写入互操作与无异常判定
+  - `Tools/DataProcessing/MdbBatchToGdb/GdalMdbToGdbConverter.cs` - 字符串字段重写与输出图层创建修复
+  - `Tools/DataProcessing/MdbBatchToGdb/GdalMdbLayerInspector.cs` - 元数据字符串读取修复
+  - `XIAOFUTools.csproj` - 关闭重复程序集特性自动生成
 
 ### 要素类转TXT面积与默认值修复 (2026-03-05)
 - 修复“地块面积”输出单位不一致问题：当面积字段为空、无效、为0或负数时，自动使用几何面积换算为公顷并保留4位小数；当字段值疑似平方米时自动换算为公顷。
