@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -198,8 +199,8 @@ namespace XIAOFUTools.Tools.FeatureToTxt
         // 固定的字段顺序和对应的可能字段名
         private readonly Dictionary<string, List<string>> _fieldMappings = new Dictionary<string, List<string>>
         {
-            { "地块面积", new List<string> { "地块面积", "面积", "AREA", "Shape_Area", "SHAPE_AREA", "MIANJI", "MJ" } },
-            { "地块编号", new List<string> { "地块编号", "编号", "地块号", "BIANHAO", "BH", "ID", "OBJECTID", "FID" } },
+            { "地块面积", new List<string> { "地块面积", "面积", "MIANJI", "MJ" } },
+            { "地块编号", new List<string> { "地块编号", "编号", "地块号", "BIANHAO", "BH", "ID" } },
             { "地块名称", new List<string> { "地块名称", "名称", "地名", "MINGCHENG", "MC", "NAME" } },
             { "图幅号", new List<string> { "图幅号", "图幅", "TUFUHAO", "TFH", "MAPSHEET" } },
             { "地块用途", new List<string> { "地块用途", "用途", "土地用途", "YONGTU", "YT", "LANDUSE" } },
@@ -2433,15 +2434,15 @@ namespace XIAOFUTools.Tools.FeatureToTxt
                             value = ",";
                             break;
                         case "地块面积":
-                            value = GetFieldValueByMapping("地块面积", feature) ?? "0";
+                            value = GetPlotAreaValue(feature, geometry);
                             LogInfo($"地块面积: {value}");
                             break;
                         case "地块编号":
-                            value = GetFieldValueByMapping("地块编号", feature) ?? featureIndex.ToString();
+                            value = GetPlotNumberValue(feature, featureIndex);
                             LogInfo($"地块编号: {value}");
                             break;
                         case "地块名称":
-                            value = GetFieldValueByMapping("地块名称", feature) ?? "";
+                            value = GetPlotNameValue(feature, featureIndex);
                             LogInfo($"地块名称: {value}");
                             break;
                         case "图形类型":
@@ -2840,15 +2841,15 @@ namespace XIAOFUTools.Tools.FeatureToTxt
                 fieldValues.Add(""); // 点数占位符
 
                 // 2. 地块面积
-                var areaValue = GetFieldValueByMapping("地块面积", feature) ?? "0";
+                var areaValue = GetPlotAreaValue(feature, geometry);
                 fieldValues.Add(areaValue);
 
                 // 3. 地块编号
-                var numberValue = GetFieldValueByMapping("地块编号", feature) ?? featureIndex.ToString();
+                var numberValue = GetPlotNumberValue(feature, featureIndex);
                 fieldValues.Add(numberValue);
 
                 // 4. 地块名称
-                var nameValue = GetFieldValueByMapping("地块名称", feature) ?? "";
+                var nameValue = GetPlotNameValue(feature, featureIndex);
                 fieldValues.Add(nameValue);
 
                 // 5. 图形类型 - 固定为"面"
@@ -2913,17 +2914,17 @@ namespace XIAOFUTools.Tools.FeatureToTxt
                 fieldValues.Add(""); // 点数占位符
 
                 // 2. 地块面积
-                var areaValue = GetFieldValueByMapping("地块面积", feature) ?? "0";
+                var areaValue = GetPlotAreaValue(feature, geometry);
                 fieldValues.Add(areaValue);
                 LogInfo($"地块面积: {areaValue}");
 
                 // 3. 地块编号
-                var numberValue = GetFieldValueByMapping("地块编号", feature) ?? featureIndex.ToString();
+                var numberValue = GetPlotNumberValue(feature, featureIndex);
                 fieldValues.Add(numberValue);
                 LogInfo($"地块编号: {numberValue}");
 
                 // 4. 地块名称
-                var nameValue = GetFieldValueByMapping("地块名称", feature) ?? "";
+                var nameValue = GetPlotNameValue(feature, featureIndex);
                 fieldValues.Add(nameValue);
                 LogInfo($"地块名称: {nameValue}");
 
@@ -3660,6 +3661,92 @@ namespace XIAOFUTools.Tools.FeatureToTxt
 
             LogInfo($"环 {ringNumber} 坐标点写入完成，共写入 {pointList.Count} 个点，内容长度增加了约 {pointList.Count * 30} 字符");
             return currentIndex;
+        }
+
+        /// <summary>
+        /// 获取地块面积值，缺失时自动计算公顷并保留4位小数
+        /// </summary>
+        private string GetPlotAreaValue(Feature feature, Polygon geometry)
+        {
+            var areaValue = GetFieldValueByMapping("地块面积", feature);
+            if (TryParsePositiveNumber(areaValue, out var parsedArea))
+            {
+                var geometryArea = geometry?.Area ?? 0d;
+                if (geometryArea > 0d)
+                {
+                    var ratioBySquareMeter = Math.Abs(parsedArea - geometryArea) / geometryArea;
+                    if (ratioBySquareMeter <= 0.01d)
+                    {
+                        return (parsedArea / 10000d).ToString("F4");
+                    }
+
+                    var ratioByHectare = Math.Abs(parsedArea * 10000d - geometryArea) / geometryArea;
+                    if (ratioByHectare <= 0.01d)
+                    {
+                        return parsedArea.ToString("F4");
+                    }
+                }
+
+                return parsedArea >= 1000d
+                    ? (parsedArea / 10000d).ToString("F4")
+                    : parsedArea.ToString("F4");
+            }
+
+            var areaInHectare = (geometry?.Area ?? 0d) / 10000d;
+            return areaInHectare.ToString("F4");
+        }
+
+        /// <summary>
+        /// 获取地块编号值，缺失时使用默认值
+        /// </summary>
+        private string GetPlotNumberValue(Feature feature, int featureIndex)
+        {
+            var numberValue = GetFieldValueByMapping("地块编号", feature);
+            if (!string.IsNullOrWhiteSpace(numberValue))
+            {
+                return numberValue.Trim();
+            }
+
+            return Math.Max(1, featureIndex).ToString();
+        }
+
+        /// <summary>
+        /// 获取地块名称值，缺失时使用默认值
+        /// </summary>
+        private string GetPlotNameValue(Feature feature, int featureIndex)
+        {
+            var nameValue = GetFieldValueByMapping("地块名称", feature);
+            if (!string.IsNullOrWhiteSpace(nameValue))
+            {
+                return nameValue.Trim();
+            }
+
+            return $"地块{Math.Max(1, featureIndex)}";
+        }
+
+        private bool TryParsePositiveNumber(string value, out double result)
+        {
+            result = 0d;
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return false;
+            }
+
+            var trimmedValue = value.Trim();
+            var styles = NumberStyles.Float | NumberStyles.AllowThousands;
+
+            if (double.TryParse(trimmedValue, styles, CultureInfo.InvariantCulture, out result) && result > 0d)
+            {
+                return true;
+            }
+
+            if (double.TryParse(trimmedValue, styles, CultureInfo.CurrentCulture, out result) && result > 0d)
+            {
+                return true;
+            }
+
+            var normalizedValue = trimmedValue.Replace(",", "");
+            return double.TryParse(normalizedValue, NumberStyles.Float, CultureInfo.InvariantCulture, out result) && result > 0d;
         }
 
         /// <summary>
