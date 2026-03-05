@@ -10,8 +10,8 @@ using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using XIAOFUTools.Common;
-using PdfSharpCore.Pdf;
-using PdfSharpCore.Drawing;
+using PdfSharp.Pdf;
+using PdfSharp.Drawing;
 using System.Drawing;
 
 namespace XIAOFUTools.Tools.ImagesToPdf
