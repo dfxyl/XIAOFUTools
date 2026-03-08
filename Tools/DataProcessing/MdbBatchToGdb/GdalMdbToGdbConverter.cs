@@ -21,9 +21,6 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 {
     internal sealed class GdalMdbToGdbConverter
     {
-        private const int InsertBatchSize = 5000;
-        private const long FullLayerBufferThreshold = 20000;
-
         private readonly ArcGisGdbWriter _writer = new ArcGisGdbWriter();
 
         public void Convert(string inputMdb, string outputGdb, Action<string> log, CancellationToken cancellationToken)
@@ -210,39 +207,26 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             CancellationToken cancellationToken)
         {
             sourceLayer.ResetReading();
-            long featureCount = -1;
+
             try
             {
-                featureCount = sourceLayer.GetFeatureCount(0);
+                if (sourceLayer.GetFeatureCount(0) == 0)
+                {
+                    return;
+                }
             }
             catch
             {
             }
 
-            if (featureCount >= 0 && featureCount <= FullLayerBufferThreshold)
-            {
-                var allRows = new List<MdbRowData>((int)featureCount);
-                OgrFeature bufferedFeature;
-                while ((bufferedFeature = sourceLayer.GetNextFeature()) != null)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+            _writer.InsertRows(outputGdb, layerSchema, EnumerateRows(sourceLayer, layerSchema, cancellationToken), cancellationToken);
+        }
 
-                    using (bufferedFeature)
-                    {
-                        allRows.Add(ReadRow(bufferedFeature, layerSchema));
-                    }
-                }
-
-                if (allRows.Count > 0)
-                {
-                    _writer.InsertRows(outputGdb, layerSchema, allRows, cancellationToken);
-                }
-
-                return;
-            }
-
-            var batch = new List<MdbRowData>(InsertBatchSize);
-
+        private IEnumerable<MdbRowData> EnumerateRows(
+            GdalLayer sourceLayer,
+            MdbLayerSchema layerSchema,
+            CancellationToken cancellationToken)
+        {
             OgrFeature sourceFeature;
             while ((sourceFeature = sourceLayer.GetNextFeature()) != null)
             {
@@ -250,19 +234,8 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 
                 using (sourceFeature)
                 {
-                    batch.Add(ReadRow(sourceFeature, layerSchema));
+                    yield return ReadRow(sourceFeature, layerSchema);
                 }
-
-                if (batch.Count >= InsertBatchSize)
-                {
-                    _writer.InsertRows(outputGdb, layerSchema, batch, cancellationToken);
-                    batch.Clear();
-                }
-            }
-
-            if (batch.Count > 0)
-            {
-                _writer.InsertRows(outputGdb, layerSchema, batch, cancellationToken);
             }
         }
 

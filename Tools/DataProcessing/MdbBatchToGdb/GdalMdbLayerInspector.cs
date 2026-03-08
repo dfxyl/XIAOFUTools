@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Xml;
 using OSGeo.OGR;
 using OSGeo.OSR;
 
@@ -23,16 +22,6 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         public bool IsTable { get; set; }
-    }
-
-    internal sealed class SourceLayerMetadataInfo
-    {
-        public string FeatureDatasetName { get; set; } = string.Empty;
-
-        public string AliasName { get; set; } = string.Empty;
-
-        public Dictionary<string, string> FieldAliases { get; } =
-            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
 
     internal static class GdalMdbLayerInspector
@@ -286,6 +275,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
         private static SourceLayerMetadataInfo ReadLayerMetadataInfo(DataSource sourceDs, string layerName)
         {
             var info = new SourceLayerMetadataInfo();
+            string outputLayerName = GetFeatureClassOrTableName(layerName);
             string layerNameEscaped = layerName.Replace("'", "''");
             string[] sqlCandidates =
             {
@@ -327,7 +317,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                         continue;
                     }
 
-                    MergeMetadataXml(xml, info);
+                    LayerMetadataXmlParser.MergeMetadataXml(xml, info, layerName, outputLayerName);
                 }
                 catch
                 {
@@ -342,111 +332,6 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             }
 
             return info;
-        }
-
-        private static void MergeMetadataXml(string xml, SourceLayerMetadataInfo info)
-        {
-            if (string.IsNullOrWhiteSpace(xml) || info == null)
-            {
-                return;
-            }
-
-            if (string.IsNullOrWhiteSpace(info.FeatureDatasetName))
-            {
-                string featureDatasetName = ExtractXmlTagValue(xml, "FeatureDatasetName");
-                if (string.IsNullOrWhiteSpace(featureDatasetName))
-                {
-                    string catalogPath = ExtractXmlTagValue(xml, "CatalogPath");
-                    if (!string.IsNullOrWhiteSpace(catalogPath))
-                    {
-                        featureDatasetName = GetDatasetNameFromLayerName(catalogPath)?.TrimStart('\\', '/').Trim();
-                    }
-                }
-
-                if (!string.IsNullOrWhiteSpace(featureDatasetName))
-                {
-                    info.FeatureDatasetName = featureDatasetName.Trim();
-                }
-            }
-
-            try
-            {
-                var document = new XmlDocument();
-                document.LoadXml(xml);
-
-                if (string.IsNullOrWhiteSpace(info.AliasName))
-                {
-                    info.AliasName =
-                        SelectSingleNodeText(document, "//*[local-name()='itemName']") ??
-                        SelectSingleNodeText(document, "//*[local-name()='resTitle']") ??
-                        SelectSingleNodeAttribute(document, "//*[local-name()='detailed']", "Name") ??
-                        SelectSingleNodeAttribute(document, "//*[local-name()='esriterm']", "Name") ??
-                        SelectSingleNodeText(document, "//*[local-name()='AliasName']");
-                }
-
-                XmlNodeList attributeNodes = document.SelectNodes("//*[local-name()='attr']");
-                if (attributeNodes == null)
-                {
-                    return;
-                }
-
-                foreach (XmlNode attributeNode in attributeNodes)
-                {
-                    string fieldName =
-                        SelectSingleNodeText(attributeNode, "*[local-name()='attrlabl']") ??
-                        SelectSingleNodeText(attributeNode, "*[local-name()='Name']");
-                    string aliasName =
-                        SelectSingleNodeText(attributeNode, "*[local-name()='attalias']") ??
-                        SelectSingleNodeText(attributeNode, "*[local-name()='AliasName']");
-
-                    if (string.IsNullOrWhiteSpace(fieldName) || string.IsNullOrWhiteSpace(aliasName))
-                    {
-                        continue;
-                    }
-
-                    if (!info.FieldAliases.ContainsKey(fieldName))
-                    {
-                        info.FieldAliases[fieldName] = aliasName.Trim();
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        private static string ExtractXmlTagValue(string xml, string tagName)
-        {
-            string startTag = "<" + tagName + ">";
-            string endTag = "</" + tagName + ">";
-
-            int start = xml.IndexOf(startTag, StringComparison.OrdinalIgnoreCase);
-            if (start < 0)
-            {
-                return string.Empty;
-            }
-
-            start += startTag.Length;
-            int end = xml.IndexOf(endTag, start, StringComparison.OrdinalIgnoreCase);
-            if (end < 0 || end <= start)
-            {
-                return string.Empty;
-            }
-
-            return xml.Substring(start, end - start);
-        }
-
-        private static string SelectSingleNodeText(XmlNode parentNode, string xpath)
-        {
-            XmlNode node = parentNode?.SelectSingleNode(xpath);
-            return string.IsNullOrWhiteSpace(node?.InnerText) ? null : node.InnerText.Trim();
-        }
-
-        private static string SelectSingleNodeAttribute(XmlNode parentNode, string xpath, string attributeName)
-        {
-            XmlNode node = parentNode?.SelectSingleNode(xpath);
-            string value = node?.Attributes?[attributeName]?.Value;
-            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
     }
 }

@@ -15,6 +15,8 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 {
     internal sealed class ArcGisGdbWriter
     {
+        private const int InsertCursorFlushInterval = 2000;
+
         public void EnsureOutputGeodatabase(string outputGdb)
         {
             if (Directory.Exists(outputGdb))
@@ -101,9 +103,9 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             }).GetAwaiter().GetResult();
         }
 
-        public void InsertRows(string outputGdb, MdbLayerSchema schema, IReadOnlyList<MdbRowData> rows, CancellationToken cancellationToken)
+        public void InsertRows(string outputGdb, MdbLayerSchema schema, IEnumerable<MdbRowData> rows, CancellationToken cancellationToken)
         {
-            if (rows == null || rows.Count == 0)
+            if (rows == null)
             {
                 return;
             }
@@ -234,10 +236,12 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
         private static void InsertTableRows(
             Table table,
             MdbLayerSchema schema,
-            IReadOnlyList<MdbRowData> rows,
+            IEnumerable<MdbRowData> rows,
             CancellationToken cancellationToken)
         {
             using var insertCursor = table.CreateInsertCursor();
+            int insertedCount = 0;
+
             foreach (MdbRowData row in rows)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -245,6 +249,12 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                 using var rowBuffer = table.CreateRowBuffer();
                 ApplyValues(rowBuffer, schema.Fields, row.Values);
                 insertCursor.Insert(rowBuffer);
+                insertedCount++;
+
+                if (insertedCount % InsertCursorFlushInterval == 0)
+                {
+                    insertCursor.Flush();
+                }
             }
 
             insertCursor.Flush();
@@ -253,12 +263,14 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
         private static void InsertFeatureRows(
             FeatureClass featureClass,
             MdbLayerSchema schema,
-            IReadOnlyList<MdbRowData> rows,
+            IEnumerable<MdbRowData> rows,
             string shapeField,
             ArcSpatialReference spatialReference,
             CancellationToken cancellationToken)
         {
             using var insertCursor = featureClass.CreateInsertCursor();
+            int insertedCount = 0;
+
             foreach (MdbRowData row in rows)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -274,6 +286,12 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 
                 ApplyValues(rowBuffer, schema.Fields, row.Values);
                 insertCursor.Insert(rowBuffer);
+                insertedCount++;
+
+                if (insertedCount % InsertCursorFlushInterval == 0)
+                {
+                    insertCursor.Flush();
+                }
             }
 
             insertCursor.Flush();
