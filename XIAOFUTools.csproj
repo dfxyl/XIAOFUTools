@@ -100,6 +100,12 @@
     <None Remove="Images\TxtToFeature_32.png" />
     <None Remove="Images\ViewArea_16.png" />
     <None Remove="Images\ViewArea_32.png" />
+    <None Remove="Images\ExtractPolygonHoles_16.png" />
+    <None Remove="Images\ExtractPolygonHoles_32.png" />
+    <None Remove="Images\BatchMergeShp_16.png" />
+    <None Remove="Images\BatchMergeShp_32.png" />
+    <None Remove="Images\MdbBatchToGdb_16.png" />
+    <None Remove="Images\MdbBatchToGdb_32.png" />
     <None Remove="Images\OCRCoordinateTable_16.png" />
     <None Remove="Images\OCRCoordinateTable_32.png" />
     <None Remove="Images\FeatureToTxt_16.png" />
@@ -280,6 +286,14 @@
     <Content Include="Images\ShapefileBuilder_32.png" />
     <Content Include="Images\ExportShpFieldTable_16.png" />
     <Content Include="Images\ExportShpFieldTable_32.png" />
+    <Content Include="Images\BatchMergeShp_16.png" />
+    <Content Include="Images\BatchMergeShp_32.png" />
+    <Content Include="Images\MdbBatchToGdb_16.png" />
+    <Content Include="Images\MdbBatchToGdb_32.png" />
+    <Content Include="Images\ExtractPolygonHoles_16.png" />
+    <Content Include="Images\ExtractPolygonHoles_32.png" />
+    <Content Include="Images\OCRCoordinateTable_16.png" />
+    <Content Include="Images\OCRCoordinateTable_32.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tools\Common\PresetLayers\PresetLayersGalleryTemplate.xaml" />

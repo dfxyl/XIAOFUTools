@@ -375,7 +375,7 @@
             <disabledText>无权限使用计算面积工具</disabledText></tooltip>
         </button>
         <!-- 提取面扣岛按钮 -->
-        <button id="XIAOFUTools_ExtractPolygonHolesButton" caption="提取面扣岛" className="XIAOFUTools.Tools.ExtractPolygonHoles.ExtractPolygonHolesButton" loadOnClick="true" smallImage="Images\GapCheck_16.png" largeImage="Images\GapCheck_32.png">
+        <button id="XIAOFUTools_ExtractPolygonHolesButton" caption="提取面扣岛" className="XIAOFUTools.Tools.ExtractPolygonHoles.ExtractPolygonHolesButton" loadOnClick="true" smallImage="Images\ExtractPolygonHoles_16.png" largeImage="Images\ExtractPolygonHoles_32.png">
           <tooltip heading="提取面扣岛">
             提取输入面要素中的所有扣洞，保留源图层属性，可选按源要素创建多部件输出
             <disabledText>无权限使用提取面扣岛工具</disabledText></tooltip>
@@ -718,13 +718,13 @@
             <disabledText>无权限使用SHP输字段表功能</disabledText></tooltip>
         </button>
         <!-- 批量合并SHP按钮 -->
-        <button id="XIAOFUTools_BatchMergeShpButton" caption="批量合并SHP" className="XIAOFUTools.Tools.DataProcessing.BatchMergeShp.BatchMergeShpButton" loadOnClick="true" smallImage="Images\ShapefileBuilder_16.png" largeImage="Images\ShapefileBuilder_32.png">
+        <button id="XIAOFUTools_BatchMergeShpButton" caption="批量合并SHP" className="XIAOFUTools.Tools.DataProcessing.BatchMergeShp.BatchMergeShpButton" loadOnClick="true" smallImage="Images\BatchMergeShp_16.png" largeImage="Images\BatchMergeShp_32.png">
           <tooltip heading="批量合并SHP">
             选择文件夹后自动遍历SHP并批量合并，支持子文件夹扫描与源文件名字段写入
             <disabledText>无权限使用批量合并SHP功能</disabledText></tooltip>
         </button>
         <!-- MDB批量转GDB按钮 -->
-        <button id="XIAOFUTools_MdbBatchToGdbButton" caption="MDB批量转GDB" className="XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb.MdbBatchToGdbButton" loadOnClick="true" smallImage="Images\DatabaseBuilder_16.png" largeImage="Images\DatabaseBuilder_32.png">
+        <button id="XIAOFUTools_MdbBatchToGdbButton" caption="MDB批量转GDB" className="XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb.MdbBatchToGdbButton" loadOnClick="true" smallImage="Images\MdbBatchToGdb_16.png" largeImage="Images\MdbBatchToGdb_32.png">
           <tooltip heading="MDB批量转GDB">
             扫描文件夹中的MDB并按勾选项批量转换为GDB，支持输出到源路径或指定目录
             <disabledText>无权限使用MDB批量转GDB功能</disabledText></tooltip>
