@@ -24,178 +24,120 @@
         <tab id="XIAOFUTools_Tab1" caption="XIAOFU工具箱" keytip="X">
           <group refID="XIAOFUTools_CommonGroup" />
           <group refID="XIAOFUTools_EditGroup" />
-          <group refID="XIAOFUTools_ConvertGroup" />
           <group refID="XIAOFUTools_DataProcessingGroup" />
+          <group refID="XIAOFUTools_LayoutDocGroup" />
           <group refID="XIAOFUTools_UserGroup" />
-          <group refID="XIAOFUTools_QuickAccessGroup" />
         </tab>
       </tabs>
       <!-- ============================== 分组定义（中间层） ============================== -->
       <groups>
-        <!-- 通用工具组 -->
-        <group id="XIAOFUTools_CommonGroup" caption="通用工具" appearsOnAddInTab="false">
-          <buttonPalette refID="XIAOFUTools_CommonButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_Common2ButtonPalette" />
+        <group id="XIAOFUTools_CommonGroup" caption="通用" appearsOnAddInTab="false">
           <button refID="XIAOFUTools_ViewAreaButton" />
           <inlineGallery refID="XIAOFUTools_PresetLayersGallery" />
           <button refID="XIAOFUTools_HistoricalImageryButton" />
+          <buttonPalette refID="XIAOFUTools_CommonButtonPalette" />
         </group>
-        <!-- 编辑/分析/计算工具组 -->
-        <group id="XIAOFUTools_EditGroup" caption="编辑/分析/计算工具" appearsOnAddInTab="false">
+        <group id="XIAOFUTools_EditGroup" caption="编辑" appearsOnAddInTab="false">
+          <tool refID="XIAOFUTools_AreaSplitTool" />
           <buttonPalette refID="XIAOFUTools_EditButtonPalette" />
+          <buttonPalette refID="XIAOFUTools_Common2ButtonPalette" />
           <buttonPalette refID="XIAOFUTools_BoundaryButtonPalette" />
           <buttonPalette refID="XIAOFUTools_DynamicToolsButtonPalette" />
+        </group>
+        <group id="XIAOFUTools_DataProcessingGroup" caption="数据" appearsOnAddInTab="false">
+          <button refID="XIAOFUTools_AreaCalculatorButton" />
           <buttonPalette refID="XIAOFUTools_AnalysisButtonPalette" />
-        </group>
-        <!-- 转换工具组 -->
-        <group id="XIAOFUTools_ConvertGroup" caption="转换工具" appearsOnAddInTab="false">
           <buttonPalette refID="XIAOFUTools_ConvertButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_CoordinateButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_OutputButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_DwgButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_PdfButtonPalette" />
-          <button refID="XIAOFUTools_OvertureLoaderButton" />
-        </group>
-        <!-- 数据分析/处理组 -->
-        <group id="XIAOFUTools_DataProcessingGroup" caption="数据分析/处理" appearsOnAddInTab="false">
-          <buttonPalette refID="XIAOFUTools_GraphicsProcessingButtonPalette" />
           <buttonPalette refID="XIAOFUTools_DataProcessingToolsButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_MapSheetButtonPalette" />
-          <buttonPalette refID="XIAOFUTools_DatabaseBuilderButtonPalette" />
         </group>
-        <!-- 用户组 -->
-        <group id="XIAOFUTools_UserGroup" caption="用户" appearsOnAddInTab="false">
+        <group id="XIAOFUTools_LayoutDocGroup" caption="制图" appearsOnAddInTab="false">
+          <buttonPalette refID="XIAOFUTools_OutputButtonPalette" />
+          <buttonPalette refID="XIAOFUTools_PdfButtonPalette" />
+        </group>
+        <group id="XIAOFUTools_UserGroup" caption="系统" appearsOnAddInTab="false">
           <button refID="XIAOFUTools_AIAssistantButton" />
           <buttonPalette refID="XIAOFUTools_CustomButtonPalette" />
           <buttonPalette refID="XIAOFUTools_UserConfigButtonPalette" />
         </group>
-        <!-- 快速访问组 -->
-        <group id="XIAOFUTools_QuickAccessGroup" caption="快速访问" appearsOnAddInTab="false">
-          <!-- 添加按钮面板"快速访问" -->
-          <splitButton refID="esri_mapping_exploreSplitButton" />
-          <splitButton refID="esri_editing_selectToolPalette" />
-          <splitButton refID="esri_mapping_clearSelectionButton" />
-          <splitButton refID="esri_reports_navigateContext" />
-          <splitButton refID="esri_layouts_selectContext" />
-          <splitButton refID="esri_mapping_measureSplitButton" />
-        </group>
       </groups>
       <!-- ============================== 按钮面板定义（较低层） ============================== -->
       <palettes>
-        <!-- 通用工具按钮面板1 -->
-        <buttonPalette id="XIAOFUTools_CommonButtonPalette" caption="通用" dropDown="true" menuStyle="false">
+        <buttonPalette id="XIAOFUTools_CommonButtonPalette" caption="数据加载" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_BatchAddDataButton" />
+          <button refID="XIAOFUTools_DownloadOnlineImageryButton" />
+          <button refID="XIAOFUTools_OvertureLoaderButton" />
+        </buttonPalette>
+        <buttonPalette id="XIAOFUTools_EditButtonPalette" caption="属性编辑" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_GroupNumberingButton" />
           <button refID="XIAOFUTools_ChineseNumberingButton" />
-          <!-- 在此添加更多按钮引用 -->
-        </buttonPalette>
-        <!-- 通用工具按钮面板2 -->
-        <buttonPalette id="XIAOFUTools_Common2ButtonPalette" caption="通用2" dropDown="true" menuStyle="false">
-          <button refID="XIAOFUTools_BatchLayerClipButton" />
           <button refID="XIAOFUTools_FieldCopyToolButton" />
+          <button refID="XIAOFUTools_AttributeTransferFieldsButton" />
+        </buttonPalette>
+        <buttonPalette id="XIAOFUTools_Common2ButtonPalette" caption="几何编辑" dropDown="true" menuStyle="false">
+          <button refID="XIAOFUTools_BatchLayerClipButton" />
           <button refID="XIAOFUTools_RangeClipToolButton" />
-          <button refID="XIAOFUTools_BoundaryPointGeneratorButton" />
+          <button refID="XIAOFUTools_RotateGeometryButton" />
           <button refID="XIAOFUTools_BatchProjectionDefinitionButton" />
           <button refID="XIAOFUTools_BatchGeometryRepairButton" />
-          <button refID="XIAOFUTools_ProtocolLineExtractButton" />
-          <!-- 在此添加更多按钮引用 -->
         </buttonPalette>
-        <!-- 编辑工具按钮面板 -->
-        <buttonPalette id="XIAOFUTools_EditButtonPalette" caption="编辑工具" dropDown="true" menuStyle="false">
-          <!-- 在此添加编辑工具按钮引用 -->
-        </buttonPalette>
-        <!-- 界址工具按钮面板 -->
-        <buttonPalette id="XIAOFUTools_BoundaryButtonPalette" caption="界址" dropDown="true" menuStyle="false">
+        <buttonPalette id="XIAOFUTools_BoundaryButtonPalette" caption="界址编辑" dropDown="true" menuStyle="false">
+          <button refID="XIAOFUTools_BoundaryPointGeneratorButton" />
           <tool refID="XIAOFUTools_ViewStartPointTool" />
           <button refID="XIAOFUTools_ModifyStartPointButton" />
-          <button refID="XIAOFUTools_LayoutCoordinateTableButton" />
           <button refID="XIAOFUTools_BoundaryPointLineGeneratorButton" />
           <button refID="XIAOFUTools_MapBoundaryPointLineGeneratorButton" />
+          <button refID="XIAOFUTools_ProtocolLineExtractButton" />
         </buttonPalette>
-        <!-- 动态工具按钮面板 -->
-        <buttonPalette id="XIAOFUTools_DynamicToolsButtonPalette" caption="动态工具" dropDown="true" menuStyle="false">
-          <tool refID="XIAOFUTools_AreaSplitTool" />
+        <buttonPalette id="XIAOFUTools_DynamicToolsButtonPalette" caption="界址成果" dropDown="true" menuStyle="false">
+          <button refID="XIAOFUTools_LayoutCoordinateTableButton" />
         </buttonPalette>
-        <!-- 分析/计算工具按钮面板 -->
-        <buttonPalette id="XIAOFUTools_AnalysisButtonPalette" caption="分析/计算" dropDown="true" menuStyle="false">
-          <button refID="XIAOFUTools_AreaCalculatorButton" />
+        <buttonPalette id="XIAOFUTools_AnalysisButtonPalette" caption="分析检查" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_ExtractPolygonHolesButton" />
           <button refID="XIAOFUTools_IntersectSummaryButton" />
           <button refID="XIAOFUTools_MultiOverlaySummaryButton" />
           <button refID="XIAOFUTools_DataPivotButton" />
-          <!-- 在此添加计算工具按钮引用 -->
+          <button refID="XIAOFUTools_NodeDistanceCheckButton" />
+          <button refID="XIAOFUTools_OverlapCheckButton" />
+          <button refID="XIAOFUTools_GapCheckButton" />
         </buttonPalette>
-        <!-- 转换工具按钮面板 -->
-        <buttonPalette id="XIAOFUTools_ConvertButtonPalette" caption="文本" dropDown="true" menuStyle="false">
+        <buttonPalette id="XIAOFUTools_ConvertButtonPalette" caption="格式转换" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_FeatureToTxtButton" />
           <button refID="XIAOFUTools_TxtToFeatureButton" />
-          <!-- 在此添加转换工具按钮引用 -->
-        </buttonPalette>
-        <!-- 坐标转换按钮面板 -->
-        <buttonPalette id="XIAOFUTools_CoordinateButtonPalette" caption="坐标/KML" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_SpecialCoordinateTransformButton" />
           <button refID="XIAOFUTools_ExportToKmlButton" />
-          <!-- 在此添加坐标转换工具按钮引用 -->
-        </buttonPalette>
-        <!-- 制图相关按钮面板 -->
-        <buttonPalette id="XIAOFUTools_OutputButtonPalette" caption="制图相关" dropDown="true" menuStyle="false">
-          <button refID="XIAOFUTools_DownloadOnlineImageryButton" />
-          <button refID="XIAOFUTools_ExportLayoutButton" />
-          <button refID="XIAOFUTools_MapSeriesExportButton" />
-          <button refID="XIAOFUTools_LayoutTextReplaceButton" />
-          <!-- 在此添加制图相关工具按钮引用 -->
-        </buttonPalette>
-        <!-- CAD相关按钮面板 -->
-        <buttonPalette id="XIAOFUTools_DwgButtonPalette" caption="CAD相关" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_PolygonToDwgWithFillButton" />
           <button refID="XIAOFUTools_PolygonToDxfWithFillButton" />
         </buttonPalette>
-        <!-- 文档相关按钮面板 -->
-        <buttonPalette id="XIAOFUTools_PdfButtonPalette" caption="文档相关" dropDown="true" menuStyle="false">
+        <buttonPalette id="XIAOFUTools_DataProcessingToolsButtonPalette" caption="数据整备" dropDown="true" menuStyle="false">
+          <button refID="XIAOFUTools_BatchMergeShpButton" />
+          <button refID="XIAOFUTools_MdbBatchToGdbButton" />
+          <button refID="XIAOFUTools_MirrorDatabaseButton" />
+          <button refID="XIAOFUTools_DatabaseBuilderButton" />
+          <button refID="XIAOFUTools_ShapefileBuilderButton" />
+          <button refID="XIAOFUTools_ExportShpFieldTableButton" />
+          <button refID="XIAOFUTools_ExportDatabaseSchemaButton" />
+        </buttonPalette>
+        <buttonPalette id="XIAOFUTools_OutputButtonPalette" caption="布局图幅" dropDown="true" menuStyle="false">
+          <button refID="XIAOFUTools_MapSeriesExportButton" />
+          <button refID="XIAOFUTools_ExportLayoutButton" />
+          <button refID="XIAOFUTools_LayoutTextReplaceButton" />
+          <button refID="XIAOFUTools_GenerateSmallMapSheetsButton" />
+          <button refID="XIAOFUTools_GenerateLargeMapSheetsButton" />
+        </buttonPalette>
+        <buttonPalette id="XIAOFUTools_PdfButtonPalette" caption="文档处理" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_PdfToImagesButton" />
           <button refID="XIAOFUTools_ImagesToPdfButton" />
           <button refID="XIAOFUTools_ExcelToPdfButton" />
           <button refID="XIAOFUTools_WordToPdfButton" />
           <button refID="XIAOFUTools_DocumentBatchReplaceButton" />
         </buttonPalette>
-        <!-- 图形检查按钮面板 -->
-        <buttonPalette id="XIAOFUTools_GraphicsProcessingButtonPalette" caption="图形检查" dropDown="true" menuStyle="false">
-          <button refID="XIAOFUTools_NodeDistanceCheckButton" />
-          <button refID="XIAOFUTools_OverlapCheckButton" />
-          <button refID="XIAOFUTools_GapCheckButton" />
-          <!-- 在此添加更多图形检查工具按钮引用 -->
-        </buttonPalette>
-        <!-- 数据处理按钮面板 -->
-        <buttonPalette id="XIAOFUTools_DataProcessingToolsButtonPalette" caption="数据处理" dropDown="true" menuStyle="false">
-          <button refID="XIAOFUTools_AttributeTransferFieldsButton" />
-          <button refID="XIAOFUTools_RotateGeometryButton" />
-          <button refID="XIAOFUTools_BatchMergeShpButton" />
-        </buttonPalette>
-        <!-- 图幅按钮面板（移入 数据分析/处理 组） -->
-        <buttonPalette id="XIAOFUTools_MapSheetButtonPalette" caption="图幅" dropDown="true" menuStyle="false">
-          <button refID="XIAOFUTools_GenerateSmallMapSheetsButton" />
-          <button refID="XIAOFUTools_GenerateLargeMapSheetsButton" />
-        </buttonPalette>
-        <!-- 建库等按钮面板 -->
-        <buttonPalette id="XIAOFUTools_DatabaseBuilderButtonPalette" caption="数据库" dropDown="true" menuStyle="false">
-          <button refID="XIAOFUTools_DatabaseBuilderButton" />
-          <button refID="XIAOFUTools_ShapefileBuilderButton" />
-          <button refID="XIAOFUTools_ExportShpFieldTableButton" />
-          <button refID="XIAOFUTools_MirrorDatabaseButton" />
-          <button refID="XIAOFUTools_MdbBatchToGdbButton" />
-          <button refID="XIAOFUTools_ExportDatabaseSchemaButton" />
-        </buttonPalette>
-        <!-- 定制工具按钮面板 -->
         <buttonPalette id="XIAOFUTools_CustomButtonPalette" caption="定制" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_DevZoneCheckButton" />
-          <!-- 在此添加更多定制工具按钮引用 -->
         </buttonPalette>
-        <!-- 用户配置按钮面板 -->
         <buttonPalette id="XIAOFUTools_UserConfigButtonPalette" caption="配置" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_SettingsButton" />
           <button refID="XIAOFUTools_AuthorizationButton" />
           <button refID="XIAOFUTools_AboutButton" />
-          <!-- 在此添加用户配置工具按钮引用 -->
         </buttonPalette>
       </palettes>
       <!-- ============================== 图库定义 ============================== -->

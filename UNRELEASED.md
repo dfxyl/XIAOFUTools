@@ -2,19 +2,25 @@
 
 记录开发中的修改，发布新版本时将内容移入 [CHANGELOG.md](CHANGELOG.md)。
 
-**最后更新**: 2026-03-05
+**最后更新**: 2026-03-08
 
 ---
 
 ## 新增功能
 
-### MDB批量转GDB工具（数据分析/处理组）(2026-03-05)
+### Ribbon 分组与文档同步整理 (2026-03-08)
+- 将加载项主 Ribbon 压缩为 `通用 / 编辑 / 数据 / 制图 / 系统` 5 组。
+- `查看面积`、`添加预设图层`、`历史影像` 保持在通用组直达入口。
+- `驱动制图` 调整并入 `制图 > 布局图幅` 面板，不再单独占用顶级按钮。
+- 同步更新 `README.md`、`Docs/USER_GUIDE.md`、`AGENTS.md` 中的工具箱结构与目录说明。
+
+### MDB批量转GDB工具（数据 > 数据整备）(2026-03-05)
 - 新增“MDB批量转GDB”工具，支持选择文件夹后自动遍历并列出 `.mdb` 文件，可按需勾选批量转换。
 - 支持“遍历子文件夹”、全选/反选/清空、输出到源路径或指定目录、覆盖确认、停止取消、进度与日志。
 - 转换引擎基于 GDAL（PGeo/FileGDB/OpenFileGDB），支持要素数据集、根目录要素类与表的批量迁移。
 - 工具代码按模块拆分，避免单文件过长，便于后续维护与扩展。
 - 修改的文件:
-  - `Config.daml` - 新增按钮、停靠窗格注册，并挂接到“数据库”按钮面板
+  - `Config.daml` - 新增按钮、停靠窗格注册，并挂接到“数据整备”按钮面板
   - `XIAOFUTools.csproj` - 新增 GDAL/GDAL.Native 依赖
   - `Tools/DataProcessing/MdbBatchToGdb/MdbBatchToGdbButton.cs` - 新增按钮入口与授权校验
   - `Tools/DataProcessing/MdbBatchToGdb/MdbBatchToGdbDockPane.cs` - 新增停靠窗格容器
@@ -31,7 +37,7 @@
   - `Tools/DataProcessing/MdbBatchToGdb/MdbConversionPlan.cs` - 新增转换计划模型
   - `Tools/DataProcessing/MdbBatchToGdb/MdbConversionPlanner.cs` - 新增输出规划与重名处理逻辑
 
-### 批量合并SHP工具（数据分析/处理组）(2026-03-04)
+### 批量合并SHP工具（数据 > 数据整备）(2026-03-04)
 - 新增“批量合并SHP”工具，支持选择文件夹后自动遍历并列出 `.shp` 文件。
 - 支持“是否读取子文件夹”开关，切换后自动重新扫描；扫描结果默认全选。
 - 新增快捷勾选“点/线/面”按钮，可一键仅勾选对应几何类型。
@@ -40,14 +46,14 @@
 - 新增几何类型严格校验：若选中项存在未知类型或混合类型，运行按钮不可用并阻止合并。
 - 支持输出位置选择（GDB 要素类或 Shapefile），并支持输出覆盖确认。
 - 修改的文件:
-  - `Config.daml` - 新增工具按钮、停靠窗格注册，并挂接到“数据处理”按钮面板
+  - `Config.daml` - 新增工具按钮、停靠窗格注册，并挂接到“数据整备”按钮面板
   - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpButton.cs` - 新增按钮入口与授权校验
   - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpDockPane.cs` - 新增停靠窗格容器
   - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpDockPaneView.xaml` - 新增工具界面与快捷勾选按钮
   - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpDockPaneView.xaml.cs` - 新增视图初始化逻辑与布尔反转转换器
   - `Tools/DataProcessing/BatchMergeShp/BatchMergeShpViewModel.cs` - 新增扫描、选择、几何校验、合并、字段写入与日志流程
 
-### 文档批量替换工具（转换工具-文档相关）(2026-02-10)
+### 文档批量替换工具（制图 > 文档处理）(2026-02-10)
 - 新增“文档批量替换”工具，支持 `.docx/.doc/.docm` 多文件批量查找替换；支持添加文件、添加文件夹与拖拽到文件列表导入。
 - 支持多条替换规则与匹配选项（区分大小写、全字匹配、区分全/半角、通配符），并提供“另存为副本/覆盖原文件”两种保存方式。
 - 文档分组面板命名由“PDF相关”调整为“文档相关”，并在该面板新增工具入口。
@@ -67,13 +73,13 @@
   - `XIAOFUTools.csproj` - 添加新图标内容清单
   - `AGENTS.md` - 工具箱结构文案由“PDF相关”更新为“文档相关”
 
-### 属性表建SHP工具（数据分析/处理组）(2026-02-10)
+### 属性表建SHP工具（数据 > 数据整备）(2026-02-10)
 - 新增“属性表建SHP”工具，支持读取 Excel 属性结构模板并批量创建 Shapefile。
 - 复用“属性表建库”模板体系，支持中文几何/字段类型解析，并提供坐标系选择、日志输出、停止执行与模板导出能力。
 - 针对 SHP 约束新增自动兼容：忽略要素集定义、字段名自动压缩到 10 字符并去重、跳过 BLOB/GUID 等不支持字段类型。
 - 新增专用模板 `建SHP模板.xls`，并将“导出模板”改为导出该模板，便于直接用于属性表建SHP。
 - 修改的文件:
-  - `Config.daml` - 新增按钮、停靠窗格与“数据库”面板入口
+  - `Config.daml` - 新增按钮、停靠窗格与“数据整备”面板入口
   - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderButton.cs` - 新增按钮入口与授权校验
   - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderDockPane.cs` - 新增停靠窗格容器
   - `Tools/DataProcessing/ShapefileBuilder/ShapefileBuilderDockPaneView.xaml` - 新增工具界面与参数项
@@ -84,10 +90,10 @@
   - `README.md` - 更新功能清单
   - `Docs/USER_GUIDE.md` - 新增“属性表建SHP”使用说明
 
-### SHP目录处理工具（数据分析/处理组）(2026-02-10)
+### SHP目录处理工具（数据 > 数据整备）(2026-02-10)
 - 新增“SHP输字段表”工具，支持按文件夹批量读取 Shapefile 字段结构并导出为 Excel 字段表。
 - 修改的文件:
-  - `Config.daml` - 新增“SHP输字段表”按钮、停靠窗格与数据库面板入口
+  - `Config.daml` - 新增“SHP输字段表”按钮、停靠窗格与“数据整备”面板入口
   - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableButton.cs` - 新增按钮入口与授权校验
   - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableDockPane.cs` - 新增停靠窗格容器
   - `Tools/DataProcessing/ExportShpFieldTable/ExportShpFieldTableDockPaneView.xaml` - 新增工具界面
@@ -96,12 +102,12 @@
   - `README.md` - 更新功能清单
   - `Docs/USER_GUIDE.md` - 新增“SHP输字段表”使用说明
 
-### 提取面扣岛工具（分析/计算组）(2026-02-10)
+### 提取面扣岛工具（数据 > 分析检查）(2026-02-10)
 - 新增“提取面扣岛”工具，支持从输入面要素中提取所有扣洞并输出为面要素图层。
 - 输出结果保留源图层属性；多个洞可按开关选择逐洞输出或按源要素合并为多部件输出。
 - 输出路径增强：非 GDB 路径自动规范为 `.shp`，该规范化仅用于处理，不再单独写入日志。
 - 修改的文件:
-  - `Config.daml` - 新增按钮、停靠窗格与“分析/计算”组入口
+  - `Config.daml` - 新增按钮、停靠窗格与“分析检查”面板入口
   - `Tools/Analysis/ExtractPolygonHoles/ExtractPolygonHolesButton.cs` - 新增按钮入口与授权校验
   - `Tools/Analysis/ExtractPolygonHoles/ExtractPolygonHolesDockPane.cs` - 新增停靠窗格容器
   - `Tools/Analysis/ExtractPolygonHoles/ExtractPolygonHolesDockPaneView.xaml` - 新增工具界面与参数项
@@ -109,11 +115,11 @@
   - `Tools/Analysis/ExtractPolygonHoles/ExtractPolygonHolesViewModel.cs` - 新增扣洞提取、属性复制、输出路径规范化与运行流程
   - `Tools/Analysis/ExtractPolygonHoles/RelayCommand.cs` - 新增命令实现
 
-### 数据透视工具（分析/计算组）(2026-02-09)
+### 数据透视工具（数据 > 分析检查）(2026-02-09)
 - 新增“数据透视”工具，支持从地图中的要素图层/独立表选择输入数据。
 - 支持多区域字段分组、透视字段展开、数值字段汇总，汇总方式支持：求和、计数、平均值、最大值、最小值、中位数、极差、标准差、方差。
 - 新增默认命名规则：输出表名自动为 `TS_输入数据名称`，并在窗格加载时自动回到项目默认 GDB。
-- 修改“计算”面板名称为“分析/计算”，并同步分组文案为“编辑/分析/计算工具”。
+- 当前 Ribbon 中已归入“数据 > 分析检查”面板。
 - 修改的文件:
   - `Tools/Analysis/DataPivot/DataPivotButton.cs` - 新增按钮入口与授权校验
   - `Tools/Analysis/DataPivot/DataPivotDockPane.cs` - 新增停靠窗格容器
