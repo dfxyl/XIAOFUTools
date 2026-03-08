@@ -1,15 +1,31 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
-using OSGeo.GDAL;
+using ArcFieldType = ArcGIS.Core.Data.FieldType;
+using ArcGeometryType = ArcGIS.Core.Geometry.GeometryType;
+using GdalFieldSubType = OSGeo.OGR.FieldSubType;
+using GdalFieldType = OSGeo.OGR.FieldType;
+using GdalGeometry = OSGeo.OGR.Geometry;
+using GdalGeometryType = OSGeo.OGR.wkbGeometryType;
+using GdalLayer = OSGeo.OGR.Layer;
+using GdalSpatialReference = OSGeo.OSR.SpatialReference;
+using OgrDataSource = OSGeo.OGR.DataSource;
+using OgrFeature = OSGeo.OGR.Feature;
+using OgrFeatureDefn = OSGeo.OGR.FeatureDefn;
+using OgrFieldDefn = OSGeo.OGR.FieldDefn;
 using OSGeo.OGR;
-using OSGeo.OSR;
 
 namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 {
     internal sealed class GdalMdbToGdbConverter
     {
+        private const int InsertBatchSize = 5000;
+        private const long FullLayerBufferThreshold = 20000;
+
+        private readonly ArcGisGdbWriter _writer = new ArcGisGdbWriter();
+
         public void Convert(string inputMdb, string outputGdb, Action<string> log, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(inputMdb) || !File.Exists(inputMdb))
@@ -25,7 +41,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             string outputFolder = Path.GetDirectoryName(outputGdb);
             if (string.IsNullOrWhiteSpace(outputFolder))
             {
-                throw new DirectoryNotFoundException("无法识别输出目录。请检查输出路径。");
+                throw new DirectoryNotFoundException("无法识别输出目录，请检查输出路径。");
             }
 
             Directory.CreateDirectory(outputFolder);
@@ -33,329 +49,498 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             cancellationToken.ThrowIfCancellationRequested();
             GdalRuntimeBootstrapper.EnsureInitialized();
 
-            DataSource sourceDataSource = null;
-            DataSource targetDataSource = null;
-            var featureDatasetSrs = new Dictionary<string, SpatialReference>(StringComparer.OrdinalIgnoreCase);
-            var createdFeatureDatasetSrs = new Dictionary<string, SpatialReference>(StringComparer.OrdinalIgnoreCase);
-
-            try
+            using OgrDataSource sourceDataSource = Ogr.Open(inputMdb, 0);
+            if (sourceDataSource == null)
             {
-                sourceDataSource = Ogr.Open(inputMdb, 0);
-                if (sourceDataSource == null)
-                {
-                    throw new InvalidOperationException(
-                        "打开 MDB 失败。请确认 GDAL 启用了 PGeo 驱动，且系统已安装 Access Database Engine。");
-                }
-
-                OSGeo.OGR.Driver outputDriver = GetOutputDriver();
-                targetDataSource = outputDriver.CreateDataSource(outputGdb, null);
-                if (targetDataSource == null)
-                {
-                    throw new InvalidOperationException("创建 GDB 失败。请检查输出路径是否可写。");
-                }
-
-                List<SourceLayerInfo> layerInfos = GdalMdbLayerInspector.GetSourceLayerInfos(sourceDataSource);
-                log?.Invoke($"检测到图层/表数量: {layerInfos.Count}");
-
-                featureDatasetSrs = GdalMdbLayerInspector.BuildFeatureDatasetSpatialReferences(sourceDataSource, layerInfos);
-                var createdFeatureDatasetNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-                foreach (SourceLayerInfo layerInfo in layerInfos)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    Layer sourceLayer = sourceDataSource.GetLayerByIndex(layerInfo.Index);
-                    if (sourceLayer == null)
-                    {
-                        continue;
-                    }
-
-                    string displayName = string.IsNullOrWhiteSpace(layerInfo.FeatureDatasetName)
-                        ? layerInfo.OutputName
-                        : $"{layerInfo.FeatureDatasetName}\\{layerInfo.OutputName}";
-                    log?.Invoke($"转换: {displayName}");
-
-                    bool isFeatureDatasetLayer = !layerInfo.IsTable && !string.IsNullOrWhiteSpace(layerInfo.FeatureDatasetName);
-                    bool featureDatasetAlreadyCreated = isFeatureDatasetLayer
-                                                      && createdFeatureDatasetNames.Contains(layerInfo.FeatureDatasetName);
-
-                    SpatialReference targetSpatialReference = featureDatasetAlreadyCreated
-                        ? null
-                        : GdalMdbLayerInspector.ResolveTargetLayerSpatialReference(
-                            sourceLayer,
-                            layerInfo,
-                            featureDatasetSrs,
-                            createdFeatureDatasetSrs,
-                            log);
-
-                    SpatialReference createdLayerSpatialReference = null;
-                    try
-                    {
-                        createdLayerSpatialReference = CopyLayer(
-                            sourceLayer,
-                            targetDataSource,
-                            layerInfo.OutputName,
-                            layerInfo.FeatureDatasetName,
-                            targetSpatialReference,
-                            log,
-                            cancellationToken);
-
-                        if (isFeatureDatasetLayer)
-                        {
-                            createdFeatureDatasetNames.Add(layerInfo.FeatureDatasetName);
-
-                            if (createdLayerSpatialReference != null
-                                && !createdFeatureDatasetSrs.ContainsKey(layerInfo.FeatureDatasetName))
-                            {
-                                createdFeatureDatasetSrs[layerInfo.FeatureDatasetName] = createdLayerSpatialReference;
-                                createdLayerSpatialReference = null;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        createdLayerSpatialReference?.Dispose();
-                    }
-                }
-            }
-            finally
-            {
-                DisposeSpatialReferences(featureDatasetSrs);
-                DisposeSpatialReferences(createdFeatureDatasetSrs);
-
-                targetDataSource?.Dispose();
-                sourceDataSource?.Dispose();
-            }
-        }
-
-        private static OSGeo.OGR.Driver GetOutputDriver()
-        {
-            OSGeo.OGR.Driver driver = Ogr.GetDriverByName("FileGDB");
-            if (driver != null)
-            {
-                return driver;
-            }
-
-            driver = Ogr.GetDriverByName("OpenFileGDB");
-            if (driver != null)
-            {
-                return driver;
-            }
-
-            throw new InvalidOperationException("未找到 FileGDB/OpenFileGDB 驱动，无法创建 GDB。");
-        }
-
-        private static SpatialReference CopyLayer(
-            Layer sourceLayer,
-            DataSource targetDataSource,
-            string layerName,
-            string featureDatasetName,
-            SpatialReference targetSpatialReference,
-            Action<string> log,
-            CancellationToken cancellationToken)
-        {
-            FeatureDefn sourceDefinition = sourceLayer.GetLayerDefn();
-            string[] creationOptions = BuildLayerCreationOptions(sourceDefinition.GetGeomType(), featureDatasetName);
-
-            Layer targetLayer = null;
-            bool retriedWithoutCrs = false;
-            try
-            {
-                targetLayer = OgrUtf8Interop.CreateLayer(
-                    targetDataSource,
-                    layerName,
-                    targetSpatialReference,
-                    sourceDefinition.GetGeomType(),
-                    creationOptions);
-            }
-            catch (ApplicationException ex) when (ShouldRetryCreateLayerWithoutCrs(ex, featureDatasetName))
-            {
-                retriedWithoutCrs = true;
-                log?.Invoke($"图层 {featureDatasetName}\\{layerName} 坐标系不匹配，已按数据集坐标系重试。");
-
-                try
-                {
-                    targetLayer = OgrUtf8Interop.CreateLayer(
-                        targetDataSource,
-                        layerName,
-                        null,
-                        sourceDefinition.GetGeomType(),
-                        creationOptions);
-                }
-                catch (Exception retryException)
-                {
-                    throw new InvalidOperationException(
-                        $"图层创建重试失败: {featureDatasetName}\\{layerName}，{retryException.Message}",
-                        retryException);
-                }
-            }
-
-            if (targetLayer == null)
-            {
-                string gdalError = Gdal.GetLastErrorMsg();
-                if (string.IsNullOrWhiteSpace(gdalError))
-                {
-                    throw new InvalidOperationException(
-                        retriedWithoutCrs
-                            ? $"创建图层失败: {layerName}（已按要素数据集坐标系重试）。"
-                            : $"创建图层失败: {layerName}。");
-                }
-
                 throw new InvalidOperationException(
-                    retriedWithoutCrs
-                        ? $"创建图层失败: {layerName}（已按要素数据集坐标系重试），{gdalError}"
-                        : $"创建图层失败: {layerName}，{gdalError}");
+                    "打开 MDB 失败。请确认 GDAL 已启用 PGeo 驱动，并已安装 Access Database Engine。");
             }
 
-            try
+            _writer.EnsureOutputGeodatabase(outputGdb);
+
+            List<SourceLayerInfo> layerInfos = GdalMdbLayerInspector.GetSourceLayerInfos(sourceDataSource);
+            log?.Invoke($"检测到图层/表数量: {layerInfos.Count}");
+
+            foreach (SourceLayerInfo layerInfo in layerInfos)
             {
-                int fieldCount = sourceDefinition.GetFieldCount();
-                for (int i = 0; i < fieldCount; i++)
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using GdalLayer sourceLayer = sourceDataSource.GetLayerByIndex(layerInfo.Index);
+                if (sourceLayer == null)
                 {
-                    FieldDefn fieldDefinition = sourceDefinition.GetFieldDefn(i);
-                    if (targetLayer.CreateField(fieldDefinition, 1) != 0)
-                    {
-                        throw new InvalidOperationException($"字段创建失败: {layerName}.{fieldDefinition.GetNameRef()}");
-                    }
+                    continue;
                 }
 
-                sourceLayer.ResetReading();
-                FeatureDefn targetDefinition = targetLayer.GetLayerDefn();
+                string displayName = string.IsNullOrWhiteSpace(layerInfo.FeatureDatasetName)
+                    ? layerInfo.OutputName
+                    : $"{layerInfo.FeatureDatasetName}\\{layerInfo.OutputName}";
+                log?.Invoke($"转换: {displayName}");
 
-                Feature sourceFeature;
-                while ((sourceFeature = sourceLayer.GetNextFeature()) != null)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    using (sourceFeature)
-                    using (var targetFeature = new Feature(targetDefinition))
-                    {
-                        if (targetFeature.SetFrom(sourceFeature, 1) != 0)
-                        {
-                            throw new InvalidOperationException($"要素复制失败（SetFrom）: {layerName}");
-                        }
-
-                        ApplyStringFieldOverrides(sourceFeature, targetFeature, sourceDefinition);
-
-                        if (targetLayer.CreateFeature(targetFeature) != 0)
-                        {
-                            throw new InvalidOperationException($"要素写入失败: {layerName}");
-                        }
-                    }
-                }
-
-                return GdalMdbLayerInspector.CloneSpatialReference(targetLayer.GetSpatialRef())
-                    ?? GdalMdbLayerInspector.CloneSpatialReference(targetSpatialReference);
-            }
-            finally
-            {
-                targetLayer.Dispose();
+                MdbLayerSchema layerSchema = BuildLayerSchema(sourceLayer, layerInfo, log);
+                _writer.EnsureSchema(outputGdb, layerSchema, cancellationToken);
+                CopyLayerRows(sourceLayer, layerSchema, outputGdb, cancellationToken);
             }
         }
 
-        private static bool ShouldRetryCreateLayerWithoutCrs(ApplicationException ex, string featureDatasetName)
+        private MdbLayerSchema BuildLayerSchema(GdalLayer sourceLayer, SourceLayerInfo layerInfo, Action<string> log)
         {
-            if (string.IsNullOrWhiteSpace(featureDatasetName) || ex == null)
+            OgrFeatureDefn sourceDefinition = sourceLayer.GetLayerDefn()
+                ?? throw new InvalidOperationException($"无法读取源图层定义: {layerInfo.SourceName}");
+
+            bool isTable = layerInfo.IsTable || sourceDefinition.GetGeomType() == GdalGeometryType.wkbNone;
+            string spatialReferenceWkt = string.Empty;
+            ArcGeometryType? geometryType = null;
+            bool hasZ = false;
+            bool hasM = false;
+
+            if (!isTable)
             {
-                return false;
+                GdalGeometryType sourceGeometryType = sourceDefinition.GetGeomType();
+                geometryType = MapGeometryType(sourceGeometryType, layerInfo);
+                hasZ = HasZ(sourceGeometryType);
+                hasM = HasM(sourceGeometryType);
+                spatialReferenceWkt = ExportSpatialReferenceWkt(sourceLayer, layerInfo);
             }
 
-            string message = ex.Message ?? string.Empty;
-            return message.IndexOf("Layer CRS does not match feature dataset CRS", StringComparison.OrdinalIgnoreCase) >= 0;
+            IReadOnlyList<MdbFieldSchema> fields = BuildFieldSchemas(sourceDefinition, isTable, layerInfo, log);
+            return new MdbLayerSchema
+            {
+                LayerInfo = layerInfo,
+                IsTable = isTable,
+                GeometryType = geometryType,
+                HasZ = hasZ,
+                HasM = hasM,
+                SpatialReferenceWkt = spatialReferenceWkt,
+                Fields = fields
+            };
         }
 
-        private static string[] BuildLayerCreationOptions(wkbGeometryType geometryType, string featureDatasetName)
+        private IReadOnlyList<MdbFieldSchema> BuildFieldSchemas(
+            OgrFeatureDefn sourceDefinition,
+            bool isTable,
+            SourceLayerInfo layerInfo,
+            Action<string> log)
         {
-            if (string.IsNullOrWhiteSpace(featureDatasetName))
-            {
-                return null;
-            }
-
-            if (geometryType == wkbGeometryType.wkbNone)
-            {
-                return null;
-            }
-
-            return new[] { $"FEATURE_DATASET={featureDatasetName}" };
-        }
-
-        private static void DisposeSpatialReferences(IDictionary<string, SpatialReference> spatialReferences)
-        {
-            if (spatialReferences == null)
-            {
-                return;
-            }
-
-            foreach (SpatialReference spatialReference in spatialReferences.Values)
-            {
-                spatialReference?.Dispose();
-            }
-
-            spatialReferences.Clear();
-        }
-
-        private static void ApplyStringFieldOverrides(Feature sourceFeature, Feature targetFeature, FeatureDefn sourceDefinition)
-        {
+            var fields = new List<MdbFieldSchema>();
             int fieldCount = sourceDefinition.GetFieldCount();
             for (int i = 0; i < fieldCount; i++)
             {
-                FieldDefn fieldDefinition = sourceDefinition.GetFieldDefn(i);
-                FieldType fieldType = fieldDefinition.GetFieldType();
-                bool isStringField = fieldType == FieldType.OFTString || fieldType == FieldType.OFTWideString;
-                if (!isStringField)
+                OgrFieldDefn fieldDefinition = sourceDefinition.GetFieldDefn(i);
+                string fieldName = fieldDefinition.GetNameRef();
+                if (ShouldSkipSourceField(fieldName, isTable))
                 {
                     continue;
                 }
 
-                if (!sourceFeature.IsFieldSet(i))
+                bool serializeAsText;
+                ArcFieldType targetFieldType = MapFieldType(fieldDefinition.GetFieldType(), fieldDefinition.GetSubType(), out serializeAsText);
+                if (serializeAsText)
                 {
-                    targetFeature.UnsetField(i);
-                    continue;
+                    string displayName = string.IsNullOrWhiteSpace(layerInfo.FeatureDatasetName)
+                        ? layerInfo.OutputName
+                        : $"{layerInfo.FeatureDatasetName}\\{layerInfo.OutputName}";
+                    log?.Invoke($"警告: 字段 {displayName}.{fieldName} 为不受 ArcGIS 原生支持的列表类型，已按文本写入。");
                 }
 
-                if (!sourceFeature.IsFieldSetAndNotNull(i))
+                string aliasName = null;
+                if (layerInfo.FieldAliases != null &&
+                    layerInfo.FieldAliases.TryGetValue(fieldName, out string metadataAlias) &&
+                    !string.IsNullOrWhiteSpace(metadataAlias))
                 {
-                    targetFeature.SetFieldNull(i);
-                    continue;
+                    aliasName = metadataAlias.Trim();
                 }
 
-                string value = sourceFeature.GetFieldAsString(i);
-                if (!LooksReadableString(value))
+                if (string.IsNullOrWhiteSpace(aliasName))
                 {
-                    value = OgrUtf8Interop.GetFieldAsString(sourceFeature, i);
+                    aliasName = fieldDefinition.GetAlternativeNameRef();
                 }
 
-                targetFeature.SetField(i, value ?? string.Empty);
+                if (string.IsNullOrWhiteSpace(aliasName))
+                {
+                    aliasName = fieldName;
+                }
+
+                int width = fieldDefinition.GetWidth();
+                int precision = fieldDefinition.GetPrecision();
+                int? length = null;
+                int? scaleValue = null;
+                int? precisionValue = null;
+
+                if (targetFieldType == ArcFieldType.String)
+                {
+                    length = width > 0 ? width : 255;
+                }
+
+                if (targetFieldType == ArcFieldType.Double || targetFieldType == ArcFieldType.Single)
+                {
+                    if (precision > 0)
+                    {
+                        precisionValue = precision;
+                    }
+
+                    if (width > 0)
+                    {
+                        scaleValue = width;
+                    }
+                }
+
+                fields.Add(new MdbFieldSchema
+                {
+                    SourceIndex = i,
+                    Name = fieldName,
+                    AliasName = aliasName,
+                    SourceFieldType = fieldDefinition.GetFieldType(),
+                    SourceFieldSubType = fieldDefinition.GetSubType(),
+                    TargetFieldType = targetFieldType,
+                    Length = length,
+                    Precision = precisionValue,
+                    Scale = scaleValue,
+                    IsNullable = fieldDefinition.IsNullable() != 0,
+                    SerializeAsText = serializeAsText
+                });
+            }
+
+            return fields;
+        }
+
+        private void CopyLayerRows(
+            GdalLayer sourceLayer,
+            MdbLayerSchema layerSchema,
+            string outputGdb,
+            CancellationToken cancellationToken)
+        {
+            sourceLayer.ResetReading();
+            long featureCount = -1;
+            try
+            {
+                featureCount = sourceLayer.GetFeatureCount(0);
+            }
+            catch
+            {
+            }
+
+            if (featureCount >= 0 && featureCount <= FullLayerBufferThreshold)
+            {
+                var allRows = new List<MdbRowData>((int)featureCount);
+                OgrFeature bufferedFeature;
+                while ((bufferedFeature = sourceLayer.GetNextFeature()) != null)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    using (bufferedFeature)
+                    {
+                        allRows.Add(ReadRow(bufferedFeature, layerSchema));
+                    }
+                }
+
+                if (allRows.Count > 0)
+                {
+                    _writer.InsertRows(outputGdb, layerSchema, allRows, cancellationToken);
+                }
+
+                return;
+            }
+
+            var batch = new List<MdbRowData>(InsertBatchSize);
+
+            OgrFeature sourceFeature;
+            while ((sourceFeature = sourceLayer.GetNextFeature()) != null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using (sourceFeature)
+                {
+                    batch.Add(ReadRow(sourceFeature, layerSchema));
+                }
+
+                if (batch.Count >= InsertBatchSize)
+                {
+                    _writer.InsertRows(outputGdb, layerSchema, batch, cancellationToken);
+                    batch.Clear();
+                }
+            }
+
+            if (batch.Count > 0)
+            {
+                _writer.InsertRows(outputGdb, layerSchema, batch, cancellationToken);
             }
         }
 
-        private static bool LooksReadableString(string value)
+        private MdbRowData ReadRow(OgrFeature sourceFeature, MdbLayerSchema layerSchema)
         {
-            if (string.IsNullOrEmpty(value))
+            var values = new object[layerSchema.Fields.Count];
+            for (int i = 0; i < layerSchema.Fields.Count; i++)
+            {
+                values[i] = ReadFieldValue(sourceFeature, layerSchema.Fields[i]);
+            }
+
+            return new MdbRowData
+            {
+                GeometryWkb = layerSchema.IsTable ? null : ExportGeometryWkb(sourceFeature),
+                Values = values
+            };
+        }
+
+        private static object ReadFieldValue(OgrFeature sourceFeature, MdbFieldSchema fieldSchema)
+        {
+            if (!sourceFeature.IsFieldSet(fieldSchema.SourceIndex))
+            {
+                return null;
+            }
+
+            if (!sourceFeature.IsFieldSetAndNotNull(fieldSchema.SourceIndex) || sourceFeature.IsFieldNull(fieldSchema.SourceIndex))
+            {
+                return null;
+            }
+
+            if (fieldSchema.SerializeAsText)
+            {
+                return OgrUtf8Interop.GetFieldAsString(sourceFeature, fieldSchema.SourceIndex);
+            }
+
+            return fieldSchema.TargetFieldType switch
+            {
+                ArcFieldType.SmallInteger => System.Convert.ToInt16(sourceFeature.GetFieldAsInteger(fieldSchema.SourceIndex)),
+                ArcFieldType.Integer => sourceFeature.GetFieldAsInteger(fieldSchema.SourceIndex),
+                ArcFieldType.BigInteger => sourceFeature.GetFieldAsInteger64(fieldSchema.SourceIndex),
+                ArcFieldType.Single => System.Convert.ToSingle(sourceFeature.GetFieldAsDouble(fieldSchema.SourceIndex)),
+                ArcFieldType.Double => sourceFeature.GetFieldAsDouble(fieldSchema.SourceIndex),
+                ArcFieldType.String => OgrUtf8Interop.GetFieldAsString(sourceFeature, fieldSchema.SourceIndex),
+                ArcFieldType.GUID => ParseGuidValue(OgrUtf8Interop.GetFieldAsString(sourceFeature, fieldSchema.SourceIndex), fieldSchema.Name),
+                ArcFieldType.Blob => OgrUtf8Interop.GetFieldAsBinary(sourceFeature, fieldSchema.SourceIndex),
+                ArcFieldType.DateOnly => ReadDateOnlyValue(sourceFeature, fieldSchema.SourceIndex),
+                ArcFieldType.TimeOnly => ReadTimeOnlyValue(sourceFeature, fieldSchema.SourceIndex),
+                ArcFieldType.Date => ReadDateTimeValue(sourceFeature, fieldSchema.SourceIndex),
+                ArcFieldType.XML => OgrUtf8Interop.GetFieldAsString(sourceFeature, fieldSchema.SourceIndex),
+                _ => OgrUtf8Interop.GetFieldAsString(sourceFeature, fieldSchema.SourceIndex)
+            };
+        }
+
+        private static Guid ParseGuidValue(string text, string fieldName)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Guid.Empty;
+            }
+
+            if (Guid.TryParse(text, out Guid guid))
+            {
+                return guid;
+            }
+
+            throw new InvalidOperationException($"字段 {fieldName} 的 GUID 值无效: {text}");
+        }
+
+        private static DateOnly? ReadDateOnlyValue(OgrFeature sourceFeature, int fieldIndex)
+        {
+            ReadDateTimeParts(sourceFeature, fieldIndex, out int year, out int month, out int day, out _, out _, out _, out _);
+            if (year <= 0 || month <= 0 || day <= 0)
+            {
+                return null;
+            }
+
+            return new DateOnly(year, month, day);
+        }
+
+        private static TimeOnly? ReadTimeOnlyValue(OgrFeature sourceFeature, int fieldIndex)
+        {
+            ReadDateTimeParts(sourceFeature, fieldIndex, out _, out _, out _, out int hour, out int minute, out int second, out int millisecond);
+            return new TimeOnly(hour, minute, second, millisecond);
+        }
+
+        private static DateTime? ReadDateTimeValue(OgrFeature sourceFeature, int fieldIndex)
+        {
+            ReadDateTimeParts(sourceFeature, fieldIndex, out int year, out int month, out int day, out int hour, out int minute, out int second, out int millisecond);
+            if (year <= 0 || month <= 0 || day <= 0)
+            {
+                return null;
+            }
+
+            return new DateTime(year, month, day, hour, minute, second, millisecond, DateTimeKind.Unspecified);
+        }
+
+        private static void ReadDateTimeParts(
+            OgrFeature sourceFeature,
+            int fieldIndex,
+            out int year,
+            out int month,
+            out int day,
+            out int hour,
+            out int minute,
+            out int second,
+            out int millisecond)
+        {
+            year = 0;
+            month = 0;
+            day = 0;
+            hour = 0;
+            minute = 0;
+            second = 0;
+            millisecond = 0;
+
+            float secondsWithFraction = 0;
+            int timezone = 0;
+            sourceFeature.GetFieldAsDateTime(
+                fieldIndex,
+                out year,
+                out month,
+                out day,
+                out hour,
+                out minute,
+                out secondsWithFraction,
+                out timezone);
+
+            second = (int)Math.Truncate(secondsWithFraction);
+            millisecond = (int)Math.Round((secondsWithFraction - second) * 1000f);
+            if (millisecond >= 1000)
+            {
+                second += 1;
+                millisecond -= 1000;
+            }
+        }
+
+        private static byte[] ExportGeometryWkb(OgrFeature sourceFeature)
+        {
+            GdalGeometry geometry = sourceFeature.GetGeometryRef();
+            if (geometry == null || geometry.IsEmpty())
+            {
+                return null;
+            }
+
+            var buffer = new byte[geometry.WkbSize()];
+            if (geometry.ExportToWkb(buffer) != 0)
+            {
+                throw new InvalidOperationException("导出几何 WKB 失败。");
+            }
+
+            return buffer;
+        }
+
+        private static ArcFieldType MapFieldType(GdalFieldType sourceFieldType, GdalFieldSubType sourceFieldSubType, out bool serializeAsText)
+        {
+            serializeAsText = false;
+            return sourceFieldType switch
+            {
+                GdalFieldType.OFTInteger when sourceFieldSubType == GdalFieldSubType.OFSTInt16 => ArcFieldType.SmallInteger,
+                GdalFieldType.OFTInteger => ArcFieldType.Integer,
+                GdalFieldType.OFTInteger64 => ArcFieldType.BigInteger,
+                GdalFieldType.OFTReal when sourceFieldSubType == GdalFieldSubType.OFSTFloat32 => ArcFieldType.Single,
+                GdalFieldType.OFTReal => ArcFieldType.Double,
+                GdalFieldType.OFTString when sourceFieldSubType == GdalFieldSubType.OFSTUUID => ArcFieldType.GUID,
+                GdalFieldType.OFTWideString when sourceFieldSubType == GdalFieldSubType.OFSTUUID => ArcFieldType.GUID,
+                GdalFieldType.OFTString => ArcFieldType.String,
+                GdalFieldType.OFTWideString => ArcFieldType.String,
+                GdalFieldType.OFTBinary => ArcFieldType.Blob,
+                GdalFieldType.OFTDate => ArcFieldType.DateOnly,
+                GdalFieldType.OFTTime => ArcFieldType.TimeOnly,
+                GdalFieldType.OFTDateTime => ArcFieldType.Date,
+                GdalFieldType.OFTIntegerList => SetTextFallback(out serializeAsText),
+                GdalFieldType.OFTInteger64List => SetTextFallback(out serializeAsText),
+                GdalFieldType.OFTRealList => SetTextFallback(out serializeAsText),
+                GdalFieldType.OFTStringList => SetTextFallback(out serializeAsText),
+                GdalFieldType.OFTWideStringList => SetTextFallback(out serializeAsText),
+                _ => SetTextFallback(out serializeAsText)
+            };
+        }
+
+        private static ArcFieldType SetTextFallback(out bool serializeAsText)
+        {
+            serializeAsText = true;
+            return ArcFieldType.String;
+        }
+
+        private static bool ShouldSkipSourceField(string fieldName, bool isTable)
+        {
+            if (string.IsNullOrWhiteSpace(fieldName))
             {
                 return true;
             }
 
-            if (value.IndexOf('\uFFFD') >= 0)
+            if (fieldName.Equals("OBJECTID", StringComparison.OrdinalIgnoreCase))
             {
-                return false;
+                return true;
             }
 
-            int suspiciousCount = 0;
-            foreach (char ch in value)
+            if (!isTable &&
+                (fieldName.Equals("Shape_Length", StringComparison.OrdinalIgnoreCase) ||
+                 fieldName.Equals("Shape_Area", StringComparison.OrdinalIgnoreCase)))
             {
-                if (char.IsControl(ch))
-                {
-                    return false;
-                }
-
-                if (ch == '?' || (ch >= '\u0080' && ch <= '\u00BF'))
-                {
-                    suspiciousCount++;
-                }
+                return true;
             }
 
-            return suspiciousCount * 4 < value.Length;
+            return false;
+        }
+
+        private static ArcGeometryType MapGeometryType(GdalGeometryType geometryType, SourceLayerInfo layerInfo)
+        {
+            return geometryType switch
+            {
+                GdalGeometryType.wkbPoint or
+                GdalGeometryType.wkbPoint25D or
+                GdalGeometryType.wkbPointM or
+                GdalGeometryType.wkbPointZM => ArcGeometryType.Point,
+
+                GdalGeometryType.wkbMultiPoint or
+                GdalGeometryType.wkbMultiPoint25D or
+                GdalGeometryType.wkbMultiPointM or
+                GdalGeometryType.wkbMultiPointZM => ArcGeometryType.Multipoint,
+
+                GdalGeometryType.wkbLineString or
+                GdalGeometryType.wkbLineString25D or
+                GdalGeometryType.wkbLineStringM or
+                GdalGeometryType.wkbLineStringZM or
+                GdalGeometryType.wkbMultiLineString or
+                GdalGeometryType.wkbMultiLineString25D or
+                GdalGeometryType.wkbMultiLineStringM or
+                GdalGeometryType.wkbMultiLineStringZM => ArcGeometryType.Polyline,
+
+                GdalGeometryType.wkbPolygon or
+                GdalGeometryType.wkbPolygon25D or
+                GdalGeometryType.wkbPolygonM or
+                GdalGeometryType.wkbPolygonZM or
+                GdalGeometryType.wkbMultiPolygon or
+                GdalGeometryType.wkbMultiPolygon25D or
+                GdalGeometryType.wkbMultiPolygonM or
+                GdalGeometryType.wkbMultiPolygonZM => ArcGeometryType.Polygon,
+
+                _ => throw new NotSupportedException(
+                    $"暂不支持几何类型 {geometryType}：{layerInfo.SourceName}")
+            };
+        }
+
+        private static bool HasZ(GdalGeometryType geometryType)
+        {
+            string name = geometryType.ToString();
+            return name.EndsWith("Z", StringComparison.OrdinalIgnoreCase) ||
+                   name.EndsWith("ZM", StringComparison.OrdinalIgnoreCase) ||
+                   name.EndsWith("25D", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool HasM(GdalGeometryType geometryType)
+        {
+            string name = geometryType.ToString();
+            return name.EndsWith("M", StringComparison.OrdinalIgnoreCase) ||
+                   name.EndsWith("ZM", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ExportSpatialReferenceWkt(GdalLayer sourceLayer, SourceLayerInfo layerInfo)
+        {
+            using GdalSpatialReference spatialReference =
+                GdalMdbLayerInspector.NormalizeSpatialReferenceForFileGeodatabase(sourceLayer.GetSpatialRef())
+                ?? GdalMdbLayerInspector.CloneSpatialReference(sourceLayer.GetSpatialRef());
+
+            if (spatialReference == null)
+            {
+                throw new InvalidOperationException($"图层缺少空间参考: {layerInfo.SourceName}");
+            }
+
+            spatialReference.ExportToWkt(out string wkt, new[] { "FORMAT=WKT1_ESRI" });
+            if (string.IsNullOrWhiteSpace(wkt))
+            {
+                throw new InvalidOperationException($"图层空间参考导出失败: {layerInfo.SourceName}");
+            }
+
+            return wkt;
         }
     }
 }

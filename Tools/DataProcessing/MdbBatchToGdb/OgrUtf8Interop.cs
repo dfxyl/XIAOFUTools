@@ -30,6 +30,9 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
         [DllImport("ogr_wrap", EntryPoint = "CSharp_OSGeofOGR_Feature_GetFieldAsString__SWIG_0___", CallingConvention = CallingConvention.Winapi)]
         private static extern IntPtr Feature_GetFieldAsString_Utf8(HandleRef featureHandle, int fieldIndex);
 
+        [DllImport("gdal", EntryPoint = "OGR_F_GetFieldAsBinary", CallingConvention = CallingConvention.Cdecl)]
+        private static extern IntPtr Feature_GetFieldAsBinary(HandleRef featureHandle, int fieldIndex, out int byteCount);
+
         [DllImport("ogr_wrap", EntryPoint = "CSharp_OSGeofOGR_DataSource_CreateLayer___", CallingConvention = CallingConvention.Winapi)]
         private static extern IntPtr DataSource_CreateLayer_Utf8(
             HandleRef dataSourceHandle,
@@ -69,6 +72,31 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             catch
             {
                 return feature.GetFieldAsString(fieldIndex) ?? string.Empty;
+            }
+        }
+
+        public static byte[] GetFieldAsBinary(Feature feature, int fieldIndex)
+        {
+            if (feature == null || fieldIndex < 0 || fieldIndex >= feature.GetFieldCount())
+            {
+                return null;
+            }
+
+            try
+            {
+                IntPtr binaryPtr = Feature_GetFieldAsBinary(Feature.getCPtr(feature), fieldIndex, out int byteCount);
+                if (binaryPtr == IntPtr.Zero || byteCount <= 0)
+                {
+                    return null;
+                }
+
+                var bytes = new byte[byteCount];
+                Marshal.Copy(binaryPtr, bytes, 0, byteCount);
+                return bytes;
+            }
+            catch
+            {
+                return null;
             }
         }
 

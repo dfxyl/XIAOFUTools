@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Xml;
 using OSGeo.OGR;
 using OSGeo.OSR;
 
@@ -16,7 +17,22 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 
         public string OutputName { get; set; } = string.Empty;
 
+        public string AliasName { get; set; } = string.Empty;
+
+        public IReadOnlyDictionary<string, string> FieldAliases { get; set; } =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
         public bool IsTable { get; set; }
+    }
+
+    internal sealed class SourceLayerMetadataInfo
+    {
+        public string FeatureDatasetName { get; set; } = string.Empty;
+
+        public string AliasName { get; set; } = string.Empty;
+
+        public Dictionary<string, string> FieldAliases { get; } =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
     }
 
     internal static class GdalMdbLayerInspector
@@ -34,7 +50,8 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                 }
 
                 string sourceLayerName = OgrUtf8Interop.GetLayerName(sourceLayer);
-                string featureDatasetName = GetFeatureDatasetName(sourceDs, sourceLayerName);
+                SourceLayerMetadataInfo metadataInfo = ReadLayerMetadataInfo(sourceDs, sourceLayerName);
+                string featureDatasetName = GetFeatureDatasetName(sourceLayerName, metadataInfo);
                 string outputLayerName = GetFeatureClassOrTableName(sourceLayerName);
                 FeatureDefn defn = sourceLayer.GetLayerDefn();
                 bool isTable = defn == null || defn.GetGeomType() == wkbGeometryType.wkbNone;
@@ -45,6 +62,8 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                     SourceName = sourceLayerName,
                     FeatureDatasetName = featureDatasetName,
                     OutputName = outputLayerName,
+                    AliasName = string.IsNullOrWhiteSpace(metadataInfo.AliasName) ? outputLayerName : metadataInfo.AliasName.Trim(),
+                    FieldAliases = metadataInfo.FieldAliases,
                     IsTable = isTable
                 });
             }
@@ -76,7 +95,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                 }
 
                 SpatialReference sourceReference = sourceLayer.GetSpatialRef();
-                SpatialReference clone = CloneSpatialReference(sourceReference);
+                SpatialReference clone = NormalizeSpatialReferenceForFileGeodatabase(sourceReference);
                 if (clone != null)
                 {
                     result[layerInfo.FeatureDatasetName] = clone;
@@ -108,7 +127,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             if (!featureDatasetSrs.TryGetValue(layerInfo.FeatureDatasetName, out SpatialReference datasetReference)
                 || datasetReference == null)
             {
-                SpatialReference clone = CloneSpatialReference(layerReference);
+                SpatialReference clone = NormalizeSpatialReferenceForFileGeodatabase(layerReference);
                 if (clone == null)
                 {
                     throw new InvalidOperationException(
@@ -156,6 +175,28 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             return null;
         }
 
+        public static SpatialReference NormalizeSpatialReferenceForFileGeodatabase(SpatialReference spatialReference)
+        {
+            if (spatialReference == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                spatialReference.ExportToWkt(out string esriWkt, new[] { "FORMAT=WKT1_ESRI" });
+                if (!string.IsNullOrWhiteSpace(esriWkt))
+                {
+                    return new SpatialReference(esriWkt);
+                }
+            }
+            catch
+            {
+            }
+
+            return CloneSpatialReference(spatialReference);
+        }
+
         private static bool IsSpatialReferenceEquivalent(SpatialReference a, SpatialReference b)
         {
             if (a == null || b == null)
@@ -182,7 +223,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             }
         }
 
-        private static string GetFeatureDatasetName(DataSource sourceDs, string sourceLayerName)
+        private static string GetFeatureDatasetName(string sourceLayerName, SourceLayerMetadataInfo metadataInfo)
         {
             string featureDatasetName = GetDatasetNameFromLayerName(sourceLayerName);
             if (!string.IsNullOrWhiteSpace(featureDatasetName))
@@ -190,7 +231,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                 return NormalizeFeatureDatasetName(featureDatasetName);
             }
 
-            featureDatasetName = TryGetFeatureDatasetNameFromSqlMetadata(sourceDs, sourceLayerName);
+            featureDatasetName = metadataInfo?.FeatureDatasetName;
             if (!string.IsNullOrWhiteSpace(featureDatasetName))
             {
                 return NormalizeFeatureDatasetName(featureDatasetName);
@@ -242,14 +283,15 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             return normalized;
         }
 
-        private static string TryGetFeatureDatasetNameFromSqlMetadata(DataSource sourceDs, string layerName)
+        private static SourceLayerMetadataInfo ReadLayerMetadataInfo(DataSource sourceDs, string layerName)
         {
+            var info = new SourceLayerMetadataInfo();
             string layerNameEscaped = layerName.Replace("'", "''");
             string[] sqlCandidates =
             {
                 $"GetLayerMetadata {layerName}",
-                $"GetLayerMetadata '{layerNameEscaped}'",
                 $"GetLayerDefinition {layerName}",
+                $"GetLayerMetadata '{layerNameEscaped}'",
                 $"GetLayerDefinition '{layerNameEscaped}'"
             };
 
@@ -285,21 +327,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                         continue;
                     }
 
-                    string byTag = ExtractXmlTagValue(xml, "FeatureDatasetName");
-                    if (!string.IsNullOrWhiteSpace(byTag))
-                    {
-                        return byTag.Trim();
-                    }
-
-                    string catalogPath = ExtractXmlTagValue(xml, "CatalogPath");
-                    if (!string.IsNullOrWhiteSpace(catalogPath))
-                    {
-                        string byPath = GetDatasetNameFromLayerName(catalogPath);
-                        if (!string.IsNullOrWhiteSpace(byPath))
-                        {
-                            return byPath.TrimStart('\\', '/').Trim();
-                        }
-                    }
+                    MergeMetadataXml(xml, info);
                 }
                 catch
                 {
@@ -313,7 +341,78 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                 }
             }
 
-            return string.Empty;
+            return info;
+        }
+
+        private static void MergeMetadataXml(string xml, SourceLayerMetadataInfo info)
+        {
+            if (string.IsNullOrWhiteSpace(xml) || info == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(info.FeatureDatasetName))
+            {
+                string featureDatasetName = ExtractXmlTagValue(xml, "FeatureDatasetName");
+                if (string.IsNullOrWhiteSpace(featureDatasetName))
+                {
+                    string catalogPath = ExtractXmlTagValue(xml, "CatalogPath");
+                    if (!string.IsNullOrWhiteSpace(catalogPath))
+                    {
+                        featureDatasetName = GetDatasetNameFromLayerName(catalogPath)?.TrimStart('\\', '/').Trim();
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(featureDatasetName))
+                {
+                    info.FeatureDatasetName = featureDatasetName.Trim();
+                }
+            }
+
+            try
+            {
+                var document = new XmlDocument();
+                document.LoadXml(xml);
+
+                if (string.IsNullOrWhiteSpace(info.AliasName))
+                {
+                    info.AliasName =
+                        SelectSingleNodeText(document, "//*[local-name()='itemName']") ??
+                        SelectSingleNodeText(document, "//*[local-name()='resTitle']") ??
+                        SelectSingleNodeAttribute(document, "//*[local-name()='detailed']", "Name") ??
+                        SelectSingleNodeAttribute(document, "//*[local-name()='esriterm']", "Name") ??
+                        SelectSingleNodeText(document, "//*[local-name()='AliasName']");
+                }
+
+                XmlNodeList attributeNodes = document.SelectNodes("//*[local-name()='attr']");
+                if (attributeNodes == null)
+                {
+                    return;
+                }
+
+                foreach (XmlNode attributeNode in attributeNodes)
+                {
+                    string fieldName =
+                        SelectSingleNodeText(attributeNode, "*[local-name()='attrlabl']") ??
+                        SelectSingleNodeText(attributeNode, "*[local-name()='Name']");
+                    string aliasName =
+                        SelectSingleNodeText(attributeNode, "*[local-name()='attalias']") ??
+                        SelectSingleNodeText(attributeNode, "*[local-name()='AliasName']");
+
+                    if (string.IsNullOrWhiteSpace(fieldName) || string.IsNullOrWhiteSpace(aliasName))
+                    {
+                        continue;
+                    }
+
+                    if (!info.FieldAliases.ContainsKey(fieldName))
+                    {
+                        info.FieldAliases[fieldName] = aliasName.Trim();
+                    }
+                }
+            }
+            catch
+            {
+            }
         }
 
         private static string ExtractXmlTagValue(string xml, string tagName)
@@ -335,6 +434,19 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
             }
 
             return xml.Substring(start, end - start);
+        }
+
+        private static string SelectSingleNodeText(XmlNode parentNode, string xpath)
+        {
+            XmlNode node = parentNode?.SelectSingleNode(xpath);
+            return string.IsNullOrWhiteSpace(node?.InnerText) ? null : node.InnerText.Trim();
+        }
+
+        private static string SelectSingleNodeAttribute(XmlNode parentNode, string xpath, string attributeName)
+        {
+            XmlNode node = parentNode?.SelectSingleNode(xpath);
+            string value = node?.Attributes?[attributeName]?.Value;
+            return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
         }
     }
 }
