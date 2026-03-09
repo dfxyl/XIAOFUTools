@@ -91,7 +91,7 @@
                           Foreground="#2c3e50"
                           Margin="0,0,0,2"/>
                 <TextBlock x:Name="VersionText"
-                          Text="版本 1.2.5"
+                          Text="版本 1.2.6"
                           FontSize="12" FontWeight="SemiBold"
                           Foreground="#3498db"/>
             </StackPanel>
@@ -107,7 +107,7 @@
                           Style="{StaticResource WarningTextStyle}"/>
                 <!-- 当前版本号 -->
                 <TextBlock Text="当前版本号:" Style="{StaticResource InfoLabelStyle}"/>
-                <TextBlock x:Name="CurrentVersionText" Text="1.2.5" Style="{StaticResource InfoContentStyle}"/>
+                <TextBlock x:Name="CurrentVersionText" Text="1.2.6" Style="{StaticResource InfoContentStyle}"/>
 
                 <!-- 开发环境 -->
                 <TextBlock Text="开发环境:" Style="{StaticResource InfoLabelStyle}"/>
@@ -118,7 +118,7 @@
                 <!-- 版本更新信息 -->
                 <TextBlock Text="版本更新信息:" Style="{StaticResource InfoLabelStyle}"/>
                 <TextBlock x:Name="UpdateInfoText"
-                          Text="v1.2.5 更新：&#x0a;• AI助手完成架构重构，新增图层查询/缓冲/裁剪/压盖汇总等智能GIS工具链&#x0a;• 分析、转换、数据处理、编辑等多模块功能与UI交互优化&#x0a;• 修复若干bug"
+                          Text="v1.2.6 更新：&#x0a;• 新增 MDB批量转GDB、批量合并SHP、文档批量替换、属性表建SHP、SHP输字段表、提取面扣岛、数据透视 等工具&#x0a;• 优化 Ribbon 分组、属性表建库模板、驱动制图页面搜索与界址点表显示体验&#x0a;• 修复 MDB转GDB 中文乱码与性能、KML 导出、图片转PDF 依赖、面积/默认值与右键上下文传参等问题"
                           Style="{StaticResource InfoContentStyle}"/>
 
                 <!-- 作者信息 -->

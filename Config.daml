@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ArcGIS defaultAssembly="XIAOFUTools.dll" defaultNamespace="XIAOFUTools" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///D:/RUANJIAN/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <!-- 插件基本信息 -->
-  <AddInInfo id="{c1ef0bf8-3aaa-4583-9176-c77c409d3e5d}" version="1.2.5" desktopVersion="3.6.59527" product="ArcGISPro">
+  <AddInInfo id="{c1ef0bf8-3aaa-4583-9176-c77c409d3e5d}" version="1.2.6" desktopVersion="3.6.59527" product="ArcGISPro">
     <Name>XIAOFU工具箱</Name>
     <Description>
 		XIAOFU工具箱 - ArcGIS Pro扩展工具集。
@@ -10,7 +10,7 @@
     <Image>Images\Toolbox_32.png</Image>
     <Author>XIAOFU</Author>
     <Company>Acme</Company>
-    <Date>2026/02/09</Date>
+    <Date>2026/03/09</Date>
     <Subject>Framework</Subject>
     <!--
     可选主题: Content, Framework, Editing, Geodatabase, Geometry,
