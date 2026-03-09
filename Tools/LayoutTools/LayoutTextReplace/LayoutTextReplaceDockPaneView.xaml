@@ -21,7 +21,10 @@
         </Grid.RowDefinitions>
 
         <!-- 主标签页控件 -->
-        <TabControl Grid.Row="0" SelectedIndex="{Binding SelectedTabIndex}">
+        <TabControl Grid.Row="0"
+                    SelectedIndex="{Binding SelectedTabIndex}"
+                    Style="{StaticResource PageTabControlStyle}"
+                    ItemContainerStyle="{StaticResource PageTabItemStyle}">
             <!-- 查找标签页 -->
             <TabItem Header="查找">
                 <Grid Margin="6">

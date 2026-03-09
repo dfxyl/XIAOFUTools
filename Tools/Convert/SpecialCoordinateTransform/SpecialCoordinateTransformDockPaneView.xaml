@@ -3,138 +3,478 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
              xmlns:local="clr-namespace:XIAOFUTools.Tools.SpecialCoordinateTransform"
              mc:Ignorable="d"
-             d:DesignHeight="450" d:DesignWidth="400"
+             d:DesignHeight="720"
+             d:DesignWidth="450"
              d:DataContext="{Binding Path=SpecialCoordinateTransformDockPaneViewModel}"
              Loaded="UserControl_Loaded">
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- 布尔值转可见性转换器 -->
-            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+            <local:BooleanInverseConverter x:Key="BooleanInverseConverter" />
         </ResourceDictionary>
     </UserControl.Resources>
-    
+
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="170" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto"/>
-        </Grid.ColumnDefinitions>
 
-        <!-- 输入图层选择 -->
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="输入图层:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-        <Grid Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10">
+        <TabControl Grid.Row="0"
+                    SelectedIndex="{Binding SelectedModeIndex}"
+                    Margin="0,0,0,10"
+                    Style="{StaticResource PageTabControlStyle}"
+                    ItemContainerStyle="{StaticResource PageTabItemStyle}">
+            <TabItem Header="单层" Width="52">
+                <Grid Margin="6,4,6,6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="输入图层:"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <ComboBox Grid.Column="1"
+                                  Style="{StaticResource ComboBoxStyle}"
+                                  ItemsSource="{Binding FeatureLayers}"
+                                  SelectedItem="{Binding SelectedInputLayer}"
+                                  DisplayMemberPath="Name"
+                                  IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="2"
+                                Width="26"
+                                Height="26"
+                                Margin="6,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding RefreshLayersCommand}"
+                                ToolTip="刷新图层列表"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}">
+                            <TextBlock Text="⟲"
+                                       FontSize="12"
+                                       FontWeight="Bold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center" />
+                        </Button>
+                    </Grid>
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="输出要素类:"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding OutputPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TextBoxStyle}"
+                                 ToolTip="单层模式支持输出到 GDB 要素类或文件夹中的 Shapefile"
+                                 IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="2"
+                                Content="浏览"
+                                Width="60"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding BrowseOutputPathCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="批量" Width="52">
+                <Grid Margin="6,4,6,6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="输入文件夹:"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding BatchInputFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TextBoxStyle}"
+                                 ToolTip="扫描文件夹中的 SHP"
+                                 IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="2"
+                                Content="浏览"
+                                Width="60"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding BrowseBatchInputFolderCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Column="0"
+                                  Content="遍历子文件夹"
+                                  IsChecked="{Binding BatchIncludeSubfolders}"
+                                  Style="{StaticResource CheckBoxStyle}"
+                                  IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="1"
+                                Content="重新扫描"
+                                Width="75"
+                                Margin="10,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding RefreshBatchItemsCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding BatchSelectionSummary}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Grid>
+
+                    <CheckBox Grid.Row="2"
+                              Content="输出到源文件夹"
+                              IsChecked="{Binding BatchSaveToSourceFolder}"
+                              Style="{StaticResource CheckBoxStyle}"
+                              Margin="0,0,0,8"
+                              IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+
+                    <Grid Grid.Row="3"
+                          Margin="0,0,0,8"
+                          Visibility="{Binding ShowBatchOutputFolder, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="输出文件夹:"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding BatchOutputFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TextBoxStyle}"
+                                 IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="2"
+                                Content="浏览"
+                                Width="60"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding BrowseBatchOutputFolderCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                    </Grid>
+
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,0,0,5">
+                        <Button Content="全选"
+                                Width="55"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding SelectAllBatchItemsCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Content="反选"
+                                Width="55"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding InvertBatchItemsCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Content="清空选择"
+                                Width="75"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding ClearBatchItemsSelectionCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                    </StackPanel>
+
+                    <Border Grid.Row="5" BorderBrush="#CDCDCD" BorderThickness="1">
+                        <DataGrid ItemsSource="{Binding BatchItems}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserResizeRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  Background="White"
+                                  IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header="选中"
+                                                        Width="45"
+                                                        Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <DataGridTextColumn Header="名称"
+                                                    Width="140"
+                                                    Binding="{Binding Name}"
+                                                    IsReadOnly="True" />
+                                <DataGridTextColumn Header="相对路径"
+                                                    Width="*"
+                                                    Binding="{Binding RelativePath}"
+                                                    IsReadOnly="True" />
+                                <DataGridTextColumn Header="状态"
+                                                    Width="90"
+                                                    Binding="{Binding Status}"
+                                                    IsReadOnly="True" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="gdb" Width="52">
+                <Grid Margin="6,4,6,6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="输入文件夹:"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding GdbInputFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TextBoxStyle}"
+                                 ToolTip="扫描文件夹中的 GDB"
+                                 IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="2"
+                                Content="浏览"
+                                Width="60"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding BrowseGdbInputFolderCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Column="0"
+                                  Content="遍历子文件夹"
+                                  IsChecked="{Binding GdbIncludeSubfolders}"
+                                  Style="{StaticResource CheckBoxStyle}"
+                                  IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="1"
+                                Content="重新扫描"
+                                Width="75"
+                                Margin="10,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding RefreshGdbItemsCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <TextBlock Grid.Column="2"
+                                   Text="{Binding GdbSelectionSummary}"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Right"
+                                   Foreground="{StaticResource TextSecondaryBrush}" />
+                    </Grid>
+
+                    <CheckBox Grid.Row="2"
+                              Content="输出到源文件夹"
+                              IsChecked="{Binding GdbSaveToSourceFolder}"
+                              Style="{StaticResource CheckBoxStyle}"
+                              Margin="0,0,0,8"
+                              IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+
+                    <Grid Grid.Row="3"
+                          Margin="0,0,0,8"
+                          Visibility="{Binding ShowGdbOutputFolder, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0"
+                                   Text="输出文件夹:"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,10,0" />
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding GdbOutputFolderPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                 Style="{StaticResource TextBoxStyle}"
+                                 IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Grid.Column="2"
+                                Content="浏览"
+                                Width="60"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding BrowseGdbOutputFolderCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                    </Grid>
+
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,0,0,5">
+                        <Button Content="全选"
+                                Width="55"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding SelectAllGdbItemsCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Content="反选"
+                                Width="55"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding InvertGdbItemsCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                        <Button Content="清空选择"
+                                Width="75"
+                                Margin="8,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}"
+                                Command="{Binding ClearGdbItemsSelectionCommand}"
+                                IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
+                    </StackPanel>
+
+                    <Border Grid.Row="5" BorderBrush="#CDCDCD" BorderThickness="1">
+                        <DataGrid ItemsSource="{Binding GdbItems}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserResizeRows="False"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  Background="White"
+                                  IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}">
+                            <DataGrid.Columns>
+                                <DataGridCheckBoxColumn Header="选中"
+                                                        Width="45"
+                                                        Binding="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                                <DataGridTextColumn Header="名称"
+                                                    Width="140"
+                                                    Binding="{Binding Name}"
+                                                    IsReadOnly="True" />
+                                <DataGridTextColumn Header="相对路径"
+                                                    Width="*"
+                                                    Binding="{Binding RelativePath}"
+                                                    IsReadOnly="True" />
+                                <DataGridTextColumn Header="状态"
+                                                    Width="90"
+                                                    Binding="{Binding Status}"
+                                                    IsReadOnly="True" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+
+        <Grid Grid.Row="1" Margin="0,0,0,10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <ComboBox Grid.Column="0"
-                    Style="{StaticResource ComboBoxStyle}"
-                    ItemsSource="{Binding FeatureLayers}"
-                    SelectedItem="{Binding SelectedInputLayer}"
-                    DisplayMemberPath="Name"/>
-            <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0"
-                    Style="{StaticResource DefaultButtonStyle}"
-                    Command="{Binding RefreshLayersCommand}"
-                    ToolTip="刷新图层列表"
-                    VerticalAlignment="Center">
-                <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"
-                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            </Button>
+
+            <TextBlock Grid.Column="0"
+                       Text="转换类型:"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0" />
+            <ComboBox Grid.Column="1"
+                      Style="{StaticResource ComboBoxStyle}"
+                      ItemsSource="{Binding ConversionTypes}"
+                      SelectedItem="{Binding SelectedConversionType}"
+                      DisplayMemberPath="DisplayName"
+                      IsEnabled="{Binding IsBusy, Converter={StaticResource BooleanInverseConverter}}" />
         </Grid>
 
-        <!-- 输出路径 -->
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="输出要素类:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-        <TextBox Grid.Row="1" Grid.Column="1" Margin="0,0,5,10"
-               Style="{StaticResource TextBoxStyle}"
-               Text="{Binding OutputPath}"
-               ToolTip="默认输出到当前项目的默认地理数据库，命名格式：要素名称_转换坐标名称&#x0A;点击浏览选择：.gdb文件夹→数据库要素类，普通文件夹→Shapefile"/>
-        <Button Grid.Row="1" Grid.Column="2" Content="浏览" Width="60" Margin="0,0,0,10"
-                Style="{StaticResource DefaultButtonStyle}"
-                Command="{Binding BrowseOutputPathCommand}"
-                ToolTip="选择输出位置：.gdb数据库文件夹 或 普通文件夹"/>
+        <ProgressBar Grid.Row="2"
+                     Style="{StaticResource ProgressBarStyle}"
+                     Value="{Binding Progress}"
+                     Minimum="0"
+                     Maximum="100"
+                     IsIndeterminate="{Binding IsProgressIndeterminate}"
+                     Height="6"
+                     Margin="0,0,0,10" />
 
-        <!-- 转换类型选择 -->
-        <TextBlock Grid.Row="2" Grid.Column="0" Text="转换类型:" VerticalAlignment="Center" Margin="0,0,10,10"/>
-        <ComboBox Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10"
-                Style="{StaticResource ComboBoxStyle}"
-                ItemsSource="{Binding ConversionTypes}"
-                SelectedItem="{Binding SelectedConversionType}"
-                DisplayMemberPath="DisplayName"/>
-
-        <!-- 进度条 -->
-        <ProgressBar Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,10"
-                   Style="{StaticResource ProgressBarStyle}"
-                   Value="{Binding Progress}"
-                   Minimum="0" Maximum="100"
-                   IsIndeterminate="{Binding IsProgressIndeterminate}"
-                   Height="6"/>
-
-        <!-- 日志窗口 -->
-        <Border Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3"
-               BorderBrush="#CDCDCD" BorderThickness="1"
-               Margin="0,0,0,10"
-               MinHeight="120">
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <TextBox
-                      Style="{StaticResource LogTextBoxStyle}"
-                      Text="{Binding LogContent, Mode=OneWay}"
-                      BorderThickness="0"
-                      VerticalAlignment="Stretch"
-                      HorizontalAlignment="Stretch"
-                      TextWrapping="Wrap"
-                      AcceptsReturn="True"
-                      IsReadOnly="True"
-                      Background="Transparent"/>
-            </ScrollViewer>
+        <Border Grid.Row="3"
+                BorderBrush="#CDCDCD"
+                BorderThickness="1"
+                Margin="0,0,0,10">
+            <TextBox Style="{StaticResource LogTextBoxStyle}"
+                     Text="{Binding LogContent, Mode=OneWay}"
+                     BorderThickness="0"
+                     TextWrapping="Wrap"
+                     AcceptsReturn="True"
+                     IsReadOnly="True" />
         </Border>
 
-        <!-- 状态消息和按钮区域 -->
-        <Grid Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,0,0,0">
+        <Grid Grid.Row="4">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            
-            <!-- 执行状态 -->
-            <TextBlock Grid.Row="0" Text="{Binding StatusMessage}" 
-                    TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,0,0,10"/>
 
-            <!-- 按钮区域 -->
-            <Border Grid.Row="1" BorderBrush="{StaticResource DividerBrush}"
-                   BorderThickness="0,1,0,0"
-                   Margin="0,3,0,0"
-                   Padding="0,8,0,0">
+            <TextBlock Grid.Row="0"
+                       Text="{Binding StatusMessage}"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       Margin="0,0,0,10" />
+
+            <Border Grid.Row="1"
+                    BorderBrush="{StaticResource DividerBrush}"
+                    BorderThickness="0,1,0,0"
+                    Margin="0,3,0,0"
+                    Padding="0,8,0,0">
                 <Grid>
-                    <Button Content="?" Width="22" Height="22"
+                    <Button Content="?"
+                            Width="22"
+                            Height="22"
                             Style="{StaticResource HelpButtonStyle}"
                             Command="{Binding ShowHelpCommand}"
                             ToolTip="查看工具使用说明"
-                            HorizontalAlignment="Left"/>
-                    
+                            HorizontalAlignment="Left" />
+
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                        <!-- 只在处理时显示停止按钮 -->
-                        <Button Content="停止" Width="80" Command="{Binding CancelCommand}" Margin="0,0,10,0"
+                        <Button Content="停止"
+                                Width="80"
+                                Margin="0,0,10,0"
                                 Style="{StaticResource CancelButtonStyle}"
+                                Command="{Binding CancelCommand}"
                                 Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}}"
-                                IsEnabled="{Binding IsProcessing}"/>
-                        <Button Content="开始" Width="80" Command="{Binding RunCommand}"
+                                IsEnabled="{Binding IsProcessing}" />
+                        <Button Content="运行"
+                                Width="80"
                                 Style="{StaticResource ExecuteButtonStyle}"
-                                IsEnabled="{Binding CanProcess}"/>
+                                Command="{Binding RunCommand}"
+                                IsEnabled="{Binding CanProcess}" />
                     </StackPanel>
                 </Grid>
             </Border>

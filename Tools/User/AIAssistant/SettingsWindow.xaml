@@ -8,6 +8,11 @@
         ResizeMode="NoResize"
         ShowInTaskbar="False">
     <controls:ProWindow.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
         <!-- 基础文本样式 -->
         <Style TargetType="TextBlock" x:Key="LabelStyle">
             <Setter Property="FontSize" Value="12"/>
@@ -197,6 +202,7 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        </ResourceDictionary>
     </controls:ProWindow.Resources>
     
     <Grid Background="#f9fafb">

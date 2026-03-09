@@ -1,9 +1,25 @@
+using System;
+using System.Globalization;
 using System.Windows.Controls;
+using System.Windows.Data;
 
 namespace XIAOFUTools.Tools.SpecialCoordinateTransform
 {
+    public class BooleanInverseConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is bool booleanValue ? !booleanValue : true;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value is bool booleanValue ? !booleanValue : false;
+        }
+    }
+
     /// <summary>
-    /// 特殊坐标转换DockPane视图
+    /// 特殊坐标转换 DockPane 视图
     /// </summary>
     public partial class SpecialCoordinateTransformDockPaneView : UserControl
     {
@@ -12,26 +28,20 @@ namespace XIAOFUTools.Tools.SpecialCoordinateTransform
         public SpecialCoordinateTransformDockPaneView()
         {
             InitializeComponent();
-
-            // 创建并设置视图模型
             _viewModel = new SpecialCoordinateTransformDockPaneViewModel();
             DataContext = _viewModel;
         }
 
         private void UserControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            // 确保视图模型已设置
-            if (DataContext == null)
+            if (DataContext is not SpecialCoordinateTransformDockPaneViewModel viewModel)
             {
                 _viewModel = new SpecialCoordinateTransformDockPaneViewModel();
                 DataContext = _viewModel;
+                viewModel = _viewModel;
             }
 
-            // 刷新图层列表
-            if (_viewModel != null)
-            {
-                _viewModel.RefreshLayers();
-            }
+            viewModel.RefreshLayers();
         }
     }
 }
