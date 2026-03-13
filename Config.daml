@@ -27,6 +27,7 @@
           <group refID="XIAOFUTools_DataProcessingGroup" />
           <group refID="XIAOFUTools_LayoutDocGroup" />
           <group refID="XIAOFUTools_UserGroup" />
+          <group refID="XIAOFUTools_QuickAccessGroup" />
         </tab>
       </tabs>
       <!-- ============================== 分组定义（中间层） ============================== -->
@@ -58,6 +59,14 @@
           <button refID="XIAOFUTools_AIAssistantButton" />
           <buttonPalette refID="XIAOFUTools_CustomButtonPalette" />
           <buttonPalette refID="XIAOFUTools_UserConfigButtonPalette" />
+        </group>
+        <group id="XIAOFUTools_QuickAccessGroup" caption="ArcGIS常用" appearsOnAddInTab="false">
+          <splitButton refID="esri_mapping_exploreSplitButton" />
+          <splitButton refID="esri_editing_selectToolPalette" />
+          <splitButton refID="esri_mapping_clearSelectionButton" />
+          <splitButton refID="esri_reports_navigateContext" />
+          <splitButton refID="esri_layouts_selectContext" />
+          <splitButton refID="esri_mapping_measureSplitButton" />
         </group>
       </groups>
       <!-- ============================== 按钮面板定义（较低层） ============================== -->
@@ -122,7 +131,9 @@
           <button refID="XIAOFUTools_ExportLayoutButton" />
           <button refID="XIAOFUTools_LayoutTextReplaceButton" />
           <button refID="XIAOFUTools_GenerateSmallMapSheetsButton" />
+          <button refID="XIAOFUTools_SmallMapSheetAssignButton" />
           <button refID="XIAOFUTools_GenerateLargeMapSheetsButton" />
+          <button refID="XIAOFUTools_LargeMapSheetAssignButton" />
         </buttonPalette>
         <buttonPalette id="XIAOFUTools_PdfButtonPalette" caption="文档处理" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_PdfToImagesButton" />
@@ -213,8 +224,12 @@
         </dockPane>
         <!-- 生成小比例尺图幅停靠窗格 -->
         <dockPane id="XIAOFUTools_GenerateSmallMapSheetsDockPane" caption="生成小比例尺图幅" className="XIAOFUTools.Tools.MapSheetsSmall.GenerateSmallMapSheetsDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 小比例图幅赋值停靠窗格 -->
+        <dockPane id="XIAOFUTools_SmallMapSheetAssignDockPane" caption="小比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetAssignDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 生成大比例尺图幅停靠窗格 -->
         <dockPane id="XIAOFUTools_GenerateLargeMapSheetsDockPane" caption="生成大比例尺图幅" className="XIAOFUTools.Tools.MapSheetsLarge.GenerateLargeMapSheetsDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 大比例图幅赋值停靠窗格 -->
+        <dockPane id="XIAOFUTools_LargeMapSheetAssignDockPane" caption="大比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetAssignDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 修改起始点停靠窗格 -->
         <dockPane id="XIAOFUTools_ModifyStartPointDockPane" caption="修改起始点" className="XIAOFUTools.Tools.Edit.Boundary.ModifyStartPoint.ModifyStartPointDockPane" dock="group" dockWith="esri_core_projectDockPane">
           <content className="XIAOFUTools.Tools.Edit.Boundary.ModifyStartPoint.ModifyStartPointView" />
@@ -484,11 +499,23 @@
             根据输入范围生成标准小比例尺图幅并输出要素
             <disabledText>无权限使用生成小比例尺图幅功能</disabledText></tooltip>
         </button>
+        <!-- 小比例图幅赋值按钮 -->
+        <button id="XIAOFUTools_SmallMapSheetAssignButton" caption="小比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsSmall_16.png" largeImage="Images\MapSheetsSmall_32.png">
+          <tooltip heading="小比例图幅赋值">
+            计算小比例图幅并直接写入图斑字段，支持地图点选查询图幅
+            <disabledText>无权限使用小比例图幅赋值功能</disabledText></tooltip>
+        </button>
         <!-- 生成大比例尺图幅按钮 -->
         <button id="XIAOFUTools_GenerateLargeMapSheetsButton" caption="生成大比例尺图幅" className="XIAOFUTools.Tools.MapSheetsLarge.GenerateLargeMapSheetsButton" loadOnClick="true" smallImage="Images\MapSheetsLarge_16.png" largeImage="Images\MapSheetsLarge_32.png">
           <tooltip heading="生成大比例尺图幅">
             按投影坐标网格生成大比例尺图幅并输出要素
             <disabledText>无权限使用生成大比例尺图幅功能</disabledText></tooltip>
+        </button>
+        <!-- 大比例图幅赋值按钮 -->
+        <button id="XIAOFUTools_LargeMapSheetAssignButton" caption="大比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsLarge_16.png" largeImage="Images\MapSheetsLarge_32.png">
+          <tooltip heading="大比例图幅赋值">
+            计算大比例图幅并直接写入图斑字段，支持地图点选查询图幅
+            <disabledText>无权限使用大比例图幅赋值功能</disabledText></tooltip>
         </button>
         <!-- 属性传递[字段]按钮 -->
         <button id="XIAOFUTools_AttributeTransferFieldsButton" caption="属性传递[字段]" className="XIAOFUTools.Tools.AttributeTransferFields.AttributeTransferFieldsButton" loadOnClick="true" smallImage="Images\AttributeTransferFields_16.png" largeImage="Images\AttributeTransferFields_32.png">
@@ -548,6 +575,18 @@
         <tool id="XIAOFUTools_ViewStartPointTool" className="XIAOFUTools.Tools.Edit.Boundary.ViewStartPoint.ViewStartPointTool" caption="查看起始点" loadOnClick="true" smallImage="Images\ViewStartPoint_16.png" largeImage="Images\ViewStartPoint_32.png" condition="esri_mapping_mapPane" keytip="V">
           <tooltip heading="查看起始点">
             查看和设置面要素的起始点，支持编辑模式下修改起始点位置
+            <disabledText>必须打开地图才能使用此工具</disabledText></tooltip>
+        </tool>
+        <!-- 大比例图幅查询工具 -->
+        <tool id="XIAOFUTools_LargeMapSheetIdentifyTool" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetIdentifyTool" caption="大比例图幅查询" loadOnClick="true" smallImage="Images\MapSheetsLarge_16.png" largeImage="Images\MapSheetsLarge_32.png" condition="esri_mapping_mapPane">
+          <tooltip heading="大比例图幅查询">
+            在地图上单击并查询当前参数对应的大比例图幅
+            <disabledText>必须打开地图才能使用此工具</disabledText></tooltip>
+        </tool>
+        <!-- 小比例图幅查询工具 -->
+        <tool id="XIAOFUTools_SmallMapSheetIdentifyTool" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetIdentifyTool" caption="小比例图幅查询" loadOnClick="true" smallImage="Images\MapSheetsSmall_16.png" largeImage="Images\MapSheetsSmall_32.png" condition="esri_mapping_mapPane">
+          <tooltip heading="小比例图幅查询">
+            在地图上单击并查询当前参数对应的小比例图幅
             <disabledText>必须打开地图才能使用此工具</disabledText></tooltip>
         </tool>
         <!-- 修改起始点按钮 -->

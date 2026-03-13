@@ -16,6 +16,10 @@
     <EmbeddedResource Remove="Docs\GEHistoricalImagery-master\**" />
     <None Remove="Docs\GEHistoricalImagery-master\**" />
     <Page Remove="Docs\GEHistoricalImagery-master\**" />
+    <Compile Remove="XIAOFUTools.Tests\**" />
+    <EmbeddedResource Remove="XIAOFUTools.Tests\**" />
+    <None Remove="XIAOFUTools.Tests\**" />
+    <Page Remove="XIAOFUTools.Tests\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Config.daml" />

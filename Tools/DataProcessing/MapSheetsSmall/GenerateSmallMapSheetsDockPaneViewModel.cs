@@ -199,20 +199,22 @@ namespace XIAOFUTools.Tools.MapSheetsSmall
                     var extentWgs = (Envelope)GeometryEngine.Instance.Project(extent, cgcs2000);
 
                     // 计算覆盖的百万分幅编码
-                    var xmin = extentWgs.XMin; var xmax = extentWgs.XMax; var ymin = extentWgs.YMin; var ymax = extentWgs.YMax;
 
                     // 创建输出要素类（GP创建 + 添加字段），然后打开以写入
                     var fc = CreateOutputFeatureClass(OutputFeatureClassPath, sr);
 
                     // 生成
                     var scaleCode = GetScaleCode(SelectedScaleName);
-                    var mapCodes = Compute100kCodes(xmin, xmax, ymin, ymax);
+                    string[] mapCodes;
 
                     // 计算裁剪几何：
                     // 图层模式使用图层联合，其余使用矩形范围
                     Geometry clipGeom = IsLayerMode
-                        ? BuildLayerUnionInCGCS2000(SelectedPolygonLayer, cgcs2000, extentWgs)
+                        ? BuildLayerUnionInCGCS2000(SelectedPolygonLayer, cgcs2000, extent, sr)
                         : PolygonBuilderEx.CreatePolygon(extentWgs);
+
+                    var coverageExtentWgs = clipGeom?.Extent ?? extentWgs;
+                    mapCodes = Compute100kCodes(coverageExtentWgs.XMin, coverageExtentWgs.XMax, coverageExtentWgs.YMin, coverageExtentWgs.YMax);
 
                     int created = 0;
                     foreach (var code in mapCodes)
@@ -237,7 +239,7 @@ namespace XIAOFUTools.Tools.MapSheetsSmall
                                 var e = GetExtentByScale(code, scaleCode, r, c);
                                 // 仅插入与原范围相交的图幅
                                 var eEnv = EnvelopeBuilderEx.CreateEnvelope(e.xmin, e.ymin, e.xmax, e.ymax, cgcs2000);
-                                if (!eEnv.IsEmpty && eEnv.Intersects(extentWgs))
+                                if (!eEnv.IsEmpty && eEnv.Intersects(coverageExtentWgs))
                                 {
                                     var full = $"{code}{scaleCode}{r:000}{c:000}";
                                     var n = GetNeighborsForScale(code, scaleCode, r, c);
@@ -440,14 +442,12 @@ namespace XIAOFUTools.Tools.MapSheetsSmall
         {
             var codes = new System.Collections.Generic.HashSet<string>();
             if (ymin < 0) ymin = 0; // 中国范围假定北半球
-            int yStart = (int)Math.Floor(ymin / 4.0);
-            int yEnd = (int)Math.Floor(ymax / 4.0);
+            var (yStart, yEnd) = MapSheetCoverageUtils.GetInclusiveIndexRange(ymin, ymax, 4.0);
             for (int y = yStart; y <= yEnd; y++)
             {
                 double bandLat = y * 4.0 + 2.0; // 中纬
                 double lonStep = (bandLat < 60.0) ? 6.0 : (bandLat < 76.0 ? 12.0 : 24.0);
-                int xStart = (int)Math.Floor((xmin + 180.0) / lonStep);
-                int xEnd = (int)Math.Floor((xmax + 180.0) / lonStep);
+                var (xStart, xEnd) = MapSheetCoverageUtils.GetInclusiveIndexRange(xmin + 180.0, xmax + 180.0, lonStep);
                 for (int x = xStart; x <= xEnd; x++)
                 {
                     char rowLetter = (char)('A' + y);
@@ -459,19 +459,28 @@ namespace XIAOFUTools.Tools.MapSheetsSmall
         }
 
         // 计算选中图层在 CGCS2000 下的联合多边形（仅限与范围相交部分）
-        private Geometry BuildLayerUnionInCGCS2000(FeatureLayer fl, SpatialReference cgcs2000, Envelope extentCgcs)
+        private Geometry BuildLayerUnionInCGCS2000(FeatureLayer fl, SpatialReference cgcs2000, Envelope sourceExtent, SpatialReference sourceExtentSr)
         {
             if (fl == null) return null;
             var fc = fl.GetFeatureClass();
             var layerSR = fl.GetSpatialReference();
-            var extentInLayer = (Envelope)GeometryEngine.Instance.Project(extentCgcs, layerSR);
-            var sq = new SpatialQueryFilter
-            {
-                FilterGeometry = extentInLayer,
-                SpatialRelationship = SpatialRelationship.Intersects
-            };
             var geoms = new System.Collections.Generic.List<Geometry>();
-            using (var cursor = fc.Search(sq, false))
+            QueryFilter filter = null;
+            if (sourceExtent != null)
+            {
+                var extentInLayer =
+                    sourceExtentSr != null && layerSR != null && sourceExtentSr.Wkid == layerSR.Wkid
+                        ? sourceExtent
+                        : (Envelope)GeometryEngine.Instance.Project(sourceExtent, layerSR);
+
+                filter = new SpatialQueryFilter
+                {
+                    FilterGeometry = extentInLayer,
+                    SpatialRelationship = SpatialRelationship.Intersects
+                };
+            }
+
+            using (var cursor = fc.Search(filter, false))
             {
                 while (cursor.MoveNext())
                 {

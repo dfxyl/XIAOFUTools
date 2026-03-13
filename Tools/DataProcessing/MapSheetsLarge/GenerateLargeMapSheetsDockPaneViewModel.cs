@@ -231,6 +231,8 @@ namespace XIAOFUTools.Tools.MapSheetsLarge
                         ? BuildLayerUnionInTargetSR(SelectedPolygonLayer, targetSR, extent)
                         : PolygonBuilderEx.CreatePolygon(extent);
 
+                    var coverageExtent = clipGeom?.Extent ?? extent;
+
                     // 网格尺寸
                     double width, height;
                     var dims = GetScaleDimensions(SelectedScaleName);
@@ -243,11 +245,8 @@ namespace XIAOFUTools.Tools.MapSheetsLarge
                     else { width = dims.Value.width; height = dims.Value.height; }
 
                     // 对齐到网格
-                    double xmin = extent.XMin, xmax = extent.XMax, ymin = extent.YMin, ymax = extent.YMax;
-                    double x_start = Math.Floor(xmin / width) * width;
-                    double y_start = Math.Floor(ymin / height) * height;
-                    double x_end = Math.Ceiling(xmax / width) * width;
-                    double y_end = Math.Ceiling(ymax / height) * height;
+                    var (x_start, x_end) = MapSheetCoverageUtils.AlignToGrid(coverageExtent.XMin, coverageExtent.XMax, width);
+                    var (y_start, y_end) = MapSheetCoverageUtils.AlignToGrid(coverageExtent.YMin, coverageExtent.YMax, height);
 
                     int created = 0;
                     for (double x = x_start; x < x_end; x += width)

@@ -204,6 +204,7 @@
         <Setter Property="Padding" Value="6,0"/>
         <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}"/>
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
         <Setter Property="Height" Value="26"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
@@ -896,6 +897,16 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+    </Style>
+
+    <!-- 可编辑多行文本框样式 -->
+    <Style x:Key="MultiLineTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource LogTextBoxStyle}">
+        <Setter Property="IsReadOnly" Value="False"/>
+        <Setter Property="Height" Value="Auto"/>
+        <Setter Property="MinHeight" Value="120"/>
+        <Setter Property="VerticalAlignment" Value="Stretch"/>
+        <Setter Property="VerticalContentAlignment" Value="Top"/>
+        <Setter Property="AcceptsReturn" Value="True"/>
     </Style>
 
     <!-- 窗口边框样式 -->
