@@ -174,9 +174,26 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
                 
+                <!-- 帮助按钮 -->
+                <Button Grid.Row="0"
+                        Grid.Column="0"
+                        Content="?"
+                        Width="22"
+                        Height="22"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource HelpButtonStyle}"
+                        Command="{Binding ShowHelpCommand}"
+                        ToolTip="显示帮助信息"/>
+
                 <!-- 查询按钮 -->
                 <Button Grid.Row="0"
+                        Grid.Column="1"
                         Command="{Binding QueryMetadataCommand}"
                         HorizontalAlignment="Stretch"
                         Height="24"
@@ -192,6 +209,8 @@
                 
                 <!-- 元数据显示 -->
                 <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Grid.ColumnSpan="2"
                            Text="{Binding MetadataDisplay}"
                            FontSize="10"
                            TextWrapping="Wrap"

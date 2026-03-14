@@ -179,6 +179,7 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         public ICommand AddLayerCommand { get; }
         public ICommand ClearSearchCommand { get; }
         public ICommand QueryMetadataCommand { get; }
+        public ICommand ShowHelpCommand { get; }
 
         private List<WaybackVersion> _allVersions;
         private List<WaybackVersion> _catalogVersions;
@@ -195,6 +196,7 @@ namespace XIAOFUTools.Tools.HistoricalImagery
             AddLayerCommand = new RelayCommand(AddSelectedLayer, () => SelectedNode?.IsLeaf == true);
             ClearSearchCommand = new RelayCommand(() => SearchText = string.Empty);
             QueryMetadataCommand = new RelayCommand(async () => await QueryCurrentMetadataAsync());
+            ShowHelpCommand = new RelayCommand(ShowHelp);
 
             // 自动加载版本列表
             _ = LoadVersionsAsync();
@@ -695,6 +697,13 @@ namespace XIAOFUTools.Tools.HistoricalImagery
             return candidate.SourceType == WaybackMetadataSourceType.GlobalLatest
                 ? $"查询来源: 全局最新版本\n版本: {versionText}"
                 : $"查询来源: 当前地图图层\n图层: {candidate.LayerName ?? "未命名图层"}\n版本: {versionText}";
+        }
+
+        private void ShowHelp()
+        {
+            ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                HistoricalImageryHelpTextBuilder.Build(),
+                "历史影像工具说明");
         }
 
         private sealed record MetadataQueryContext(
