@@ -27,6 +27,10 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             HistoricalVersionQuery query,
             CancellationToken cancellationToken = default);
 
+        Task<HistoricalCoverageProbeResult> ProbeCoverageAsync(
+            HistoricalCoverageProbeRequest request,
+            CancellationToken cancellationToken = default);
+
         Task<HistoricalTileDownloadResult> DownloadTileAsync(
             HistoricalTileDownloadRequest request,
             CancellationToken cancellationToken = default);
@@ -72,6 +76,10 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
     internal sealed class GoogleHistoricalImageryProvider : IHistoricalImageryProvider
     {
         private readonly GoogleTimeMachineClient _client;
+
+        internal sealed record GoogleTileSelectionResolution(
+            GoogleDatedTileInfo DatedTile,
+            bool UsedNearestDateFallback);
 
         public GoogleHistoricalImageryProvider(string? cacheDirectory = null)
         {
@@ -138,8 +146,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 };
             }
 
-            var datedTile = node.DatedTiles.FirstOrDefault(tile => tile.Date == desiredDate);
-            if (datedTile == null)
+            var resolution = ResolveTileSelection(node.DatedTiles, desiredDate, allowNearestDateFallback: true);
+            if (resolution == null)
             {
                 return new HistoricalTileDownloadResult
                 {
@@ -149,11 +157,19 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
 
             try
             {
-                var bytes = await _client.DownloadTileAsync(node, datedTile, cancellationToken);
+                var bytes = await _client.DownloadTileAsync(node, resolution.DatedTile, cancellationToken);
+                var resolvedDisplayDate = resolution.DatedTile.Date.ToString("yyyy-MM-dd");
+                var message = bytes == null || bytes.Length == 0
+                    ? $"Failed to download Google tile {node.Path}"
+                    : resolution.UsedNearestDateFallback
+                        ? $"Google tile fallback: {node.Path} {desiredDate:yyyy-MM-dd} -> {resolvedDisplayDate}"
+                        : null;
                 return new HistoricalTileDownloadResult
                 {
                     ImageBytes = bytes,
-                    Message = bytes == null || bytes.Length == 0 ? $"Failed to download Google tile {node.Path}" : null
+                    Message = message,
+                    UsedNearestDateFallback = resolution.UsedNearestDateFallback,
+                    ResolvedDisplayDate = resolvedDisplayDate
                 };
             }
             catch (HttpRequestException ex)
@@ -163,6 +179,64 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                     Message = $"Failed to download Google tile {node.Path}: {ex.Message}"
                 };
             }
+        }
+
+        internal static GoogleTileSelectionResolution? ResolveTileSelection(
+            IReadOnlyList<GoogleDatedTileInfo> datedTiles,
+            DateOnly desiredDate,
+            bool allowNearestDateFallback)
+        {
+            ArgumentNullException.ThrowIfNull(datedTiles);
+
+            var exactMatch = datedTiles.FirstOrDefault(tile => tile.Date == desiredDate);
+            if (exactMatch != null)
+            {
+                return new GoogleTileSelectionResolution(exactMatch, UsedNearestDateFallback: false);
+            }
+
+            if (!allowNearestDateFallback || datedTiles.Count == 0)
+            {
+                return null;
+            }
+
+            var nearestTile = datedTiles
+                .OrderBy(tile => Math.Abs(tile.Date.DayNumber - desiredDate.DayNumber))
+                .ThenByDescending(tile => tile.Date <= desiredDate)
+                .ThenByDescending(tile => tile.Date.DayNumber)
+                .First();
+
+            return new GoogleTileSelectionResolution(nearestTile, UsedNearestDateFallback: true);
+        }
+
+        public async Task<HistoricalCoverageProbeResult> ProbeCoverageAsync(
+            HistoricalCoverageProbeRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            if (!DateOnly.TryParse(request.Version.DisplayDate, out var desiredDate))
+            {
+                return new HistoricalCoverageProbeResult
+                {
+                    CheckedTileCount = request.Tiles.Count,
+                    AvailableTileCount = 0
+                };
+            }
+
+            var availableTileCount = 0;
+            foreach (var tile in request.Tiles)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var node = await _client.GetNodeAsync(tile, cancellationToken);
+                if (node?.DatedTiles.Any(tileInfo => tileInfo.Date == desiredDate) == true)
+                {
+                    availableTileCount++;
+                }
+            }
+
+            return new HistoricalCoverageProbeResult
+            {
+                CheckedTileCount = request.Tiles.Count,
+                AvailableTileCount = availableTileCount
+            };
         }
     }
 
@@ -277,6 +351,38 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                     Message = $"Failed to download Wayback tile {request.Tile.Row}/{request.Tile.Column}: {ex.Message}"
                 };
             }
+        }
+
+        public async Task<HistoricalCoverageProbeResult> ProbeCoverageAsync(
+            HistoricalCoverageProbeRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            if (request.Tiles.Count == 0)
+            {
+                return new HistoricalCoverageProbeResult();
+            }
+
+            const int maxConcurrency = 12;
+            using var semaphore = new SemaphoreSlim(Math.Min(maxConcurrency, request.Tiles.Count));
+            var tasks = request.Tiles.Select(async tile =>
+            {
+                await semaphore.WaitAsync(cancellationToken);
+                try
+                {
+                    return await QueryTilemapInfoAsync(request.Version.VersionId, tile, cancellationToken) != null ? 1 : 0;
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+
+            var results = await Task.WhenAll(tasks);
+            return new HistoricalCoverageProbeResult
+            {
+                CheckedTileCount = request.Tiles.Count,
+                AvailableTileCount = results.Sum()
+            };
         }
 
         private async Task<IReadOnlyList<HistoricalVersionItem>> GetCatalogAsync(CancellationToken cancellationToken)

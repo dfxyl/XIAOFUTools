@@ -60,6 +60,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
         public HistoricalTileDefinition Tile { get; init; } = new();
 
         public bool UseCache { get; init; }
+
+        public GoogleNearestDateFallbackMode GoogleNearestDateFallbackMode { get; init; } = GoogleNearestDateFallbackMode.SeparateOutputs;
     }
 
     internal sealed class HistoricalTileDownloadResult
@@ -67,6 +69,10 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
         public byte[]? ImageBytes { get; init; }
 
         public string? Message { get; init; }
+
+        public bool UsedNearestDateFallback { get; init; }
+
+        public string? ResolvedDisplayDate { get; init; }
 
         public bool HasData => ImageBytes != null && ImageBytes.Length > 0;
     }

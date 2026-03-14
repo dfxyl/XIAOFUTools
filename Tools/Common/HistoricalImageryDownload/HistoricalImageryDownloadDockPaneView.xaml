@@ -126,7 +126,21 @@
                     Style="{StaticResource DefaultButtonStyle}"/>
         </Grid>
 
-        <TextBlock Grid.Row="5" Text="{Binding AreaSummary}" Margin="0,0,0,8" Foreground="Gray"/>
+        <StackPanel Grid.Row="5" Margin="0,0,0,8">
+            <TextBlock Text="{Binding AreaSummary}" Foreground="Gray"/>
+            <Grid Margin="0,6,0,0"
+                  Visibility="{Binding IsGoogleProviderSelected, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="70"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="缺失处理" VerticalAlignment="Center"/>
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding GoogleFallbackModeOptions}"
+                          SelectedItem="{Binding SelectedGoogleFallbackModeOption}"
+                          Style="{StaticResource ComboBoxStyle}"/>
+            </Grid>
+        </StackPanel>
 
         <Grid Grid.Row="6" Margin="0,0,0,8">
             <Grid.RowDefinitions>

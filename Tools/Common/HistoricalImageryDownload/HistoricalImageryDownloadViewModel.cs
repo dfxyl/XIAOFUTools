@@ -39,6 +39,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
         private bool _hasVersionResults;
         private bool _isQueryAllVersions;
         private ProviderOption? _selectedProviderOption;
+        private GoogleFallbackModeOption? _selectedGoogleFallbackModeOption;
         private AreaSourceOption? _selectedAreaSourceOption;
         private int _selectedZoomLevel = 18;
         private HistoricalVersionSelectionItem? _selectedVersionPreview;
@@ -63,6 +64,12 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
                 new ProviderOption(HistoricalImageryProviderType.Wayback, "Esri Wayback")
             ];
 
+            GoogleFallbackModeOptions =
+            [
+                new GoogleFallbackModeOption(GoogleNearestDateFallbackMode.SeparateOutputs, "分别输出"),
+                new GoogleFallbackModeOption(GoogleNearestDateFallbackMode.MixedSingleOutput, "混合日期")
+            ];
+
             AreaSourceOptions =
             [
                 new AreaSourceOption(HistoricalAreaSourceType.CurrentView, "当前视图"),
@@ -71,6 +78,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
             ];
 
             _selectedProviderOption = ProviderOptions[0];
+            _selectedGoogleFallbackModeOption = GoogleFallbackModeOptions[0];
             _selectedAreaSourceOption = AreaSourceOptions[0];
             UpdateAreaSummary();
 
@@ -89,6 +97,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
 
         public ObservableCollection<ProviderOption> ProviderOptions { get; }
 
+        public ObservableCollection<GoogleFallbackModeOption> GoogleFallbackModeOptions { get; }
+
         public ProviderOption? SelectedProviderOption
         {
             get => _selectedProviderOption;
@@ -97,12 +107,19 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
                 if (SetProperty(ref _selectedProviderOption, value))
                 {
                     ResetVersions();
+                    OnPropertyChanged(nameof(IsGoogleProviderSelected));
                     UpdateCommands();
                 }
             }
         }
 
         public ObservableCollection<AreaSourceOption> AreaSourceOptions { get; } 
+
+        public GoogleFallbackModeOption? SelectedGoogleFallbackModeOption
+        {
+            get => _selectedGoogleFallbackModeOption;
+            set => SetProperty(ref _selectedGoogleFallbackModeOption, value);
+        }
 
         public AreaSourceOption? SelectedAreaSourceOption
         {
@@ -207,6 +224,9 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
 
         public string QueryModeDisplayText => IsQueryAllVersions ? "查询全部" : "查询历史";
 
+        public GoogleNearestDateFallbackMode GoogleFallbackMode
+            => SelectedGoogleFallbackModeOption?.Mode ?? GoogleNearestDateFallbackMode.SeparateOutputs;
+
         public bool IsProcessing
         {
             get => _isProcessing;
@@ -243,6 +263,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
         public bool IsCustomExtentSource => SelectedAreaSourceOption?.AreaSourceType == HistoricalAreaSourceType.CustomExtent;
 
         public bool IsFeatureLayerSource => SelectedAreaSourceOption?.AreaSourceType == HistoricalAreaSourceType.FeatureLayer;
+
+        public bool IsGoogleProviderSelected => SelectedProviderOption?.ProviderType == HistoricalImageryProviderType.GoogleEarth;
 
         public bool CanQuery => !IsProcessing && SelectedProviderOption != null;
 
@@ -416,7 +438,10 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
                     area.SourceType,
                     Versions,
                     SelectedZoomLevel,
-                    OutputFolderPath);
+                    OutputFolderPath,
+                    SelectedProviderOption.ProviderType == HistoricalImageryProviderType.GoogleEarth
+                        ? GoogleFallbackMode
+                        : GoogleNearestDateFallbackMode.SeparateOutputs);
 
                 if (requests.Count == 0)
                 {
@@ -426,13 +451,10 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
                 var completedCount = 0;
                 var partialCount = 0;
                 var targetSpatialReferenceText = GetTargetSpatialReferenceText();
+                var inspections = new List<(HistoricalDownloadRequest Request, HistoricalDownloadExecutionRequest ExecutionRequest, HistoricalDownloadInspectionResult Inspection)>();
 
                 foreach (var request in requests)
                 {
-                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    StatusMessage = $"正在下载 {completedCount + 1}/{requests.Count}: {request.Version.DisplayDate}";
-                    AppendLog($"开始下载: {request.OutputFilePath}");
-
                     var executionRequest = new HistoricalDownloadExecutionRequest
                     {
                         Request = request,
@@ -440,18 +462,90 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
                         TargetSpatialReferenceText = targetSpatialReferenceText
                     };
 
+                    var inspection = await _downloadEngine.InspectAsync(executionRequest, _cancellationTokenSource.Token);
+                    inspections.Add((request, executionRequest, inspection));
+                }
+
+                var blockedInspection = inspections.FirstOrDefault(item => item.Inspection.ShouldBlock);
+                if (blockedInspection.Inspection != null && blockedInspection.Inspection.ShouldBlock)
+                {
+                    throw new InvalidOperationException(string.Join(Environment.NewLine, blockedInspection.Inspection.Messages));
+                }
+
+                foreach (var inspection in inspections.Where(item => !item.Inspection.CanDownload))
+                {
+                    foreach (var message in inspection.Inspection.Messages)
+                    {
+                        AppendLog(message);
+                    }
+                }
+
+                var runnableRequests = inspections.Where(item => item.Inspection.CanDownload).ToList();
+                if (runnableRequests.Count == 0)
+                {
+                    throw new InvalidOperationException("所选版本在当前范围和级别下没有可用影像，已全部跳过。");
+                }
+
+                if (SelectedProviderOption.ProviderType == HistoricalImageryProviderType.GoogleEarth)
+                {
+                    AppendLog(GoogleFallbackMode == GoogleNearestDateFallbackMode.SeparateOutputs
+                        ? "Google 缺失瓦片将按实际日期分别输出多个结果文件。"
+                        : "Google 缺失瓦片将回退到相近日期，并混合写入同一个结果文件。");
+                }
+
+                var overallEvaluation = HistoricalDownloadPerformanceAdvisor.Evaluate(
+                    runnableRequests.Max(item => item.Inspection.TotalTileCount),
+                    runnableRequests.Count,
+                    area.RequiresPreciseClip);
+
+                foreach (var message in overallEvaluation.Messages)
+                {
+                    AppendLog(message);
+                }
+
+                if (overallEvaluation.ShouldWarn)
+                {
+                    var warningText = string.Join(Environment.NewLine, overallEvaluation.Messages);
+                    var dialogResult = ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                        $"{warningText}{Environment.NewLine}{Environment.NewLine}是否继续下载？",
+                        "大范围下载提示",
+                        System.Windows.MessageBoxButton.OKCancel,
+                        System.Windows.MessageBoxImage.Warning);
+                    if (dialogResult != System.Windows.MessageBoxResult.OK)
+                    {
+                        StatusMessage = "下载已取消";
+                        AppendLog("用户取消了大范围下载。");
+                        return;
+                    }
+                }
+
+                foreach (var item in runnableRequests)
+                {
+                    _cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                    var request = item.Request;
+                    var executionRequest = item.ExecutionRequest;
+                    StatusMessage = $"正在下载 {completedCount + 1}/{runnableRequests.Count}: {request.Version.DisplayDate}";
+                    AppendLog($"开始下载: {request.OutputFilePath}");
+                    AppendLog($"预计瓦片数: {item.Inspection.TotalTileCount}，自动并发: {item.Inspection.RecommendedTileConcurrency}");
+
                     await ReleaseOutputFileLocksAsync(request.OutputFilePath);
 
                     var result = await _downloadEngine.DownloadAsync(
                         executionRequest,
-                        new Progress<double>(value => Progress = ((completedCount + value) / requests.Count) * 100d),
+                        new Progress<double>(value => Progress = ((completedCount + value) / runnableRequests.Count) * 100d),
                         _cancellationTokenSource.Token);
 
                     completedCount++;
                     partialCount += result.HasPartialCoverage ? 1 : 0;
 
-                    await AddOutputToMapAsync(result.OutputFilePath);
-                    AppendLog($"[{completedCount}/{requests.Count}] 下载完成: {result.OutputFilePath}");
+                    IEnumerable<string> outputFilePaths = result.OutputFilePaths.Count > 0
+                        ? result.OutputFilePaths
+                        : new[] { result.OutputFilePath };
+                    foreach (var outputFilePath in outputFilePaths)
+                    {
+                        await AddOutputToMapAsync(outputFilePath);
+                        AppendLog($"[{completedCount}/{requests.Count}] 下载完成: {outputFilePath}");
+                    }
                     foreach (var message in result.Messages.Take(20))
                     {
                         AppendLog(message);
@@ -696,6 +790,11 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         public sealed record ProviderOption(HistoricalImageryProviderType ProviderType, string DisplayName)
+        {
+            public override string ToString() => DisplayName;
+        }
+
+        public sealed record GoogleFallbackModeOption(GoogleNearestDateFallbackMode Mode, string DisplayName)
         {
             public override string ToString() => DisplayName;
         }

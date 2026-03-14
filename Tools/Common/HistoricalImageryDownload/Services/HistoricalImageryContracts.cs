@@ -39,6 +39,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
     {
         public string OutputFilePath { get; set; } = string.Empty;
 
+        public List<string> OutputFilePaths { get; } = new();
+
         public int TotalTileCount { get; set; }
 
         public int DownloadedTileCount { get; set; }

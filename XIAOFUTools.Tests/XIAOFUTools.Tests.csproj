@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Tools\Common\HistoricalImagery\HistoricalImageryHelpTextBuilder.cs" Link="Shared\HistoricalImageryHelpTextBuilder.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalVersionModels.cs" Link="Shared\HistoricalVersionModels.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalDownloadRequestModels.cs" Link="Shared\HistoricalDownloadRequestModels.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalTileModels.cs" Link="Shared\HistoricalTileModels.cs" />
@@ -34,8 +35,13 @@
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\Google\GoogleQuadtreePacketParser.cs" Link="Shared\GoogleQuadtreePacketParser.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\Google\GoogleTimeMachineClient.cs" Link="Shared\GoogleTimeMachineClient.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalBatchDownloadPlanner.cs" Link="Shared\HistoricalBatchDownloadPlanner.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalCoverageProbeModels.cs" Link="Shared\HistoricalCoverageProbeModels.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalImageryHelpTextBuilder.cs" Link="Shared\HistoricalImageryHelpTextBuilder.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalOutputPathBuilder.cs" Link="Shared\HistoricalOutputPathBuilder.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalCoverageProbeSampler.cs" Link="Shared\HistoricalCoverageProbeSampler.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalDownloadPerformanceAdvisor.cs" Link="Shared\HistoricalDownloadPerformanceAdvisor.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalRasterCompositionOptions.cs" Link="Shared\HistoricalRasterCompositionOptions.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalRasterExportOptions.cs" Link="Shared\HistoricalRasterExportOptions.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalVersionSelectionSummaryBuilder.cs" Link="Shared\HistoricalVersionSelectionSummaryBuilder.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\WaybackMetadataSourceResolver.cs" Link="Shared\WaybackMetadataSourceResolver.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\WaybackVersionFilter.cs" Link="Shared\WaybackVersionFilter.cs" />

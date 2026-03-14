@@ -29,13 +29,15 @@ public class HistoricalBatchDownloadPlannerTests
             HistoricalAreaSourceType.CurrentView,
             selections,
             18,
-            @"D:\Output");
+            @"D:\Output",
+            GoogleNearestDateFallbackMode.SeparateOutputs);
 
         Assert.Collection(
             requests,
             request => Assert.Equal(@"D:\Output\Google_2024-03-01_Z18.tif", request.OutputFilePath),
             request => Assert.Equal(@"D:\Output\Google_2024-02-01_Z18.tif", request.OutputFilePath));
         Assert.All(requests, request => Assert.Equal(18, request.ZoomLevel));
+        Assert.All(requests, request => Assert.Equal(GoogleNearestDateFallbackMode.SeparateOutputs, request.GoogleNearestDateFallbackMode));
     }
 
     [Fact]
@@ -56,7 +58,8 @@ public class HistoricalBatchDownloadPlannerTests
             HistoricalAreaSourceType.CurrentView,
             selections,
             18,
-            @"D:\Output");
+            @"D:\Output",
+            GoogleNearestDateFallbackMode.MixedSingleOutput);
 
         Assert.Empty(requests);
     }

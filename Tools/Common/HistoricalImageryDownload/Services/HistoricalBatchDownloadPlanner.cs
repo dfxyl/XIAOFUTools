@@ -13,7 +13,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             HistoricalAreaSourceType areaSourceType,
             IEnumerable<HistoricalVersionSelectionItem> selections,
             int zoomLevel,
-            string outputFolderPath)
+            string outputFolderPath,
+            GoogleNearestDateFallbackMode googleNearestDateFallbackMode)
         {
             return selections
                 .Where(selection => selection.IsSelected)
@@ -24,7 +25,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                     Version = selection.Version,
                     ZoomLevel = zoomLevel,
                     OutputFilePath = HistoricalOutputPathBuilder.BuildForFolder(outputFolderPath, selection.Version, zoomLevel),
-                    UseCache = true
+                    UseCache = true,
+                    GoogleNearestDateFallbackMode = googleNearestDateFallbackMode
                 })
                 .ToArray();
         }

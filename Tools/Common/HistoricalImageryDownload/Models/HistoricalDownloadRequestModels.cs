@@ -9,6 +9,12 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
         FeatureLayer = 2
     }
 
+    public enum GoogleNearestDateFallbackMode
+    {
+        SeparateOutputs = 0,
+        MixedSingleOutput = 1
+    }
+
     public sealed class HistoricalDownloadRequest
     {
         public HistoricalImageryProviderType Provider { get; set; }
@@ -22,6 +28,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
         public string OutputFilePath { get; set; } = string.Empty;
 
         public bool UseCache { get; set; } = true;
+
+        public GoogleNearestDateFallbackMode GoogleNearestDateFallbackMode { get; set; } = GoogleNearestDateFallbackMode.SeparateOutputs;
 
         public bool UseCurrentMapSpatialReferenceByDefault { get; set; } = true;
     }

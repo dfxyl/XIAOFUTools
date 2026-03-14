@@ -1,6 +1,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,7 +16,6 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
 {
     internal sealed class HistoricalImageryDownloadEngine
     {
-        private static readonly int TileDownloadBatchSize = Math.Clamp(Environment.ProcessorCount, 4, 12);
         private readonly HistoricalImageryProviderFactory _providerFactory;
 
         static HistoricalImageryDownloadEngine()
@@ -48,6 +48,45 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 cancellationToken);
         }
 
+        public async Task<HistoricalDownloadInspectionResult> InspectAsync(
+            HistoricalDownloadExecutionRequest executionRequest,
+            CancellationToken cancellationToken = default)
+        {
+            ArgumentNullException.ThrowIfNull(executionRequest);
+            ArgumentNullException.ThrowIfNull(executionRequest.Request);
+            ArgumentNullException.ThrowIfNull(executionRequest.ResolvedArea);
+
+            var provider = _providerFactory.GetProvider(executionRequest.Request.Provider);
+            var planContext = CreatePlanContext(provider, executionRequest.ResolvedArea, executionRequest.Request.ZoomLevel);
+            var sampledTiles = HistoricalCoverageProbeSampler.CreateSample(planContext.Plan.Tiles);
+            var coverage = await provider.ProbeCoverageAsync(
+                new HistoricalCoverageProbeRequest
+                {
+                    Version = executionRequest.Request.Version,
+                    Tiles = sampledTiles
+                },
+                cancellationToken);
+
+            var messages = new List<string>(planContext.Messages);
+            if (!coverage.HasCoverage)
+            {
+                messages.Add($"版本 {executionRequest.Request.Version.DisplayDate} 在当前范围和级别下未检测到可用影像，已跳过。");
+            }
+
+            return new HistoricalDownloadInspectionResult
+            {
+                CanDownload = coverage.HasCoverage && !planContext.Evaluation.ShouldBlock,
+                ShouldWarn = planContext.Evaluation.ShouldWarn,
+                ShouldBlock = planContext.Evaluation.ShouldBlock,
+                UseFastClip = planContext.Evaluation.UseFastClip,
+                TotalTileCount = planContext.Plan.Tiles.Count,
+                CheckedTileCount = coverage.CheckedTileCount,
+                AvailableTileCount = coverage.AvailableTileCount,
+                RecommendedTileConcurrency = planContext.Evaluation.RecommendedTileConcurrency,
+                Messages = messages
+            };
+        }
+
         private static HistoricalPlanContext CreatePlanContext(
             IHistoricalImageryProvider provider,
             HistoricalResolvedArea area,
@@ -65,11 +104,21 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 ? HistoricalTilePlanner.PlanWebMercator(projectedExtent.XMin, projectedExtent.YMin, projectedExtent.XMax, projectedExtent.YMax, zoomLevel)
                 : HistoricalTilePlanner.PlanGoogle(projectedExtent.XMin, projectedExtent.YMin, projectedExtent.XMax, projectedExtent.YMax, zoomLevel);
 
-            var preciseClip = area.RequiresPreciseClip && area.AreaGeometry != null
+            var evaluation = HistoricalDownloadPerformanceAdvisor.Evaluate(
+                plan.Tiles.Count,
+                versionCount: 1,
+                preciseClip: area.RequiresPreciseClip && area.AreaGeometry != null);
+
+            var preciseClip = area.RequiresPreciseClip && area.AreaGeometry != null && !evaluation.UseFastClip
                 ? GeometryEngine.Instance.Project(area.AreaGeometry, sourceSpatialReference) as Polygon
                 : null;
 
-            return new HistoricalPlanContext(plan, preciseClip, provider.SourceSpatialReferenceText);
+            return new HistoricalPlanContext(
+                plan,
+                preciseClip,
+                provider.SourceSpatialReferenceText,
+                evaluation,
+                evaluation.Messages.ToArray());
         }
 
         private static async Task<HistoricalDownloadResult> ComposeAsync(
@@ -87,20 +136,21 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             };
 
             Directory.CreateDirectory(Path.GetDirectoryName(request.OutputFilePath)!);
-            var tempFile = CreateTempRasterCachePath();
+            var outputSessions = new Dictionary<string, HistoricalOutputSession>(StringComparer.OrdinalIgnoreCase);
 
             try
             {
-                using var tempDataset = CreateTempDataset(tempFile, planContext);
-
                 var processedTileCount = 0;
-                for (var batchStart = 0; batchStart < planContext.Plan.Tiles.Count; batchStart += TileDownloadBatchSize)
+                var fallbackTileCount = 0;
+                var fallbackDates = new HashSet<string>(StringComparer.Ordinal);
+                var tileDownloadBatchSize = planContext.Evaluation.RecommendedTileConcurrency;
+                for (var batchStart = 0; batchStart < planContext.Plan.Tiles.Count; batchStart += tileDownloadBatchSize)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var batchTiles = planContext.Plan.Tiles
                         .Skip(batchStart)
-                        .Take(TileDownloadBatchSize)
+                        .Take(tileDownloadBatchSize)
                         .ToArray();
 
                     var batchResults = await Task.WhenAll(batchTiles.Select(tile => DownloadTileAsync(provider, request, tile, cancellationToken)));
@@ -121,11 +171,26 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                             continue;
                         }
 
+                        if (batchResult.Result.UsedNearestDateFallback)
+                        {
+                            fallbackTileCount++;
+                            if (!string.IsNullOrWhiteSpace(batchResult.Result.ResolvedDisplayDate))
+                            {
+                                fallbackDates.Add(batchResult.Result.ResolvedDisplayDate);
+                            }
+                        }
+
                         using var sourceTileDataset = OpenDataset(batchResult.Result.ImageBytes!);
-                        using var tileDataset = planContext.PreciseClip == null
+                        var outputFilePath = ResolveOutputFilePath(request, batchResult.Result);
+                        var outputSession = GetOrCreateOutputSession(outputSessions, outputFilePath, planContext);
+                        var clipAlphaMask = planContext.PreciseClip == null
                             ? null
-                            : ClipTile(sourceTileDataset, batchResult.Tile, planContext.PreciseClip);
-                        WriteTile(tempDataset, tileDataset ?? sourceTileDataset, batchResult.Tile);
+                            : CreateClipAlphaMask(
+                                batchResult.Tile,
+                                sourceTileDataset.RasterXSize,
+                                sourceTileDataset.RasterYSize,
+                                planContext.PreciseClip);
+                        WriteTile(outputSession.Dataset, sourceTileDataset, batchResult.Tile, clipAlphaMask);
 
                         result.DownloadedTileCount++;
                         if (!string.IsNullOrWhiteSpace(batchResult.Result.Message))
@@ -137,19 +202,52 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                     }
                 }
 
-                tempDataset.FlushCache();
-                ExportDataset(tempFile, request.OutputFilePath, planContext.SourceSpatialReferenceText, executionRequest.TargetSpatialReferenceText);
-                ApplyNoData(request.OutputFilePath);
+                foreach (var outputSession in outputSessions.Values.OrderBy(item => item.OutputFilePath, StringComparer.OrdinalIgnoreCase))
+                {
+                    outputSession.Dataset.FlushCache();
+                    ExportDataset(outputSession.TempFilePath, outputSession.OutputFilePath, planContext.SourceSpatialReferenceText, executionRequest.TargetSpatialReferenceText);
+                    result.OutputFilePaths.Add(outputSession.OutputFilePath);
+                }
 
                 progress?.Report(1);
+                if (result.OutputFilePaths.Count > 0)
+                {
+                    result.OutputFilePath = result.OutputFilePaths[0];
+                }
+
                 result.HasPartialCoverage |= result.DownloadedTileCount < result.TotalTileCount;
+                if (fallbackTileCount > 0)
+                {
+                    var fallbackDateSummary = fallbackDates.Count == 0
+                        ? "unknown"
+                        : string.Join(", ", fallbackDates.OrderBy(value => value, StringComparer.Ordinal).Take(5));
+                    result.Messages.Add(
+                        $"Google nearest-date fallback used on {fallbackTileCount} tiles for requested date {request.Version.DisplayDate}; actual dates: {fallbackDateSummary}");
+                }
+
+                if (request.Provider == HistoricalImageryProviderType.GoogleEarth &&
+                    request.GoogleNearestDateFallbackMode == GoogleNearestDateFallbackMode.SeparateOutputs &&
+                    result.OutputFilePaths.Count > 1)
+                {
+                    result.Messages.Add(
+                        $"Google nearest-date fallback exported {result.OutputFilePaths.Count} separate files for requested date {request.Version.DisplayDate}.");
+                }
+
+                foreach (var message in planContext.Messages)
+                {
+                    result.Messages.Add(message);
+                }
                 return result;
             }
             finally
             {
-                if (File.Exists(tempFile))
+                foreach (var outputSession in outputSessions.Values)
                 {
-                    File.Delete(tempFile);
+                    outputSession.Dispose();
+                    if (File.Exists(outputSession.TempFilePath))
+                    {
+                        File.Delete(outputSession.TempFilePath);
+                    }
                 }
             }
         }
@@ -157,7 +255,19 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
         private static Dataset CreateTempDataset(string tempFile, HistoricalPlanContext planContext)
         {
             using var driver = Gdal.GetDriverByName("GTiff");
-            var dataset = driver.Create(tempFile, planContext.Plan.PixelWidth, planContext.Plan.PixelHeight, 3, DataType.GDT_Byte, null);
+            var createOptions = new[]
+            {
+                "TILED=TRUE",
+                "BIGTIFF=IF_SAFER",
+                $"NUM_THREADS={Math.Max(1, Environment.ProcessorCount / 2)}"
+            };
+            var dataset = driver.Create(
+                tempFile,
+                planContext.Plan.PixelWidth,
+                planContext.Plan.PixelHeight,
+                HistoricalRasterCompositionOptions.OutputBandCount,
+                DataType.GDT_Byte,
+                createOptions);
             using var spatialReference = new OgrSpatialReference(string.Empty);
             spatialReference.SetFromUserInput(planContext.SourceSpatialReferenceText);
             dataset.SetSpatialRef(spatialReference);
@@ -170,13 +280,18 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 0,
                 planContext.Plan.PixelSizeY
             ]);
+            InitializeOutputBands(dataset);
             return dataset;
         }
 
-        private static void WriteTile(Dataset destinationDataset, Dataset tileDataset, HistoricalTileDefinition tile)
+        private static void WriteTile(
+            Dataset destinationDataset,
+            Dataset tileDataset,
+            HistoricalTileDefinition tile,
+            byte[]? clipAlphaMask)
         {
-            var bandCount = Math.Min(destinationDataset.RasterCount, tileDataset.RasterCount);
-            if (bandCount <= 0)
+            var colorBandCount = Math.Min(3, tileDataset.RasterCount);
+            if (colorBandCount <= 0)
             {
                 return;
             }
@@ -188,21 +303,18 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 return;
             }
 
-            var bandMap = Enumerable.Range(1, bandCount).ToArray();
-            var buffer = GC.AllocateUninitializedArray<byte>(width * height * bandCount);
-            tileDataset.ReadRaster(0, 0, width, height, buffer, width, height, bandCount, bandMap, bandCount, width * bandCount, 1);
-            destinationDataset.WriteRaster(tile.PixelOffsetX, tile.PixelOffsetY, width, height, buffer, width, height, bandCount, bandMap, bandCount, width * bandCount, 1);
+            var colorBandMap = Enumerable.Range(1, colorBandCount).ToArray();
+            var colorBuffer = GC.AllocateUninitializedArray<byte>(width * height * colorBandCount);
+            tileDataset.ReadRaster(0, 0, width, height, colorBuffer, width, height, colorBandCount, colorBandMap, colorBandCount, width * colorBandCount, 1);
+            destinationDataset.WriteRaster(tile.PixelOffsetX, tile.PixelOffsetY, width, height, colorBuffer, width, height, colorBandCount, colorBandMap, colorBandCount, width * colorBandCount, 1);
+
+            var alphaBuffer = CreateAlphaBuffer(tileDataset, width, height, clipAlphaMask);
+            destinationDataset.WriteRaster(tile.PixelOffsetX, tile.PixelOffsetY, width, height, alphaBuffer, width, height, 1, [4], 1, width, 1);
         }
 
-        private static Dataset ClipTile(Dataset sourceDataset, HistoricalTileDefinition tile, Polygon preciseClip)
+        private static byte[] CreateClipAlphaMask(HistoricalTileDefinition tile, int width, int height, Polygon preciseClip)
         {
-            var width = sourceDataset.RasterXSize;
-            var height = sourceDataset.RasterYSize;
-            var bandCount = sourceDataset.RasterCount;
-            var bandMap = Enumerable.Range(1, bandCount).ToArray();
-            var buffer = GC.AllocateUninitializedArray<byte>(width * height * bandCount);
-
-            sourceDataset.ReadRaster(0, 0, width, height, buffer, width, height, bandCount, bandMap, bandCount, width * bandCount, 1);
+            var alphaMask = GC.AllocateUninitializedArray<byte>(width * height);
 
             var pixelWidth = (tile.MaxX - tile.MinX) / width;
             var pixelHeight = (tile.MaxY - tile.MinY) / height;
@@ -216,21 +328,13 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                     var point = MapPointBuilderEx.CreateMapPoint(centerX, centerY, preciseClip.SpatialReference);
                     if (GeometryEngine.Instance.Contains(preciseClip, point))
                     {
+                        alphaMask[y * width + x] = 255;
                         continue;
-                    }
-
-                    var start = (y * width + x) * bandCount;
-                    for (var bandIndex = 0; bandIndex < bandCount; bandIndex++)
-                    {
-                        buffer[start + bandIndex] = 0;
                     }
                 }
             }
 
-            using var driver = Gdal.GetDriverByName("MEM");
-            var dataset = driver.Create(string.Empty, width, height, bandCount, DataType.GDT_Byte, null);
-            dataset.WriteRaster(0, 0, width, height, buffer, width, height, bandCount, bandMap, bandCount, width * bandCount, 1);
-            return dataset;
+            return alphaMask;
         }
 
         private static Dataset OpenDataset(byte[] imageBytes)
@@ -277,37 +381,16 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
 
         private static GDALWarpAppOptions CreateWarpOptions(string sourceSpatialReferenceText, string targetSpatialReferenceText)
         {
-            string[] parameters =
-            [
-                "-multi",
-                "-wo", $"NUM_THREADS={Math.Max(1, Environment.ProcessorCount / 2)}",
-                "-of", "GTiff",
-                "-ot", "Byte",
-                "-wo", "OPTIMIZE_SIZE=TRUE",
-                "-co", "COMPRESS=JPEG",
-                "-co", "PHOTOMETRIC=YCBCR",
-                "-co", "TILED=TRUE",
-                "-r", "bilinear",
-                "-s_srs", sourceSpatialReferenceText,
-                "-t_srs", targetSpatialReferenceText
-            ];
-
-            return new GDALWarpAppOptions(parameters);
+            return new GDALWarpAppOptions(
+                HistoricalRasterExportOptions.CreateWarpParameters(sourceSpatialReferenceText, targetSpatialReferenceText));
         }
 
         private static string[] CreateCopyOptions()
-            =>
-            [
-                "COMPRESS=JPEG",
-                "PHOTOMETRIC=YCBCR",
-                "TILED=TRUE",
-                $"NUM_THREADS={Math.Max(1, Environment.ProcessorCount / 2)}"
-            ];
+            => HistoricalRasterExportOptions.CreateCopyOptions();
 
-        private static void ApplyNoData(string outputFilePath)
+        private static void InitializeOutputBands(Dataset dataset)
         {
-            using var dataset = Gdal.Open(outputFilePath, Access.GA_Update);
-            if (dataset == null)
+            if (dataset.RasterCount < HistoricalRasterCompositionOptions.OutputBandCount)
             {
                 return;
             }
@@ -315,14 +398,77 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             for (var bandIndex = 1; bandIndex <= dataset.RasterCount; bandIndex++)
             {
                 using var band = dataset.GetRasterBand(bandIndex);
-                band?.SetNoDataValue(0);
+                band?.Fill(0, 0);
             }
 
+            dataset.GetRasterBand(1)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_RedBand);
+            dataset.GetRasterBand(2)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_GreenBand);
+            dataset.GetRasterBand(3)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_BlueBand);
+            dataset.GetRasterBand(4)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_AlphaBand);
             dataset.FlushCache();
+        }
+
+        private static byte[] CreateAlphaBuffer(Dataset tileDataset, int width, int height, byte[]? clipAlphaMask)
+        {
+            byte[] alphaBuffer;
+
+            if (tileDataset.RasterCount >= 4)
+            {
+                alphaBuffer = GC.AllocateUninitializedArray<byte>(width * height);
+                tileDataset.ReadRaster(0, 0, width, height, alphaBuffer, width, height, 1, [4], 1, width, 1);
+            }
+            else
+            {
+                alphaBuffer = new byte[width * height];
+                Array.Fill(alphaBuffer, (byte)255);
+            }
+
+            if (clipAlphaMask == null)
+            {
+                return alphaBuffer;
+            }
+
+            for (var index = 0; index < alphaBuffer.Length; index++)
+            {
+                alphaBuffer[index] = (byte)Math.Min(alphaBuffer[index], clipAlphaMask[index]);
+            }
+
+            return alphaBuffer;
         }
 
         private static string CreateTempRasterCachePath()
             => Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.tif");
+
+        private static string ResolveOutputFilePath(HistoricalDownloadRequest request, HistoricalTileDownloadResult tileResult)
+        {
+            if (request.Provider != HistoricalImageryProviderType.GoogleEarth ||
+                request.GoogleNearestDateFallbackMode != GoogleNearestDateFallbackMode.SeparateOutputs)
+            {
+                return request.OutputFilePath;
+            }
+
+            var resolvedDate = string.IsNullOrWhiteSpace(tileResult.ResolvedDisplayDate)
+                ? request.Version.DisplayDate
+                : tileResult.ResolvedDisplayDate!;
+            return HistoricalOutputPathBuilder.BuildForResolvedDate(request.OutputFilePath, resolvedDate);
+        }
+
+        private static HistoricalOutputSession GetOrCreateOutputSession(
+            IDictionary<string, HistoricalOutputSession> outputSessions,
+            string outputFilePath,
+            HistoricalPlanContext planContext)
+        {
+            if (outputSessions.TryGetValue(outputFilePath, out var existingSession))
+            {
+                return existingSession;
+            }
+
+            var tempFilePath = CreateTempRasterCachePath();
+            var dataset = CreateTempDataset(tempFilePath, planContext);
+            var createdSession = new HistoricalOutputSession(outputFilePath, tempFilePath, dataset);
+            outputSessions[outputFilePath] = createdSession;
+            return createdSession;
+        }
 
         private static async Task<HistoricalDownloadedTile> DownloadTileAsync(
             IHistoricalImageryProvider provider,
@@ -335,14 +481,28 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 {
                     Version = request.Version,
                     Tile = tile,
-                    UseCache = request.UseCache
+                    UseCache = request.UseCache,
+                    GoogleNearestDateFallbackMode = request.GoogleNearestDateFallbackMode
                 },
                 cancellationToken);
 
             return new HistoricalDownloadedTile(tile, result);
         }
 
+        private sealed record HistoricalOutputSession(string OutputFilePath, string TempFilePath, Dataset Dataset) : IDisposable
+        {
+            public void Dispose()
+            {
+                Dataset.Dispose();
+            }
+        }
+
         private sealed record HistoricalDownloadedTile(HistoricalTileDefinition Tile, HistoricalTileDownloadResult Result);
-        private sealed record HistoricalPlanContext(HistoricalTilePlan Plan, Polygon? PreciseClip, string SourceSpatialReferenceText);
+        private sealed record HistoricalPlanContext(
+            HistoricalTilePlan Plan,
+            Polygon? PreciseClip,
+            string SourceSpatialReferenceText,
+            HistoricalDownloadPerformanceEvaluation Evaluation,
+            IReadOnlyList<string> Messages);
     }
 }

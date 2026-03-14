@@ -8,6 +8,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
     public static class HistoricalOutputPathBuilder
     {
         private static readonly Regex DateSuffixRegex = new(@"_\d{4}-\d{2}-\d{2}$", RegexOptions.Compiled);
+        private static readonly Regex EmbeddedDateRegex = new(@"(?<=_)\d{4}-\d{2}-\d{2}(?=_Z\d+$)", RegexOptions.Compiled);
 
         public static string BuildForFolder(string outputFolderPath, HistoricalVersionItem version, int zoomLevel)
         {
@@ -41,6 +42,22 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             var normalizedFileName = DateSuffixRegex.Replace(fileNameWithoutExtension, string.Empty);
             var datedFileName = $"{normalizedFileName}_{dateText}{extension}";
             return Path.Combine(directory, datedFileName);
+        }
+
+        public static string BuildForResolvedDate(string basePath, string resolvedDate)
+        {
+            if (string.IsNullOrWhiteSpace(basePath) || string.IsNullOrWhiteSpace(resolvedDate))
+            {
+                return basePath;
+            }
+
+            var directory = Path.GetDirectoryName(basePath) ?? string.Empty;
+            var extension = Path.GetExtension(basePath);
+            var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(basePath);
+            var normalizedFileName = EmbeddedDateRegex.IsMatch(fileNameWithoutExtension)
+                ? EmbeddedDateRegex.Replace(fileNameWithoutExtension, resolvedDate, 1)
+                : $"{fileNameWithoutExtension}_{resolvedDate}";
+            return Path.Combine(directory, $"{normalizedFileName}{extension}");
         }
     }
 }

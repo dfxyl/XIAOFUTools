@@ -33,4 +33,14 @@ public class HistoricalOutputPathBuilderTests
 
         Assert.Equal(@"D:\Output\Google_2024-02-26_Z19.tif", path);
     }
+
+    [Fact]
+    public void BuildForResolvedDate_ReplacesRequestedDateInBasePath()
+    {
+        var path = HistoricalOutputPathBuilder.BuildForResolvedDate(
+            @"D:\Output\Google_2025-05-20_Z19.tif",
+            "2025-05-18");
+
+        Assert.Equal(@"D:\Output\Google_2025-05-18_Z19.tif", path);
+    }
 }

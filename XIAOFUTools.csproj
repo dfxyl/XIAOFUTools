@@ -521,7 +521,7 @@
     <PackageReference Include="GDAL" Version="3.12.1" />
     <PackageReference Include="GDAL.Native" Version="3.12.1" />
     <PackageReference Include="Google.Protobuf" Version="3.34.0" />
-    <PackageReference Include="ACadSharp" Version="3.3.0" />
+    <PackageReference Include="ACadSharp" Version="3.4.9" />
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
