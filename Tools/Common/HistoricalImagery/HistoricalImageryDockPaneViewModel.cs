@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows;
 using XIAOFUTools.Tools.HistoricalImageryDownload;
 using XIAOFUTools.Tools.HistoricalImageryDownload.Services;
 
@@ -227,8 +228,7 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         {
             try
             {
-                var mapView = MapView.Active;
-                if (mapView?.Map == null)
+                if (MapView.Active?.Map == null)
                 {
                     MetadataDisplay = "当前没有活动地图";
                     return;
@@ -241,50 +241,40 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                     return;
                 }
 
-                var latestVersion = _catalogVersions.OrderByDescending(v => v.ReleaseDate).FirstOrDefault();
-                if (latestVersion == null || string.IsNullOrEmpty(latestVersion.MetadataLayerUrl))
+                MetadataDisplay = "正在查询...";
+
+                var queryContext = await CaptureMetadataQueryContextAsync();
+                var catalog = _catalogVersions.Select(ToHistoricalVersionItem).ToList();
+                var resolution = WaybackMetadataSourceResolver.Resolve(catalog, queryContext.MapLayers);
+                var candidate = await ResolveMetadataSourceCandidateAsync(resolution);
+                if (candidate == null)
                 {
-                    MetadataDisplay = "最新图层没有元数据服务";
+                    MetadataDisplay = "已取消查询";
                     return;
                 }
 
-                MetadataDisplay = "正在查询...";
-
-                await QueuedTask.Run(async () =>
+                if (string.IsNullOrEmpty(candidate.Version.MetadataLayerUrl))
                 {
-                    // 获取地图中心点
-                    var extent = mapView.Extent;
-                    var center = extent.Center;
-                    var centerWgs84 = GeometryEngine.Instance.Project(center, SpatialReferences.WGS84) as MapPoint;
-                    
-                    // 获取缩放级别（使用比例尺）
-                    double mapScale = mapView.Camera.Scale;
-                    // 将比例尺转换为缩放级别（Web Mercator 标准）
-                    int zoomLevel = (int)Math.Round(Math.Log(591657550.5 / mapScale, 2));
-                    int queryLevel = MapZoomToQueryLevel(zoomLevel);
+                    MetadataDisplay = "所选版本没有元数据服务";
+                    return;
+                }
 
-                    // 查询元数据
-                    var metadata = await QueryWaybackMetadata(
-                        centerWgs84.X,
-                        centerWgs84.Y,
-                        queryLevel,
-                        latestVersion.MetadataLayerUrl,
-                        latestVersion.ItemTitle
-                    );
+                var metadata = await QueryWaybackMetadata(
+                    queryContext.Longitude,
+                    queryContext.Latitude,
+                    queryContext.QueryLevel,
+                    candidate.Version.MetadataLayerUrl,
+                    candidate.Version.Summary ?? candidate.Version.DisplayDate ?? candidate.Version.VersionId);
 
-                    if (metadata != null)
-                    {
-                        CurrentMetadata = metadata;
-                        MetadataDisplay = $"采集日期: {metadata.AcquisitionDate ?? "N/A"} | " +
-                                        $"卫星: {metadata.Satellite ?? "N/A"} | " +
-                                        $"分辨率: {metadata.Resolution}m | " +
-                                        $"级别: {queryLevel}";
-                    }
-                    else
-                    {
-                        MetadataDisplay = "该位置无影像数据";
-                    }
-                });
+                if (metadata != null)
+                {
+                    CurrentMetadata = metadata;
+                    MetadataDisplay = BuildMetadataDisplay(candidate, metadata);
+                }
+                else
+                {
+                    MetadataDisplay = BuildNoDataDisplay(candidate);
+                }
             }
             catch (Exception ex)
             {
@@ -625,6 +615,93 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                 IsChanged = version.IsChanged
             };
         }
+
+        private async Task<MetadataQueryContext> CaptureMetadataQueryContextAsync()
+        {
+            return await QueuedTask.Run(() =>
+            {
+                var mapView = MapView.Active;
+                if (mapView?.Map == null)
+                {
+                    throw new InvalidOperationException("当前没有活动地图");
+                }
+
+                var center = mapView.Extent.Center;
+                var centerWgs84 = GeometryEngine.Instance.Project(center, SpatialReferences.WGS84) as MapPoint
+                    ?? throw new InvalidOperationException("无法获取当前地图中心点");
+
+                var mapScale = mapView.Camera.Scale;
+                var zoomLevel = (int)Math.Round(Math.Log(591657550.5 / mapScale, 2));
+                var queryLevel = MapZoomToQueryLevel(zoomLevel);
+                var mapLayers = mapView.Map.GetLayersAsFlattenedList()
+                    .Select(layer => new WaybackMapLayerReference(layer.Name, layer.URI))
+                    .ToList();
+
+                return new MetadataQueryContext(centerWgs84.X, centerWgs84.Y, queryLevel, mapLayers);
+            });
+        }
+
+        private async Task<WaybackMetadataSourceCandidate?> ResolveMetadataSourceCandidateAsync(WaybackMetadataSourceResolution resolution)
+        {
+            if (!resolution.RequiresSelection)
+            {
+                return resolution.AutoSelectedCandidate;
+            }
+
+            return await Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                var dialog = new HistoricalImageryMetadataSourceDialog(resolution.Candidates);
+                var owner = Application.Current.Windows.OfType<Window>().FirstOrDefault(window => window.IsActive);
+                if (owner != null)
+                {
+                    dialog.Owner = owner;
+                }
+
+                return dialog.ShowDialog() == true ? dialog.SelectedCandidate : null;
+            });
+        }
+
+        private static HistoricalVersionItem ToHistoricalVersionItem(WaybackVersion version)
+        {
+            return new HistoricalVersionItem
+            {
+                Provider = HistoricalImageryProviderType.Wayback,
+                VersionId = version.ReleaseNum.ToString(),
+                DisplayDate = version.ReleaseDate,
+                Summary = version.ItemTitle,
+                MetadataLayerUrl = version.MetadataLayerUrl,
+                TileUrlTemplate = version.Url
+            };
+        }
+
+        private static string BuildMetadataDisplay(WaybackMetadataSourceCandidate candidate, ImageryMetadata metadata)
+        {
+            return $"{BuildSourceHeader(candidate)}\n" +
+                   $"采集日期: {metadata.AcquisitionDate ?? "N/A"} | " +
+                   $"卫星: {metadata.Satellite ?? "N/A"} | " +
+                   $"分辨率: {metadata.Resolution}m | " +
+                   $"级别: {metadata.ZoomLevel}";
+        }
+
+        private static string BuildNoDataDisplay(WaybackMetadataSourceCandidate candidate)
+            => $"{BuildSourceHeader(candidate)}\n该位置无影像数据";
+
+        private static string BuildSourceHeader(WaybackMetadataSourceCandidate candidate)
+        {
+            var versionText = string.IsNullOrWhiteSpace(candidate.Version.DisplayDate)
+                ? candidate.Version.VersionId
+                : candidate.Version.DisplayDate;
+
+            return candidate.SourceType == WaybackMetadataSourceType.GlobalLatest
+                ? $"查询来源: 全局最新版本\n版本: {versionText}"
+                : $"查询来源: 当前地图图层\n图层: {candidate.LayerName ?? "未命名图层"}\n版本: {versionText}";
+        }
+
+        private sealed record MetadataQueryContext(
+            double Longitude,
+            double Latitude,
+            int QueryLevel,
+            IReadOnlyList<WaybackMapLayerReference> MapLayers);
 
         /// <summary>
         /// 查询Wayback影像元数据

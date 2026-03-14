@@ -55,10 +55,15 @@
 - 优化 `历史影像` 工具的 Wayback 变化版本判定逻辑，勾选“仅显示变化版本”时改为按 Wayback 官方页面一致的 `tilemap/select` 真实变化逻辑筛选当前位置发生变化的版本，不勾选时仍显示全部版本。
 - 优化 `历史影像下载` 工具的 Wayback 历史查询逻辑，`查询历史` 与历史影像工具统一使用真实变化判定，`查询全部` 保持返回全部版本。
 - 保留当前元数据查询能力，在真实变化筛选完成后继续显示对应版本的采集日期、来源与分辨率等信息。
+- 优化 `历史影像` 工具的“查询当前位置影像信息”逻辑：优先检查当前地图已添加的 Wayback 图层并使用对应版本查询；若存在多个可用图层则弹窗供用户选择，并额外提供“全局最新版本”选项；若当前地图没有可用 Wayback 图层则自动回退为查询全局最新版本。
 - 修改的文件：
   - `Tools/Common/HistoricalImagery/HistoricalImageryDockPaneViewModel.cs` - 接入真实变化查询逻辑并调整勾选行为。
+  - `Tools/Common/HistoricalImagery/HistoricalImageryMetadataSourceDialog.xaml` - 新增历史影像信息来源选择弹窗界面。
+  - `Tools/Common/HistoricalImagery/HistoricalImageryMetadataSourceDialog.xaml.cs` - 实现多图层来源选择与取消逻辑。
   - `Tools/Common/HistoricalImageryDownload/Services/HistoricalImageryProviders.cs` - 新增 Wayback tilemap 查询与有效版本判定逻辑。
+  - `Tools/Common/HistoricalImageryDownload/Services/WaybackMetadataSourceResolver.cs` - 新增当前地图图层与全局最新版本的来源解析逻辑。
   - `Tools/Common/HistoricalImageryDownload/Services/WaybackVersionFilter.cs` - 改为按真实生效版本过滤历史变化结果。
+  - `XIAOFUTools.Tests/HistoricalImageryDownload/WaybackMetadataSourceResolverTests.cs` - 补充元数据来源解析测试。
   - `XIAOFUTools.Tests/HistoricalImageryDownload/WaybackVersionFilterTests.cs` - 补充真实变化过滤测试。
   - `XIAOFUTools.Tests/HistoricalImageryDownload/WaybackLiveProviderTests.cs` - 补充 Wayback 实时查询断言。
 

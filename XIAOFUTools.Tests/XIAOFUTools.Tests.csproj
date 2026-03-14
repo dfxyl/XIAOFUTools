@@ -37,6 +37,7 @@
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalImageryHelpTextBuilder.cs" Link="Shared\HistoricalImageryHelpTextBuilder.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalOutputPathBuilder.cs" Link="Shared\HistoricalOutputPathBuilder.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalVersionSelectionSummaryBuilder.cs" Link="Shared\HistoricalVersionSelectionSummaryBuilder.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\WaybackMetadataSourceResolver.cs" Link="Shared\WaybackMetadataSourceResolver.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\WaybackVersionFilter.cs" Link="Shared\WaybackVersionFilter.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalImageryProviders.cs" Link="Shared\HistoricalImageryProviders.cs" />
   </ItemGroup>
