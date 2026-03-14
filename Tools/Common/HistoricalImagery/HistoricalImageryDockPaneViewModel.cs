@@ -1,4 +1,4 @@
-using ArcGIS.Core.CIM;
+﻿using ArcGIS.Core.CIM;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
@@ -10,9 +10,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using XIAOFUTools.Tools.HistoricalImageryDownload;
+using XIAOFUTools.Tools.HistoricalImageryDownload.Services;
 
 namespace XIAOFUTools.Tools.HistoricalImagery
 {
@@ -160,20 +161,13 @@ namespace XIAOFUTools.Tools.HistoricalImagery
             {
                 if (SetProperty(ref _showChangedOnly, value))
                 {
-                    if (value && _allVersions != null && _allVersions.Count > 0)
+                    if (value)
                     {
-                        // 勾选时，检查是否已查询过采集日期
-                        if (_allVersions.All(v => string.IsNullOrEmpty(v.AcquisitionDate)))
-                        {
-                            _ = DetectChangedVersionsAsync();
-                        }
-                        else
-                        {
-                            FilterVersions();
-                        }
+                        _ = DetectChangedVersionsAsync();
                     }
                     else
                     {
+                        _allVersions = _catalogVersions.Select(CloneVersion).ToList();
                         FilterVersions();
                     }
                 }
@@ -186,11 +180,14 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         public ICommand QueryMetadataCommand { get; }
 
         private List<WaybackVersion> _allVersions;
+        private List<WaybackVersion> _catalogVersions;
+        private readonly WaybackHistoricalImageryProvider _waybackProvider = new();
 
         public HistoricalImageryDockPaneViewModel()
         {
             TreeNodes = new ObservableCollection<TreeNode>();
             _allVersions = new List<WaybackVersion>();
+            _catalogVersions = new List<WaybackVersion>();
             MetadataDisplay = "点击查询按钮获取当前位置影像信息";
 
             RefreshCommand = new RelayCommand(async () => await RefreshAsync());
@@ -238,13 +235,13 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                 }
 
                 // 获取最新版本
-                if (_allVersions == null || _allVersions.Count == 0)
+                if (_catalogVersions == null || _catalogVersions.Count == 0)
                 {
                     MetadataDisplay = "请先加载历史影像列表";
                     return;
                 }
 
-                var latestVersion = _allVersions.OrderByDescending(v => v.ReleaseDate).FirstOrDefault();
+                var latestVersion = _catalogVersions.OrderByDescending(v => v.ReleaseDate).FirstOrDefault();
                 if (latestVersion == null || string.IsNullOrEmpty(latestVersion.MetadataLayerUrl))
                 {
                     MetadataDisplay = "最新图层没有元数据服务";
@@ -300,14 +297,7 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         /// </summary>
         private async Task RefreshAsync()
         {
-            // 重新加载版本列表
             await LoadVersionsAsync();
-            
-            // 如果勾选了"仅显示影像改变版本"，则重新查询
-            if (ShowChangedOnly && _allVersions != null && _allVersions.Count > 0)
-            {
-                await DetectChangedVersionsAsync();
-            }
         }
 
         /// <summary>
@@ -353,98 +343,18 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         /// </summary>
         private async Task DetectChangedVersionsAsync()
         {
-            if (_allVersions == null || _allVersions.Count == 0)
+            if (_catalogVersions == null || _catalogVersions.Count == 0)
                 return;
 
             IsLoading = true;
-            StatusMessage = "正在检测影像变化...";
+            StatusMessage = "正在检测当前位置的真实变化版本...";
 
             try
             {
-                // 获取当前地图位置和缩放级别
-                var mapView = MapView.Active;
-                if (mapView?.Map == null)
-                {
-                    StatusMessage = "当前没有活动地图，无法检测变化";
-                    ShowChangedOnly = false;
-                    return;
-                }
-
-                double lon = 0, lat = 0;
-                int queryLevel = 6;
-
-                await QueuedTask.Run(() =>
-                {
-                    var extent = mapView.Extent;
-                    var center = extent.Center;
-                    var centerWgs84 = GeometryEngine.Instance.Project(center, SpatialReferences.WGS84) as MapPoint;
-                    
-                    lon = centerWgs84.X;
-                    lat = centerWgs84.Y;
-                    
-                    double mapScale = mapView.Camera.Scale;
-                    int zoomLevel = (int)Math.Round(Math.Log(591657550.5 / mapScale, 2));
-                    queryLevel = MapZoomToQueryLevel(zoomLevel);
-                });
-
-                // 使用受控并发查询（最多同时20个请求）
-                int maxConcurrency = 20;
-                var semaphore = new System.Threading.SemaphoreSlim(maxConcurrency);
-                int completed = 0;
-                
-                // 查询所有版本
-                var versionsToQuery = _allVersions;
-                int total = versionsToQuery.Count;
-                
-                StatusMessage = $"正在并发查询 0/{total} ...";
-
-                var tasks = versionsToQuery.Select(async version =>
-                {
-                    await semaphore.WaitAsync();
-                    try
-                    {
-                        await QuerySingleVersionMetadataAsync(version, lon, lat, queryLevel);
-                        
-                        var current = System.Threading.Interlocked.Increment(ref completed);
-                        StatusMessage = $"正在并发查询 {current}/{total} ...";
-                    }
-                    finally
-                    {
-                        semaphore.Release();
-                    }
-                }).ToList();
-
-                await Task.WhenAll(tasks);
-
-                // 检测采集日期变化（只对查询过的版本进行标记）
-                var seenDates = new HashSet<string>();
-                foreach (var version in versionsToQuery.OrderByDescending(v => v.ReleaseDate))
-                {
-                    if (!string.IsNullOrEmpty(version.AcquisitionDate))
-                    {
-                        if (!seenDates.Contains(version.AcquisitionDate))
-                        {
-                            version.IsChanged = true;
-                            seenDates.Add(version.AcquisitionDate);
-                        }
-                        else
-                        {
-                            version.IsChanged = false;
-                        }
-                    }
-                }
-
-                // 未查询的版本标记为未变化
-                foreach (var version in _allVersions.Except(versionsToQuery))
-                {
-                    version.IsChanged = false;
-                }
-
-                var changedCount = versionsToQuery.Count(v => v.IsChanged);
-                var successCount = versionsToQuery.Count(v => !string.IsNullOrEmpty(v.AcquisitionDate));
-                StatusMessage = $"检测完成：{changedCount} 个版本有影像变化（查询 {total} 个版本，成功 {successCount} 个）";
-
-                // 重新过滤显示
+                var versions = await GetWaybackVersionsAsync(includeAllVersions: false);
+                _allVersions = versions;
+                var changedCount = versions.Count(v => v.IsChanged);
+                StatusMessage = $"检测完成：{changedCount} 个版本在当前位置发生真实变化";
                 FilterVersions();
             }
             catch (Exception ex)
@@ -523,17 +433,26 @@ namespace XIAOFUTools.Tools.HistoricalImagery
 
             try
             {
-                var versions = await GetWaybackVersionsAsync();
-                
-                if (versions != null && versions.Count > 0)
+                var catalogVersions = await GetWaybackVersionsAsync(includeAllVersions: true);
+                _catalogVersions = catalogVersions;
+
+                if (ShowChangedOnly)
                 {
-                    _allVersions = versions;
+                    _allVersions = await GetWaybackVersionsAsync(includeAllVersions: false);
+                }
+                else
+                {
+                    _allVersions = catalogVersions.Select(CloneVersion).ToList();
+                }
 
-                    // 构建树形结构
-                    BuildTreeStructure(versions);
+                if (_allVersions != null && _allVersions.Count > 0)
+                {
+                    BuildTreeStructure(_allVersions);
 
-                    var yearCount = versions.Select(v => v.Year).Distinct().Count();
-                    StatusMessage = $"共找到 {versions.Count} 个历史影像版本，分布在 {yearCount} 年";
+                    var yearCount = _allVersions.Select(v => v.Year).Distinct().Count();
+                    StatusMessage = ShowChangedOnly
+                        ? $"共找到 {_allVersions.Count} 个当前位置发生真实变化的版本，分布在 {yearCount} 年"
+                        : $"共找到 {_allVersions.Count} 个历史影像版本，分布在 {yearCount} 年";
                 }
                 else
                 {
@@ -622,54 +541,89 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         /// <summary>
         /// 获取 ArcGIS Wayback 历史影像版本列表
         /// </summary>
-        private async Task<List<WaybackVersion>> GetWaybackVersionsAsync()
+        private async Task<List<WaybackVersion>> GetWaybackVersionsAsync(bool includeAllVersions)
         {
-            var configUrl = "https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json";
-
-            var response = await _httpClient.GetAsync(configUrl);
-            response.EnsureSuccessStatusCode();
-
-            var json = await response.Content.ReadAsStringAsync();
-            var data = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(json);
-
-            var versions = new List<WaybackVersion>();
-
-            foreach (var kvp in data)
-            {
-                var releaseNum = int.Parse(kvp.Key);
-                var item = kvp.Value;
-
-                string itemTitle = item.GetProperty("itemTitle").GetString();
-                string releaseDate = "";
-                int year = 0;
-
-                // 从 itemTitle 中提取日期
-                var dateMatch = Regex.Match(itemTitle, @"(\d{4}-\d{2}-\d{2})");
-                if (dateMatch.Success)
+            var query = includeAllVersions
+                ? new HistoricalVersionQuery
                 {
-                    releaseDate = dateMatch.Groups[1].Value;
-                    year = int.Parse(releaseDate.Split('-')[0]);
+                    IncludeAllVersions = true,
+                    ZoomLevel = 12
+                }
+                : await BuildCurrentMapQueryAsync();
+
+            var versions = await _waybackProvider.QueryVersionsAsync(query);
+            return versions.Select(MapVersion).ToList();
+        }
+
+        private async Task<HistoricalVersionQuery> BuildCurrentMapQueryAsync()
+        {
+            return await QueuedTask.Run(() =>
+            {
+                var mapView = MapView.Active;
+                if (mapView?.Map == null)
+                {
+                    throw new InvalidOperationException("当前没有活动地图，无法检测当前位置的变化版本");
                 }
 
-                // Wayback WMTS 瓦片服务格式（使用 wayback-a 服务器）
-                string url = $"https://wayback-a.maptiles.arcgis.com/arcgis/rest/services/world_imagery/wmts/1.0.0/default028mm/mapserver/tile/{releaseNum}/{{level}}/{{row}}/{{col}}";
-                
-                // 获取元数据服务URL
-                string metadataUrl = item.TryGetProperty("metadataLayerUrl", out var metaProp) ? metaProp.GetString() : null;
+                var center = mapView.Extent.Center;
+                var centerWgs84 = GeometryEngine.Instance.Project(center, SpatialReferences.WGS84) as MapPoint
+                    ?? throw new InvalidOperationException("无法获取当前地图中心点");
 
-                versions.Add(new WaybackVersion
+                var zoomLevel = (int)Math.Round(Math.Log(591657550.5 / mapView.Camera.Scale, 2));
+                zoomLevel = Math.Clamp(zoomLevel, 1, 23);
+
+                return new HistoricalVersionQuery
                 {
-                    ReleaseNum = releaseNum,
-                    ReleaseDate = releaseDate,
-                    Year = year,
-                    ItemTitle = itemTitle,
-                    Url = url,
-                    MetadataLayerUrl = metadataUrl
-                });
+                    Longitude = centerWgs84.X,
+                    Latitude = centerWgs84.Y,
+                    ZoomLevel = zoomLevel,
+                    IncludeAllVersions = false
+                };
+            });
+        }
+
+        private static WaybackVersion MapVersion(HistoricalVersionItem version)
+        {
+            var releaseDate = version.DisplayDate ?? string.Empty;
+            var year = 0;
+            if (!string.IsNullOrWhiteSpace(releaseDate))
+            {
+                var segments = releaseDate.Split('-');
+                if (segments.Length > 0)
+                {
+                    int.TryParse(segments[0], out year);
+                }
             }
 
-            // 按日期降序排列
-            return versions.OrderByDescending(v => v.ReleaseDate).ToList();
+            var releaseNum = 0;
+            int.TryParse(version.VersionId, out releaseNum);
+
+            return new WaybackVersion
+            {
+                ReleaseNum = releaseNum,
+                ReleaseDate = releaseDate,
+                Year = year,
+                ItemTitle = version.Summary ?? version.DisplayDate ?? version.VersionId,
+                Url = version.TileUrlTemplate ?? string.Empty,
+                MetadataLayerUrl = version.MetadataLayerUrl ?? string.Empty,
+                AcquisitionDate = version.AcquisitionDate,
+                IsChanged = string.Equals(version.ChangeKey, version.VersionId, StringComparison.Ordinal)
+            };
+        }
+
+        private static WaybackVersion CloneVersion(WaybackVersion version)
+        {
+            return new WaybackVersion
+            {
+                ReleaseNum = version.ReleaseNum,
+                ReleaseDate = version.ReleaseDate,
+                Year = version.Year,
+                ItemTitle = version.ItemTitle,
+                Url = version.Url,
+                MetadataLayerUrl = version.MetadataLayerUrl,
+                AcquisitionDate = version.AcquisitionDate,
+                IsChanged = version.IsChanged
+            };
         }
 
         /// <summary>
@@ -751,3 +705,4 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         }
     }
 }
+

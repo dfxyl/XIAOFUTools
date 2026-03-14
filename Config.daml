@@ -73,6 +73,7 @@
       <palettes>
         <buttonPalette id="XIAOFUTools_CommonButtonPalette" caption="数据加载" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_BatchAddDataButton" />
+          <button refID="XIAOFUTools_HistoricalImageryDownloadButton" />
           <button refID="XIAOFUTools_DownloadOnlineImageryButton" />
           <button refID="XIAOFUTools_OvertureLoaderButton" />
         </buttonPalette>
@@ -198,6 +199,7 @@
         <dockPane id="XIAOFUTools_FeatureToTxtDockPane" caption="要素类转TXT" className="XIAOFUTools.Tools.FeatureToTxt.FeatureToTxtDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 下载在线影像停靠窗格 -->
         <dockPane id="XIAOFUTools_DownloadOnlineImageryDockPane" caption="下载在线影像" className="XIAOFUTools.Tools.DownloadOnlineImagery.DownloadOnlineImageryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <dockPane id="XIAOFUTools_HistoricalImageryDownloadDockPane" caption="历史影像下载" className="XIAOFUTools.Tools.HistoricalImageryDownload.HistoricalImageryDownloadDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 历史影像停靠窗格 -->
         <dockPane id="XIAOFUTools_HistoricalImageryDockPane" caption="历史影像" className="XIAOFUTools.Tools.HistoricalImagery.HistoricalImageryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 导出布局停靠窗格 -->
@@ -421,6 +423,11 @@
             根据要素图层范围下载在线影像并可选择合并
             <disabledText>无权限使用下载在线影像工具</disabledText></tooltip>
         </button>
+        <button id="XIAOFUTools_HistoricalImageryDownloadButton" caption="历史影像下载" className="XIAOFUTools.Tools.HistoricalImageryDownload.HistoricalImageryDownloadButton" loadOnClick="true" smallImage="Images\DownloadHistoricalImagery_16.png" largeImage="Images\DownloadHistoricalImagery_32.png">
+          <tooltip heading="历史影像下载">
+            查询当前位置 Google 历史影像或 Esri Wayback 版本，并按当前视图、框选或面图层范围导出 GeoTIFF
+            <disabledText>无权限使用历史影像下载工具</disabledText></tooltip>
+        </button>
         <!-- 导出布局按钮 -->
         <button id="XIAOFUTools_ExportLayoutButton" caption="导出布局" className="XIAOFUTools.Tools.ExportLayout.ExportLayoutButton" loadOnClick="true" smallImage="Images\ExportLayout_16.png" largeImage="Images\ExportLayout_32.png">
           <tooltip heading="导出布局">
@@ -546,6 +553,11 @@
           <tooltip heading="绘制自定义范围">
             在地图上绘制矩形以定义自定义数据范围
             <disabledText>必须打开地图才能使用此工具</disabledText></tooltip>
+        </tool>
+        <tool id="XIAOFUTools_HistoricalImageryDownloadRectangleTool" className="XIAOFUTools.Tools.HistoricalImageryDownload.HistoricalImageryDownloadRectangleTool" caption="绘制历史影像下载范围" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool32.png" condition="esri_mapping_mapPane">
+          <tooltip heading="绘制历史影像下载范围">
+            在地图上绘制矩形范围作为历史影像下载区域
+            <disabledText>必须打开地图才能使用该工具</disabledText></tooltip>
         </tool>
         <!-- 面积分割工具 -->
         <tool id="XIAOFUTools_AreaSplitTool" className="XIAOFUTools.Tools.AreaSplit.AreaSplitTool" caption="面积分割" loadOnClick="true" smallImage="Images\AreaSplit_16.png" largeImage="Images\AreaSplit_32.png" condition="esri_mapping_mapPane" keytip="A">

@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
 
@@ -12,10 +13,6 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Docs\GEHistoricalImagery-master\**" />
-    <EmbeddedResource Remove="Docs\GEHistoricalImagery-master\**" />
-    <None Remove="Docs\GEHistoricalImagery-master\**" />
-    <Page Remove="Docs\GEHistoricalImagery-master\**" />
     <Compile Remove="XIAOFUTools.Tests\**" />
     <EmbeddedResource Remove="XIAOFUTools.Tests\**" />
     <None Remove="XIAOFUTools.Tests\**" />
@@ -523,9 +520,11 @@
     <PackageReference Include="DuckDB.NET.Data.Full" Version="1.4.1" />
     <PackageReference Include="GDAL" Version="3.12.1" />
     <PackageReference Include="GDAL.Native" Version="3.12.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.34.0" />
     <PackageReference Include="ACadSharp" Version="3.3.0" />
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="PDFsharp-GDI" Version="6.2.4" />

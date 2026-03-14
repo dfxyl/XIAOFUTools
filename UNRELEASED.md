@@ -2,11 +2,20 @@
 
 记录开发中的修改，发布新版本时将内容移入 [CHANGELOG.md](CHANGELOG.md)。
 
-**最后更新**: 2026-03-13
+**最后更新**: 2026-03-14
 
 ---
 
 ## 新增功能
+
+### 历史影像下载工具 (2026-03-14)
+- 新增 `历史影像下载` 工具，支持查询当前位置 Google 历史影像与 Esri Wayback 版本，并按所选版本批量导出 GeoTIFF。
+- 支持 `查询历史` / `查询全部` 两种查询模式，以及 `当前视图`、`框选范围`、`面图层范围` 三种下载范围来源。
+- 支持批量勾选历史版本、设置输出目录与输出坐标系，并在下载完成后自动加载结果图层。
+- 修改的文件：
+  - `Config.daml` - 注册历史影像下载窗格、按钮与矩形框选工具。
+  - `Tools/Common/HistoricalImageryDownload/*` - 新增历史影像下载界面、查询、批量下载、范围解析与 Wayback/Google Provider 实现。
+  - `XIAOFUTools.Tests/HistoricalImageryDownload/*` - 新增历史影像下载相关解析、规划与查询测试。
 
 ### 图幅赋值与查询工具 (2026-03-13)
 - 新增 `大比例图幅赋值` 与 `小比例图幅赋值` 两个工具，支持选择面图层和目标文本字段，将命中的多个图幅编号以 `、` 连接后写入图斑字段。
@@ -41,6 +50,17 @@
 - 暂无
 
 ## 改进优化
+
+### 历史影像工具优化 (2026-03-14)
+- 优化 `历史影像` 工具的 Wayback 变化版本判定逻辑，勾选“仅显示变化版本”时改为按 Wayback 官方页面一致的 `tilemap/select` 真实变化逻辑筛选当前位置发生变化的版本，不勾选时仍显示全部版本。
+- 优化 `历史影像下载` 工具的 Wayback 历史查询逻辑，`查询历史` 与历史影像工具统一使用真实变化判定，`查询全部` 保持返回全部版本。
+- 保留当前元数据查询能力，在真实变化筛选完成后继续显示对应版本的采集日期、来源与分辨率等信息。
+- 修改的文件：
+  - `Tools/Common/HistoricalImagery/HistoricalImageryDockPaneViewModel.cs` - 接入真实变化查询逻辑并调整勾选行为。
+  - `Tools/Common/HistoricalImageryDownload/Services/HistoricalImageryProviders.cs` - 新增 Wayback tilemap 查询与有效版本判定逻辑。
+  - `Tools/Common/HistoricalImageryDownload/Services/WaybackVersionFilter.cs` - 改为按真实生效版本过滤历史变化结果。
+  - `XIAOFUTools.Tests/HistoricalImageryDownload/WaybackVersionFilterTests.cs` - 补充真实变化过滤测试。
+  - `XIAOFUTools.Tests/HistoricalImageryDownload/WaybackLiveProviderTests.cs` - 补充 Wayback 实时查询断言。
 
 ### 图幅赋值与查询工具 (2026-03-13)
 - 优化地图查询交互，查询时仅闪烁命中的图幅边框，不在地图上残留常驻标记。
