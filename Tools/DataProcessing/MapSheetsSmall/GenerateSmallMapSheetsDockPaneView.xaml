@@ -82,7 +82,13 @@
     </Grid>
 
     <!-- 日志/状态 -->
-    <TextBox Grid.Row="5" Text="{Binding LogContent}" IsReadOnly="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
+    <Border Grid.Row="5" BorderBrush="#CDCDCD" BorderThickness="1" Margin="0,0,0,10">
+      <TextBox Text="{Binding LogContent}"
+               Style="{StaticResource LogTextBoxStyle}"
+               BorderThickness="0"
+               VerticalAlignment="Stretch"
+               HorizontalAlignment="Stretch"/>
+    </Border>
 
     <!-- 操作 -->
     <StackPanel Orientation="Horizontal" Grid.Row="6" HorizontalAlignment="Right" Margin="0,8,0,0">
