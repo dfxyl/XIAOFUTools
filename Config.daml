@@ -74,6 +74,7 @@
         <buttonPalette id="XIAOFUTools_CommonButtonPalette" caption="数据加载" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_BatchAddDataButton" />
           <button refID="XIAOFUTools_HistoricalImageryDownloadButton" />
+          <button refID="XIAOFUTools_InternetTileDownloadButton" />
           <button refID="XIAOFUTools_DownloadOnlineImageryButton" />
           <button refID="XIAOFUTools_OvertureLoaderButton" />
         </buttonPalette>
@@ -200,6 +201,7 @@
         <!-- 下载在线影像停靠窗格 -->
         <dockPane id="XIAOFUTools_DownloadOnlineImageryDockPane" caption="下载在线影像" className="XIAOFUTools.Tools.DownloadOnlineImagery.DownloadOnlineImageryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <dockPane id="XIAOFUTools_HistoricalImageryDownloadDockPane" caption="历史影像下载" className="XIAOFUTools.Tools.HistoricalImageryDownload.HistoricalImageryDownloadDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <dockPane id="XIAOFUTools_InternetTileDownloadDockPane" caption="互联网切片下载" className="XIAOFUTools.Tools.InternetTileDownload.InternetTileDownloadDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 历史影像停靠窗格 -->
         <dockPane id="XIAOFUTools_HistoricalImageryDockPane" caption="历史影像" className="XIAOFUTools.Tools.HistoricalImagery.HistoricalImageryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 导出布局停靠窗格 -->
@@ -428,6 +430,11 @@
             查询当前位置 Google 历史影像或 Esri Wayback 版本，并按当前视图、框选或面图层范围导出 GeoTIFF
             <disabledText>无权限使用历史影像下载工具</disabledText></tooltip>
         </button>
+        <button id="XIAOFUTools_InternetTileDownloadButton" caption="互联网切片下载" className="XIAOFUTools.Tools.InternetTileDownload.InternetTileDownloadButton" loadOnClick="true" smallImage="Images\DownloadOnlineImagery_16.png" largeImage="Images\DownloadOnlineImagery_32.png">
+          <tooltip heading="互联网切片下载">
+            按用户提供的 WMTS 或 XYZ 切片链接，按当前视图、框选或面图层范围下载并拼接 GeoTIFF
+            <disabledText>无权限使用互联网切片下载工具</disabledText></tooltip>
+        </button>
         <!-- 导出布局按钮 -->
         <button id="XIAOFUTools_ExportLayoutButton" caption="导出布局" className="XIAOFUTools.Tools.ExportLayout.ExportLayoutButton" loadOnClick="true" smallImage="Images\ExportLayout_16.png" largeImage="Images\ExportLayout_32.png">
           <tooltip heading="导出布局">
@@ -557,6 +564,11 @@
         <tool id="XIAOFUTools_HistoricalImageryDownloadRectangleTool" className="XIAOFUTools.Tools.HistoricalImageryDownload.HistoricalImageryDownloadRectangleTool" caption="绘制历史影像下载范围" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool32.png" condition="esri_mapping_mapPane">
           <tooltip heading="绘制历史影像下载范围">
             在地图上绘制矩形范围作为历史影像下载区域
+            <disabledText>必须打开地图才能使用该工具</disabledText></tooltip>
+        </tool>
+        <tool id="XIAOFUTools_InternetTileDownloadRectangleTool" className="XIAOFUTools.Tools.InternetTileDownload.InternetTileDownloadRectangleTool" caption="绘制互联网切片下载范围" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool32.png" condition="esri_mapping_mapPane">
+          <tooltip heading="绘制互联网切片下载范围">
+            在地图上绘制矩形范围作为互联网切片下载区域
             <disabledText>必须打开地图才能使用该工具</disabledText></tooltip>
         </tool>
         <!-- 面积分割工具 -->

@@ -23,7 +23,8 @@ public class HistoricalDownloadPerformanceAdvisorTests
             versionCount: 3,
             preciseClip: true);
 
-        Assert.True(evaluation.ShouldBlock);
+        Assert.False(evaluation.ShouldBlock);
+        Assert.True(evaluation.ShouldWarn);
         Assert.NotEmpty(evaluation.Messages);
     }
 

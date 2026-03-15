@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\Common\SketchToolResetWorkflow.cs" Link="Shared\SketchToolResetWorkflow.cs" />
     <Compile Include="..\Tools\Common\HistoricalImagery\HistoricalImageryHelpTextBuilder.cs" Link="Shared\HistoricalImageryHelpTextBuilder.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalVersionModels.cs" Link="Shared\HistoricalVersionModels.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalDownloadRequestModels.cs" Link="Shared\HistoricalDownloadRequestModels.cs" />
@@ -46,6 +47,18 @@
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\WaybackMetadataSourceResolver.cs" Link="Shared\WaybackMetadataSourceResolver.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\WaybackVersionFilter.cs" Link="Shared\WaybackVersionFilter.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Services\HistoricalImageryProviders.cs" Link="Shared\HistoricalImageryProviders.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Models\InternetTileServiceModels.cs" Link="Shared\InternetTileServiceModels.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Infrastructure\InternetTileTemplateParser.cs" Link="Shared\InternetTileTemplateParser.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Infrastructure\InternetTileVendorRules.cs" Link="Shared\InternetTileVendorRules.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Infrastructure\InternetTileHttpClient.cs" Link="Shared\InternetTileHttpClient.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Infrastructure\InternetWmtsCapabilitiesParser.cs" Link="Shared\InternetWmtsCapabilitiesParser.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Core\InternetTilePlanner.cs" Link="Shared\InternetTilePlanner.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileRequestExpander.cs" Link="Shared\InternetTileRequestExpander.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileServiceSummaryBuilder.cs" Link="Shared\InternetTileServiceSummaryBuilder.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileDownloadCompletionGuard.cs" Link="Shared\InternetTileDownloadCompletionGuard.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileHelpTextBuilder.cs" Link="Shared\InternetTileHelpTextBuilder.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileOutputPathBuilder.cs" Link="Shared\InternetTileOutputPathBuilder.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileServiceResolver.cs" Link="Shared\InternetTileServiceResolver.cs" />
   </ItemGroup>
 
 </Project>

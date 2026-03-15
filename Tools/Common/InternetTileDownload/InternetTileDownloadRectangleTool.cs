@@ -4,13 +4,13 @@ using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
 
-namespace XIAOFUTools.Tools.HistoricalImageryDownload
+namespace XIAOFUTools.Tools.InternetTileDownload
 {
-    internal class HistoricalImageryDownloadRectangleTool : MapTool
+    internal class InternetTileDownloadRectangleTool : MapTool
     {
         public static event Action<Envelope>? ExtentCreated;
 
-        public HistoricalImageryDownloadRectangleTool()
+        public InternetTileDownloadRectangleTool()
         {
             IsSketchTool = true;
             SketchType = SketchGeometryType.Rectangle;

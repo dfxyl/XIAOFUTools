@@ -687,11 +687,20 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
                 "历史影像下载帮助");
         }
 
-        private void OnExtentCreated(Envelope extent)
+        private async void OnExtentCreated(Envelope extent)
         {
             _customExtent = extent;
             UpdateAreaSummary();
             UpdateCommands();
+
+            try
+            {
+                await SketchToolResetWorkflow.ResetAsync(ArcGisSketchToolResetOperations.Instance);
+            }
+            catch (Exception ex)
+            {
+                AppendLog($"恢复地图工具状态失败: {ex.Message}");
+            }
         }
 
         private void UpdateAreaSummary()

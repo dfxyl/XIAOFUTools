@@ -40,10 +40,11 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             var messages = new List<string>();
             var totalTasks = Math.Max(1, tilesPerVersion) * Math.Max(1, versionCount);
             var useFastClip = preciseClip && tilesPerVersion >= FastClipTileCount;
-            var shouldWarn = tilesPerVersion >= WarningTileCount || totalTasks >= WarningTaskCount || useFastClip;
-            var shouldBlock = tilesPerVersion >= BlockingTileCount || totalTasks >= BlockingTaskCount;
+            var exceedsWarningThreshold = tilesPerVersion >= WarningTileCount || totalTasks >= WarningTaskCount;
+            var exceedsBlockingThreshold = tilesPerVersion >= BlockingTileCount || totalTasks >= BlockingTaskCount;
+            var shouldWarn = exceedsWarningThreshold || exceedsBlockingThreshold || useFastClip;
 
-            if (shouldBlock)
+            if (exceedsBlockingThreshold)
             {
                 messages.Add($"下载范围过大：单版本约 {tilesPerVersion} 个瓦片，总任务量约 {totalTasks}。请缩小范围、降低级别或减少版本数后再下载。");
             }
@@ -60,7 +61,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             return new HistoricalDownloadPerformanceEvaluation
             {
                 ShouldWarn = shouldWarn,
-                ShouldBlock = shouldBlock,
+                ShouldBlock = false,
                 UseFastClip = useFastClip,
                 RecommendedTileConcurrency = RecommendTileConcurrency(Environment.ProcessorCount, tilesPerVersion, preciseClip),
                 Messages = messages

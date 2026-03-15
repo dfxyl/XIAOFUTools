@@ -2,11 +2,21 @@
 
 记录开发中的修改，发布新版本时将内容移入 [CHANGELOG.md](CHANGELOG.md)。
 
-**最后更新**: 2026-03-14
+**最后更新**: 2026-03-15
 
 ---
 
 ## 新增功能
+
+### 互联网切片下载工具 (2026-03-15)
+- 新增独立的 `互联网切片下载` 工具，支持粘贴互联网切片服务链接，按所选级别下载并拼接为 GeoTIFF。
+- 支持 `当前视图`、`框选范围`、`面图层范围` 三种下载范围来源，并支持输出坐标系设置、下载后自动加载结果图层。
+- 首版支持常见切片协议与模板：`KVP WMTS`、`RESTful WMTS`、`XYZ`、`TMS`、`ArcGIS REST tile`、`QuadKey`、子域名模板（如 `[t0-t7]`、`{s}`）。
+- 增加厂商兼容规则，优先兼容 `天地图`、`ArcGIS Online / ArcGIS REST`、`Google 风格模板` 与 `吉林一号` 常见链接模式。
+- 修改的文件：
+  - `Config.daml` - 注册互联网切片下载窗格、按钮与矩形框选工具。
+  - `Tools/Common/InternetTileDownload/*` - 新增互联网切片下载界面、协议识别、服务解析、切片规划、下载拼接与帮助文案实现。
+  - `XIAOFUTools.Tests/InternetTileDownload/*` - 新增互联网切片模板解析、WMTS 能力解析、请求展开、协议兼容与工作流测试。
 
 ### 历史影像下载工具 (2026-03-14)
 - 新增 `历史影像下载` 工具，支持查询当前位置 Google 历史影像与 Esri Wayback 版本，并按所选版本批量导出 GeoTIFF。
@@ -47,9 +57,34 @@
 
 ## Bug 修复
 
-- 暂无
+### 互联网切片下载与历史影像下载修复 (2026-03-15)
+- 修复互联网切片下载输出临时 GeoTIFF 时文件句柄未及时释放的问题，避免导出结束后出现“文件被其他进程占用”。
+- 修复 WMTS 坐标系别名识别问题，兼容 `EPSG:900913`、`102100`、`102113` 等 Web Mercator 常见别名。
+- 修复天地图 WMTS `TopLeftCorner` 方向异常导致的“下载范围超出服务覆盖范围”问题，并校正天地图矩阵分辨率计算，避免导出影像空间位置偏移。
+- 修复 `互联网切片下载` 与 `历史影像下载` 的框选工具状态恢复问题，框选完成后统一执行取消绘制、清空当前工具并切回浏览工具，避免地图持续停留在草图状态。
+- 修改的文件：
+  - `Common/SketchToolResetWorkflow.cs` - 新增框选工具状态恢复流程。
+  - `Common/ArcGisSketchToolResetOperations.cs` - 封装 ArcGIS 地图绘制取消与工具切换操作。
+  - `Tools/Common/InternetTileDownload/Infrastructure/InternetWmtsCapabilitiesParser.cs` - 修复天地图 WMTS 原点、分辨率与 CRS 别名处理。
+  - `Tools/Common/InternetTileDownload/Services/InternetTileDownloadEngine.cs` - 修复临时输出文件释放顺序。
+  - `Tools/Common/InternetTileDownload/InternetTileDownloadRectangleTool.cs` - 调整框选完成后的工具恢复时机。
+  - `Tools/Common/InternetTileDownload/InternetTileDownloadViewModel.cs` - 在框选完成回调中统一恢复地图工具状态。
+  - `Tools/Common/HistoricalImageryDownload/HistoricalImageryDownloadRectangleTool.cs` - 调整框选完成后的工具恢复时机。
+  - `Tools/Common/HistoricalImageryDownload/HistoricalImageryDownloadViewModel.cs` - 在框选完成回调中统一恢复地图工具状态。
 
 ## 改进优化
+
+### 互联网切片下载工具扩展 (2026-03-15)
+- 将互联网切片下载的链接识别从基础 `WMTS/XYZ` 扩展为“协议内核 + 厂商规则”两层结构，减少对单一站点硬编码依赖。
+- 提炼统一的请求展开逻辑，支持 `ArcGIS REST tile`、`TMS 反向 Y`、`QuadKey`、通用子域名模板与 RESTful WMTS 路径模板。
+- 优化服务摘要显示，直接展示协议类型、模板模式、厂商标识、行号方向、坐标系与级别数，便于排查兼容性问题。
+- 修改的文件：
+  - `Tools/Common/InternetTileDownload/Models/InternetTileServiceModels.cs` - 扩展协议模式、厂商标识、行号方向与子域名模型。
+  - `Tools/Common/InternetTileDownload/Infrastructure/InternetTileTemplateParser.cs` - 扩展模板识别与 RESTful/ArcGIS/QuadKey/TMS 解析。
+  - `Tools/Common/InternetTileDownload/Infrastructure/InternetTileVendorRules.cs` - 新增厂商规则预处理与子域名归一化。
+  - `Tools/Common/InternetTileDownload/Services/InternetTileRequestExpander.cs` - 新增统一请求地址展开逻辑。
+  - `Tools/Common/InternetTileDownload/Services/InternetTileServiceResolver.cs` - 扩展服务定义生成与 RESTful WMTS 能力文档解析流程。
+  - `Tools/Common/InternetTileDownload/Services/InternetTileServiceSummaryBuilder.cs` - 新增服务摘要构建逻辑。
 
 ### 历史影像工具优化 (2026-03-14)
 - 优化 `历史影像` 工具的 Wayback 变化版本判定逻辑，勾选“仅显示变化版本”时改为按 Wayback 官方页面一致的 `tilemap/select` 真实变化逻辑筛选当前位置发生变化的版本，不勾选时仍显示全部版本。
