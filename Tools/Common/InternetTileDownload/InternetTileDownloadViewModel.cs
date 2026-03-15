@@ -348,6 +348,12 @@ namespace XIAOFUTools.Tools.InternetTileDownload
                     throw new InvalidOperationException(string.Join(Environment.NewLine, inspection.Messages));
                 }
 
+                if (!inspection.CanDownload)
+                {
+                    StatusMessage = "未检测到可用瓦片";
+                    return;
+                }
+
                 if (inspection.ShouldWarn)
                 {
                     var warningText = string.Join(Environment.NewLine, inspection.Messages);

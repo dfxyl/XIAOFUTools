@@ -77,6 +77,10 @@ namespace XIAOFUTools.Tools.InternetTileDownload
 
         public int TotalTileCount { get; init; }
 
+        public int CheckedTileCount { get; init; }
+
+        public int AvailableTileCount { get; init; }
+
         public int RecommendedTileConcurrency { get; init; }
 
         public IReadOnlyList<string> Messages { get; init; } = new List<string>();

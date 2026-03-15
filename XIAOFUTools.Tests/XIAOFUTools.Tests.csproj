@@ -53,6 +53,7 @@
     <Compile Include="..\Tools\Common\InternetTileDownload\Infrastructure\InternetTileHttpClient.cs" Link="Shared\InternetTileHttpClient.cs" />
     <Compile Include="..\Tools\Common\InternetTileDownload\Infrastructure\InternetWmtsCapabilitiesParser.cs" Link="Shared\InternetWmtsCapabilitiesParser.cs" />
     <Compile Include="..\Tools\Common\InternetTileDownload\Core\InternetTilePlanner.cs" Link="Shared\InternetTilePlanner.cs" />
+    <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileCoverageProbeService.cs" Link="Shared\InternetTileCoverageProbeService.cs" />
     <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileRequestExpander.cs" Link="Shared\InternetTileRequestExpander.cs" />
     <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileServiceSummaryBuilder.cs" Link="Shared\InternetTileServiceSummaryBuilder.cs" />
     <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileDownloadCompletionGuard.cs" Link="Shared\InternetTileDownloadCompletionGuard.cs" />

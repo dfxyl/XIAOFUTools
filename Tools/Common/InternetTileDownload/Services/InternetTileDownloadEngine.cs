@@ -33,22 +33,38 @@ namespace XIAOFUTools.Tools.InternetTileDownload.Services
             _httpClient = httpClient ?? new InternetTileHttpClient();
         }
 
-        public Task<InternetTileDownloadInspectionResult> InspectAsync(
+        public async Task<InternetTileDownloadInspectionResult> InspectAsync(
             InternetTileDownloadExecutionRequest executionRequest,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var planContext = CreatePlanContext(executionRequest.Request, executionRequest.ResolvedArea);
-            return Task.FromResult(new InternetTileDownloadInspectionResult
+            var sampledTiles = InternetTileCoverageProbeService.CreateSample(planContext.Plan.Tiles);
+            var coverage = await InternetTileCoverageProbeService.ProbeAsync(
+                _httpClient,
+                executionRequest.Request.ServiceDefinition,
+                executionRequest.Request.LevelId,
+                sampledTiles,
+                cancellationToken);
+
+            var messages = new List<string>(planContext.Evaluation.Messages);
+            if (!coverage.HasCoverage)
             {
-                CanDownload = !planContext.Evaluation.ShouldBlock,
+                messages.Add($"预检未检测到可用瓦片（抽样检查 {coverage.CheckedTileCount} 个，命中 0 个），已停止下载。请检查服务链接、范围、级别、权限令牌或网络连通性后重试。");
+            }
+
+            return new InternetTileDownloadInspectionResult
+            {
+                CanDownload = coverage.HasCoverage && !planContext.Evaluation.ShouldBlock,
                 ShouldWarn = planContext.Evaluation.ShouldWarn,
                 ShouldBlock = planContext.Evaluation.ShouldBlock,
                 UseFastClip = planContext.Evaluation.UseFastClip,
                 TotalTileCount = planContext.Plan.Tiles.Count,
+                CheckedTileCount = coverage.CheckedTileCount,
+                AvailableTileCount = coverage.AvailableTileCount,
                 RecommendedTileConcurrency = planContext.Evaluation.RecommendedTileConcurrency,
-                Messages = planContext.Evaluation.Messages
-            });
+                Messages = messages
+            };
         }
 
         public async Task<InternetTileDownloadResult> DownloadAsync(
