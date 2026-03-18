@@ -1,0 +1,49 @@
+<Window x:Class="XIAOFUTools.Tools.QuickAddData.QuickDataTextInputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="输入名称"
+        Height="165"
+        Width="360"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock x:Name="PromptTextBlock"
+                   Grid.Row="0"
+                   Margin="0,0,0,10"
+                   TextWrapping="Wrap"/>
+
+        <TextBox x:Name="InputTextBox"
+                 Grid.Row="1"
+                 Height="28"
+                 Style="{StaticResource TextBoxStyle}"/>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,12,0,0">
+            <Button Content="取消"
+                    Width="72"
+                    Margin="0,0,8,0"
+                    Style="{StaticResource CancelButtonStyle}"
+                    Click="CancelButton_Click"/>
+            <Button Content="确定"
+                    Width="72"
+                    Style="{StaticResource ExecuteButtonStyle}"
+                    Click="OkButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

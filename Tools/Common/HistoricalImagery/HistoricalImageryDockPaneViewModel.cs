@@ -2,6 +2,7 @@
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
+using ArcGIS.Desktop.Mapping.Events;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using System;
@@ -180,16 +181,24 @@ namespace XIAOFUTools.Tools.HistoricalImagery
         public ICommand ClearSearchCommand { get; }
         public ICommand QueryMetadataCommand { get; }
         public ICommand ShowHelpCommand { get; }
+        public HistoricalImageryTreeDragDropHandler TreeDragDropHandler { get; }
 
         private List<WaybackVersion> _allVersions;
         private List<WaybackVersion> _catalogVersions;
         private readonly WaybackHistoricalImageryProvider _waybackProvider = new();
+        private readonly HistoricalImageryMapLoadService _mapLoadService;
+        private dynamic _layersAddedToken;
+        private HistoricalImageryLayerRequest _pendingDragRequest;
+        private DateTime _pendingDragRequestTimeUtc;
 
         public HistoricalImageryDockPaneViewModel()
         {
             TreeNodes = new ObservableCollection<TreeNode>();
             _allVersions = new List<WaybackVersion>();
             _catalogVersions = new List<WaybackVersion>();
+            _mapLoadService = new HistoricalImageryMapLoadService();
+            TreeDragDropHandler = new HistoricalImageryTreeDragDropHandler(this);
+            _layersAddedToken = LayersAddedEvent.Subscribe((args) => _ = ApplyPendingDragRequestAsync(args));
             MetadataDisplay = "点击查询按钮获取当前位置影像信息";
 
             RefreshCommand = new RelayCommand(async () => await RefreshAsync());
@@ -483,39 +492,31 @@ namespace XIAOFUTools.Tools.HistoricalImagery
             }
 
             var version = SelectedNode.Version;
+            if (!TryCreateLayerRequest(version, out var request, out var errorMessage))
+            {
+                ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                    errorMessage,
+                    "提示",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Information);
+                return;
+            }
 
             try
             {
-                await QueuedTask.Run(() =>
+                var result = await _mapLoadService.LoadAsync(request);
+                if (!result.Succeeded)
                 {
-                    var mapView = MapView.Active;
-                    if (mapView?.Map == null)
-                    {
-                        ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
-                            "当前没有活动地图",
-                            "错误",
-                            System.Windows.MessageBoxButton.OK,
-                            System.Windows.MessageBoxImage.Error);
-                        return;
-                    }
-
-                    // 通过 URI 创建图层
-                    var uri = new Uri(version.Url);
-                    var layer = LayerFactory.Instance.CreateLayer(uri, mapView.Map, layerName: $"Wayback {version.ReleaseDate}");
-
-                    if (layer != null)
-                    {
-                        // 将图层移到底部
-                        var allLayers = mapView.Map.Layers.ToList();
-                        if (allLayers.Count > 1)
-                        {
-                            mapView.Map.MoveLayer(layer, allLayers.Count - 1);
-                        }
-                    }
-                });
+                    ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
+                        result.ErrorMessage,
+                        "错误",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Error);
+                    return;
+                }
 
                 ArcGIS.Desktop.Framework.Dialogs.MessageBox.Show(
-                    $"已添加历史影像图层：{version.ReleaseDate}",
+                    $"已添加历史影像图层：{request.LayerName}",
                     "成功",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Information);
@@ -528,6 +529,52 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Error);
             }
+        }
+
+        internal bool TryCreateLayerRequest(WaybackVersion version, out HistoricalImageryLayerRequest request, out string errorMessage)
+        {
+            return HistoricalImageryLayerRequestFactory.TryCreate(
+                version?.ReleaseDate ?? string.Empty,
+                version?.ItemTitle ?? string.Empty,
+                version?.Url ?? string.Empty,
+                version?.ReleaseNum ?? 0,
+                out request,
+                out errorMessage);
+        }
+
+        internal void RegisterPendingDragRequest(HistoricalImageryLayerRequest request)
+        {
+            _pendingDragRequest = request;
+            _pendingDragRequestTimeUtc = DateTime.UtcNow;
+        }
+
+        internal void ClearPendingDragRequest()
+        {
+            _pendingDragRequest = null;
+        }
+
+        private async Task ApplyPendingDragRequestAsync(dynamic args)
+        {
+            if (_pendingDragRequest == null)
+            {
+                return;
+            }
+
+            if ((DateTime.UtcNow - _pendingDragRequestTimeUtc).TotalSeconds > 15)
+            {
+                _pendingDragRequest = null;
+                return;
+            }
+
+            var layers = args?.Layers as IEnumerable<Layer>;
+            if (layers == null)
+            {
+                return;
+            }
+
+            var request = _pendingDragRequest;
+            _pendingDragRequest = null;
+            await _mapLoadService.FinalizeDraggedLayerAsync(request, layers);
         }
 
         /// <summary>

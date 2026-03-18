@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:XIAOFUTools.Tools.HistoricalImagery"
+             xmlns:frameworkDragDrop="clr-namespace:ArcGIS.Desktop.Framework.DragDrop;assembly=ArcGIS.Desktop.Framework"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="400">
     <UserControl.Resources>
@@ -109,8 +110,14 @@
                 BorderThickness="1">
             <Grid>
                 <!-- 树形控件 -->
-                <TreeView ItemsSource="{Binding TreeNodes}"
-                          Visibility="{Binding IsLoading, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                <TreeView x:Name="HistoricalImageryTree"
+                          ItemsSource="{Binding TreeNodes}"
+                           AllowDrop="True"
+                           frameworkDragDrop:DragDrop.IsDragSource="True"
+                           frameworkDragDrop:DragDrop.DragHandler="{Binding TreeDragDropHandler}"
+                           PreviewMouseLeftButtonDown="HistoricalImageryTree_PreviewMouseLeftButtonDown"
+                           PreviewMouseMove="HistoricalImageryTree_PreviewMouseMove"
+                            Visibility="{Binding IsLoading, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
                     <TreeView.ItemContainerStyle>
                         <Style TargetType="TreeViewItem">
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>

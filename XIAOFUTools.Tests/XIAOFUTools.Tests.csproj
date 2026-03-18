@@ -22,6 +22,7 @@
   <ItemGroup>
     <Compile Include="..\Common\SketchToolResetWorkflow.cs" Link="Shared\SketchToolResetWorkflow.cs" />
     <Compile Include="..\Tools\Common\HistoricalImagery\HistoricalImageryHelpTextBuilder.cs" Link="Shared\HistoricalImageryHelpTextBuilder.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImagery\HistoricalImageryLayerRequest.cs" Link="Shared\HistoricalImageryLayerRequest.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalVersionModels.cs" Link="Shared\HistoricalVersionModels.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalDownloadRequestModels.cs" Link="Shared\HistoricalDownloadRequestModels.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Models\HistoricalTileModels.cs" Link="Shared\HistoricalTileModels.cs" />
@@ -60,6 +61,15 @@
     <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileHelpTextBuilder.cs" Link="Shared\InternetTileHelpTextBuilder.cs" />
     <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileOutputPathBuilder.cs" Link="Shared\InternetTileOutputPathBuilder.cs" />
     <Compile Include="..\Tools\Common\InternetTileDownload\Services\InternetTileServiceResolver.cs" Link="Shared\InternetTileServiceResolver.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataModels.cs" Link="Shared\QuickAddData\QuickDataModels.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataLibraryStore.cs" Link="Shared\QuickAddData\QuickDataLibraryStore.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataLibraryOrganizer.cs" Link="Shared\QuickAddData\QuickDataLibraryOrganizer.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataLibraryHydrator.cs" Link="Shared\QuickAddData\QuickDataLibraryHydrator.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataImportService.cs" Link="Shared\QuickAddData\QuickDataImportService.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataTreeBuilder.cs" Link="Shared\QuickAddData\QuickDataTreeBuilder.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataDragPathCollector.cs" Link="Shared\QuickAddData\QuickDataDragPathCollector.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataTreeSelectionHelper.cs" Link="Shared\QuickAddData\QuickDataTreeSelectionHelper.cs" />
+    <Compile Include="..\Tools\Common\QuickAddData\QuickDataTreeStateKeyBuilder.cs" Link="Shared\QuickAddData\QuickDataTreeStateKeyBuilder.cs" />
   </ItemGroup>
 
 </Project>

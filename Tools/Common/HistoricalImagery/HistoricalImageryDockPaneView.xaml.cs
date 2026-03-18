@@ -3,6 +3,8 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace XIAOFUTools.Tools.HistoricalImagery
 {
@@ -11,10 +13,36 @@ namespace XIAOFUTools.Tools.HistoricalImagery
     /// </summary>
     public partial class HistoricalImageryDockPaneView : UserControl
     {
+        private Point _dragStartPoint;
+
         public HistoricalImageryDockPaneView()
         {
             InitializeComponent();
             DataContext = new HistoricalImageryDockPaneViewModel();
+        }
+
+        private void HistoricalImageryTree_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            _dragStartPoint = e.GetPosition(null);
+            var treeViewItem = VisualUpwardSearch<TreeViewItem>(e.OriginalSource as DependencyObject);
+            if (treeViewItem?.DataContext is not TreeNode node || DataContext is not HistoricalImageryDockPaneViewModel viewModel)
+            {
+                return;
+            }
+
+            treeViewItem.Focus();
+            treeViewItem.IsSelected = true;
+            viewModel.SelectedNode = node;
+        }
+
+        private void HistoricalImageryTree_PreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            var currentPosition = e.GetPosition(null);
+            if (Math.Abs(currentPosition.X - _dragStartPoint.X) < SystemParameters.MinimumHorizontalDragDistance
+                && Math.Abs(currentPosition.Y - _dragStartPoint.Y) < SystemParameters.MinimumVerticalDragDistance)
+            {
+                return;
+            }
         }
 
         /// <summary>
@@ -49,6 +77,16 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                     viewModel.AddLayerCommand.Execute(null);
                 }
             }
+        }
+
+        private static T VisualUpwardSearch<T>(DependencyObject source) where T : DependencyObject
+        {
+            while (source != null && source is not T)
+            {
+                source = VisualTreeHelper.GetParent(source);
+            }
+
+            return source as T;
         }
     }
 

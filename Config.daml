@@ -72,6 +72,7 @@
       <!-- ============================== 按钮面板定义（较低层） ============================== -->
       <palettes>
         <buttonPalette id="XIAOFUTools_CommonButtonPalette" caption="数据加载" dropDown="true" menuStyle="false">
+          <button refID="XIAOFUTools_QuickAddDataButton" />
           <button refID="XIAOFUTools_BatchAddDataButton" />
           <button refID="XIAOFUTools_HistoricalImageryDownloadButton" />
           <button refID="XIAOFUTools_InternetTileDownloadButton" />
@@ -165,6 +166,7 @@
       <!-- ============================== 停靠窗格定义 ============================== -->
       <dockPanes>
         <!-- 批量添加数据停靠窗格 -->
+        <dockPane id="XIAOFUTools_QuickAddDataDockPane" caption="快捷添加数据" className="XIAOFUTools.Tools.QuickAddData.QuickAddDataDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <dockPane id="XIAOFUTools_BatchAddDataDockPane" caption="批量添加数据" className="XIAOFUTools.Tools.BatchAddData.BatchAddDataDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 按字段批量裁剪要素图层停靠窗格 -->
         <dockPane id="XIAOFUTools_BatchLayerClipDockPane" caption="按字段批量裁剪要素图层" className="XIAOFUTools.Tools.BatchLayerClip.BatchLayerClipDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
@@ -288,6 +290,11 @@
       <!-- ============================== 控件定义（最底层） ============================== -->
       <controls>
         <!-- 批量添加数据按钮 -->
+        <button id="XIAOFUTools_QuickAddDataButton" caption="快捷添加数据" className="XIAOFUTools.Tools.QuickAddData.QuickAddDataButton" loadOnClick="true" smallImage="Images\BatchAddData_16.png" largeImage="Images\BatchAddData_32.png">
+          <tooltip heading="快捷添加数据">
+            长期保存快捷数据，按分组管理并批量加载到地图
+            <disabledText>无权限使用快捷添加数据功能</disabledText></tooltip>
+        </button>
         <button id="XIAOFUTools_BatchAddDataButton" caption="批量添加数据" className="XIAOFUTools.Tools.BatchAddData.BatchAddDataButton" loadOnClick="true" smallImage="Images\BatchAddData_16.png" largeImage="Images\BatchAddData_32.png">
           <tooltip heading="批量添加数据">
             扫描文件夹中的GIS数据并批量添加到地图
