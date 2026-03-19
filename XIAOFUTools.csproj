@@ -29,6 +29,8 @@
     <None Remove="Images\AreaSplit_32.png" />
     <None Remove="Images\BatchAddData_16.png" />
     <None Remove="Images\BatchAddData_32.png" />
+    <None Remove="Images\QuickAddData_16.png" />
+    <None Remove="Images\QuickAddData_32.png" />
     <None Remove="Images\BatchLayerClip_16.png" />
     <None Remove="Images\BatchLayerClip_32.png" />
     <None Remove="Images\BatchProjectionDefinition_16.png" />
@@ -113,6 +115,8 @@
     <None Remove="Images\FeatureToTxt_32.png" />
     <None Remove="Images\DownloadOnlineImagery_16.png" />
     <None Remove="Images\DownloadOnlineImagery_32.png" />
+    <None Remove="Images\InternetTileDownload_16.png" />
+    <None Remove="Images\InternetTileDownload_32.png" />
     <None Remove="Images\ExportLayout_16.png" />
     <None Remove="Images\ExportLayout_32.png" />
     <None Remove="Images\Overture16.png" />
@@ -137,6 +141,10 @@
     <None Remove="Images\DocumentBatchReplace_32.png" />
     <None Remove="Images\AIAssistant_16.png" />
     <None Remove="Images\AIAssistant_32.png" />
+    <None Remove="Images\MapSheetsSmallAssign_16.png" />
+    <None Remove="Images\MapSheetsSmallAssign_32.png" />
+    <None Remove="Images\MapSheetsLargeAssign_16.png" />
+    <None Remove="Images\MapSheetsLargeAssign_32.png" />
     <None Remove="Images\反馈表二维码.png" />
     <None Remove="Images\新增工具收集清单二维码.png" />
   </ItemGroup>
@@ -152,6 +160,8 @@
     <Content Include="Images\AreaSplit_32.png" />
     <Content Include="Images\BatchAddData_16.png" />
     <Content Include="Images\BatchAddData_32.png" />
+    <Content Include="Images\QuickAddData_16.png" />
+    <Content Include="Images\QuickAddData_32.png" />
     <Content Include="Images\BatchLayerClip_16.png" />
     <Content Include="Images\BatchLayerClip_32.png" />
     <Content Include="Images\BatchProjectionDefinition_16.png" />
@@ -229,6 +239,8 @@
     <Content Include="Images\FeatureToTxt_32.png" />
     <Content Include="Images\DownloadOnlineImagery_16.png" />
     <Content Include="Images\DownloadOnlineImagery_32.png" />
+    <Content Include="Images\InternetTileDownload_16.png" />
+    <Content Include="Images\InternetTileDownload_32.png" />
     <Content Include="Images\ExportLayout_16.png" />
     <Content Include="Images\ExportLayout_32.png" />
     <Content Include="Images\PolygonToDwgWithFill_16.png" />
@@ -273,8 +285,12 @@
     <Content Include="Images\AttributeTransferFields_32.png" />
     <Content Include="Images\MapSheetsSmall_16.png" />
     <Content Include="Images\MapSheetsSmall_32.png" />
+    <Content Include="Images\MapSheetsSmallAssign_16.png" />
+    <Content Include="Images\MapSheetsSmallAssign_32.png" />
     <Content Include="Images\MapSheetsLarge_16.png" />
     <Content Include="Images\MapSheetsLarge_32.png" />
+    <Content Include="Images\MapSheetsLargeAssign_16.png" />
+    <Content Include="Images\MapSheetsLargeAssign_32.png" />
     <Content Include="Images\ViewStartPoint_16.png" />
     <Content Include="Images\ViewStartPoint_32.png" />
     <Content Include="Images\ModifyStartPoint_16.png" />

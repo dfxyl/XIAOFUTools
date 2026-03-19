@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<defs>
+    <linearGradient id="glassFill" x1="3" y1="2" x2="29" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".92"/>
+      <stop offset=".58" stop-color="#F8FBFF" stop-opacity=".78"/>
+      <stop offset="1" stop-color="#EDF4FB" stop-opacity=".68"/>
+    </linearGradient>
+    <linearGradient id="glassStroke" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#C3D2E3" stop-opacity=".74"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D7EEFF"/>
+      <stop offset="1" stop-color="#8BC1F4"/>
+    </linearGradient>
+    <linearGradient id="greenGrad" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#DCF3D3"/>
+      <stop offset="1" stop-color="#8ECF7A"/>
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFE5B7"/>
+      <stop offset="1" stop-color="#F2B44C"/>
+    </linearGradient>
+    <linearGradient id="tealGrad" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D3F4F0"/>
+      <stop offset="1" stop-color="#76D0C1"/>
+    </linearGradient>
+    <linearGradient id="redGrad" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFD6D6"/>
+      <stop offset="1" stop-color="#EE8A84"/>
+    </linearGradient>
+    <linearGradient id="violetGrad" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#E1DAFF"/>
+      <stop offset="1" stop-color="#AB97EC"/>
+    </linearGradient>
+    <linearGradient id="grayGrad" x1="0" y1="6" x2="0" y2="26" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F3F6FA"/>
+      <stop offset="1" stop-color="#D3DCE6"/>
+    </linearGradient>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="12" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#DFF2FF"/>
+      <stop offset="1" stop-color="#A5D1F8"/>
+    </linearGradient>
+    <linearGradient id="groundGrad" x1="0" y1="12" x2="0" y2="24" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#DFF4D6"/>
+      <stop offset="1" stop-color="#90C97E"/>
+    </linearGradient>
+    <linearGradient id="dbTopGrad" x1="0" y1="8" x2="0" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#AEE8C8"/>
+      <stop offset="1" stop-color="#5ABA83"/>
+    </linearGradient>
+    <linearGradient id="dbSideGrad" x1="0" y1="10" x2="0" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#62BE87"/>
+      <stop offset="1" stop-color="#2E8B57"/>
+    </linearGradient>
+    <filter id="glassShadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="1.1" stdDeviation="1.2" flood-color="#5879A0" flood-opacity=".12"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#glassShadow)">
+    <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="url(#glassFill)" stroke="url(#glassStroke)" stroke-width="1"/>
+    <path d="M5 6.2h22" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round" opacity=".86"/>
+    <path d="M6.5 25.7h19" stroke="#D9E6F2" stroke-width="1" stroke-linecap="round" opacity=".34"/>
+    <path d="M4.2 4.8h9.5" stroke="#FFFFFF" stroke-width=".9" stroke-linecap="round" opacity=".8"/>
+  </g>
+<path d="M6.0 7.2h17.0l2 2v15.0l-2 2H8.0l-2-2V9.2z" fill="#FFFFFF" stroke="#5C7B92" stroke-width="1"/><path d="M6.0 7.2h17.0l2 2v2.2H6.0z" fill="#EEF6FF"/><rect x="6.6" y="10.4" width="17.8" height="13.2" fill="url(#blueGrad)" rx=".7"/><rect x="7.1" y="11.7" width="16.8" height="12.2" fill="url(#skyGrad)" rx=".6"/><path d="M7.1 17.7h16.8v11.0H7.1z" fill="url(#groundGrad)"/><path d="M8.1 18.8l1.8-1.6 1.7 1.1 2.2-2.7 2.1 1.8 1.4-1.1" fill="none" stroke="#4E86CC" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/><rect x="7.40" y="12.35" width="4.85" height="4.35" rx="1.2" fill="#FFF3D7" opacity=".88" stroke="#D39A34" stroke-width=".9"/><path d="M10.75 8.2v15.0" stroke="#A6BED7" stroke-width=".8"/><path d="M15.50 8.2v15.0" stroke="#A6BED7" stroke-width=".8"/><path d="M20.25 8.2v15.0" stroke="#A6BED7" stroke-width=".8"/><path d="M7.0 11.45h17.0" stroke="#A6BED7" stroke-width=".8"/><path d="M7.0 15.70h17.0" stroke="#A6BED7" stroke-width=".8"/><path d="M7.0 19.95h17.0" stroke="#A6BED7" stroke-width=".8"/><circle cx="24.0" cy="24.0" r="4.2" fill="url(#amberGrad)" stroke="#C27A1F" stroke-width="1"/><path d="M22.3 25.2l2.8-2.8 1.3 1.3-2.8 2.8-1.8.5z" fill="#FFFFFF" stroke="#FFFFFF" stroke-width=".4" stroke-linejoin="round"/><path d="M25.4 22.2l.7-.7.9.9-.7.7" fill="#FFEEC6"/>
+</svg>

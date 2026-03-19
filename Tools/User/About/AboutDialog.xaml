@@ -91,7 +91,7 @@
                           Foreground="#2c3e50"
                           Margin="0,0,0,2"/>
                 <TextBlock x:Name="VersionText"
-                          Text="版本 1.2.6"
+                          Text="版本 1.2.7"
                           FontSize="12" FontWeight="SemiBold"
                           Foreground="#3498db"/>
             </StackPanel>
@@ -107,7 +107,7 @@
                           Style="{StaticResource WarningTextStyle}"/>
                 <!-- 当前版本号 -->
                 <TextBlock Text="当前版本号:" Style="{StaticResource InfoLabelStyle}"/>
-                <TextBlock x:Name="CurrentVersionText" Text="1.2.6" Style="{StaticResource InfoContentStyle}"/>
+                <TextBlock x:Name="CurrentVersionText" Text="1.2.7" Style="{StaticResource InfoContentStyle}"/>
 
                 <!-- 开发环境 -->
                 <TextBlock Text="开发环境:" Style="{StaticResource InfoLabelStyle}"/>
@@ -118,7 +118,7 @@
                 <!-- 版本更新信息 -->
                 <TextBlock Text="版本更新信息:" Style="{StaticResource InfoLabelStyle}"/>
                 <TextBlock x:Name="UpdateInfoText"
-                          Text="v1.2.6 更新：&#x0a;• 新增 MDB批量转GDB、批量合并SHP、文档批量替换、属性表建SHP、SHP输字段表、提取面扣岛、数据透视 等工具&#x0a;• 优化 Ribbon 分组、属性表建库模板、驱动制图页面搜索与界址点表显示体验&#x0a;• 修复 MDB转GDB 中文乱码与性能、KML 导出、图片转PDF 依赖、面积/默认值与右键上下文传参等问题"
+                          Text="v1.2.7 更新：&#x0a;• 新增 历史影像下载、互联网切片下载、大/小比例图幅赋值与查询、快捷添加数据 等能力&#x0a;• 升级 特殊坐标转换、MDB批量转GDB、Wayback 历史判定与拖拽加载交互&#x0a;• 修复 WMTS/天地图兼容、临时文件占用、框选工具状态恢复与连续查询问题"
                           Style="{StaticResource InfoContentStyle}"/>
 
                 <!-- 作者信息 -->

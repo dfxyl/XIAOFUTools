@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ArcGIS defaultAssembly="XIAOFUTools.dll" defaultNamespace="XIAOFUTools" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///D:/RUANJIAN/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <!-- 插件基本信息 -->
-  <AddInInfo id="{c1ef0bf8-3aaa-4583-9176-c77c409d3e5d}" version="1.2.6" desktopVersion="3.6.59527" product="ArcGISPro">
+  <AddInInfo id="{c1ef0bf8-3aaa-4583-9176-c77c409d3e5d}" version="1.2.7" desktopVersion="3.6.59527" product="ArcGISPro">
     <Name>XIAOFU工具箱</Name>
     <Description>
 		XIAOFU工具箱 - ArcGIS Pro扩展工具集。
@@ -10,7 +10,7 @@
     <Image>Images\Toolbox_32.png</Image>
     <Author>XIAOFU</Author>
     <Company>Acme</Company>
-    <Date>2026/03/09</Date>
+    <Date>2026/03/19</Date>
     <Subject>Framework</Subject>
     <!--
     可选主题: Content, Framework, Editing, Geodatabase, Geometry,
@@ -290,7 +290,7 @@
       <!-- ============================== 控件定义（最底层） ============================== -->
       <controls>
         <!-- 批量添加数据按钮 -->
-        <button id="XIAOFUTools_QuickAddDataButton" caption="快捷添加数据" className="XIAOFUTools.Tools.QuickAddData.QuickAddDataButton" loadOnClick="true" smallImage="Images\BatchAddData_16.png" largeImage="Images\BatchAddData_32.png">
+        <button id="XIAOFUTools_QuickAddDataButton" caption="快捷添加数据" className="XIAOFUTools.Tools.QuickAddData.QuickAddDataButton" loadOnClick="true" smallImage="Images\QuickAddData_16.png" largeImage="Images\QuickAddData_32.png">
           <tooltip heading="快捷添加数据">
             长期保存快捷数据，按分组管理并批量加载到地图
             <disabledText>无权限使用快捷添加数据功能</disabledText></tooltip>
@@ -437,7 +437,7 @@
             查询当前位置 Google 历史影像或 Esri Wayback 版本，并按当前视图、框选或面图层范围导出 GeoTIFF
             <disabledText>无权限使用历史影像下载工具</disabledText></tooltip>
         </button>
-        <button id="XIAOFUTools_InternetTileDownloadButton" caption="互联网切片下载" className="XIAOFUTools.Tools.InternetTileDownload.InternetTileDownloadButton" loadOnClick="true" smallImage="Images\DownloadOnlineImagery_16.png" largeImage="Images\DownloadOnlineImagery_32.png">
+        <button id="XIAOFUTools_InternetTileDownloadButton" caption="互联网切片下载" className="XIAOFUTools.Tools.InternetTileDownload.InternetTileDownloadButton" loadOnClick="true" smallImage="Images\InternetTileDownload_16.png" largeImage="Images\InternetTileDownload_32.png">
           <tooltip heading="互联网切片下载">
             按用户提供的 WMTS 或 XYZ 切片链接，按当前视图、框选或面图层范围下载并拼接 GeoTIFF
             <disabledText>无权限使用互联网切片下载工具</disabledText></tooltip>
@@ -521,7 +521,7 @@
             <disabledText>无权限使用生成小比例尺图幅功能</disabledText></tooltip>
         </button>
         <!-- 小比例图幅赋值按钮 -->
-        <button id="XIAOFUTools_SmallMapSheetAssignButton" caption="小比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsSmall_16.png" largeImage="Images\MapSheetsSmall_32.png">
+        <button id="XIAOFUTools_SmallMapSheetAssignButton" caption="小比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsSmallAssign_16.png" largeImage="Images\MapSheetsSmallAssign_32.png">
           <tooltip heading="小比例图幅赋值">
             计算小比例图幅并直接写入图斑字段，支持地图点选查询图幅
             <disabledText>无权限使用小比例图幅赋值功能</disabledText></tooltip>
@@ -533,7 +533,7 @@
             <disabledText>无权限使用生成大比例尺图幅功能</disabledText></tooltip>
         </button>
         <!-- 大比例图幅赋值按钮 -->
-        <button id="XIAOFUTools_LargeMapSheetAssignButton" caption="大比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsLarge_16.png" largeImage="Images\MapSheetsLarge_32.png">
+        <button id="XIAOFUTools_LargeMapSheetAssignButton" caption="大比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsLargeAssign_16.png" largeImage="Images\MapSheetsLargeAssign_32.png">
           <tooltip heading="大比例图幅赋值">
             计算大比例图幅并直接写入图斑字段，支持地图点选查询图幅
             <disabledText>无权限使用大比例图幅赋值功能</disabledText></tooltip>
@@ -609,13 +609,13 @@
             <disabledText>必须打开地图才能使用此工具</disabledText></tooltip>
         </tool>
         <!-- 大比例图幅查询工具 -->
-        <tool id="XIAOFUTools_LargeMapSheetIdentifyTool" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetIdentifyTool" caption="大比例图幅查询" loadOnClick="true" smallImage="Images\MapSheetsLarge_16.png" largeImage="Images\MapSheetsLarge_32.png" condition="esri_mapping_mapPane">
+        <tool id="XIAOFUTools_LargeMapSheetIdentifyTool" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetIdentifyTool" caption="大比例图幅查询" loadOnClick="true" smallImage="Images\MapSheetsLargeAssign_16.png" largeImage="Images\MapSheetsLargeAssign_32.png" condition="esri_mapping_mapPane">
           <tooltip heading="大比例图幅查询">
             在地图上单击并查询当前参数对应的大比例图幅
             <disabledText>必须打开地图才能使用此工具</disabledText></tooltip>
         </tool>
         <!-- 小比例图幅查询工具 -->
-        <tool id="XIAOFUTools_SmallMapSheetIdentifyTool" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetIdentifyTool" caption="小比例图幅查询" loadOnClick="true" smallImage="Images\MapSheetsSmall_16.png" largeImage="Images\MapSheetsSmall_32.png" condition="esri_mapping_mapPane">
+        <tool id="XIAOFUTools_SmallMapSheetIdentifyTool" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetIdentifyTool" caption="小比例图幅查询" loadOnClick="true" smallImage="Images\MapSheetsSmallAssign_16.png" largeImage="Images\MapSheetsSmallAssign_32.png" condition="esri_mapping_mapPane">
           <tooltip heading="小比例图幅查询">
             在地图上单击并查询当前参数对应的小比例图幅
             <disabledText>必须打开地图才能使用此工具</disabledText></tooltip>

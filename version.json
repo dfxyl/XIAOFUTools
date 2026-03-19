@@ -1,12 +1,12 @@
 {
-  "version": "1.2.6",
-  "releaseDate": "2026-03-09",
+  "version": "1.2.7",
+  "releaseDate": "2026-03-19",
   "minDesktopVersion": "3.6.0",
-  "downloadUrl": "https://github.com/xiaofuX1/XIAOFUTools/releases/download/v1.2.6/XIAOFUTools.esriAddinX",
+  "downloadUrl": "https://gitee.com/XFTools/xiaofutools/releases/download/V1.2.7/XIAOFUTools.esriAddinX",
   "changelog": [
-    "新增 MDB批量转GDB、批量合并SHP、文档批量替换、属性表建SHP、SHP输字段表、提取面扣岛、数据透视 等工具",
-    "优化 Ribbon 分组、属性表建库模板、驱动制图页面搜索与界址点表显示体验",
-    "修复 MDB转GDB 中文乱码与性能、KML 导出、图片转PDF 依赖、面积/默认值与右键上下文传参等问题"
+    "新增 历史影像下载、互联网切片下载、大/小比例图幅赋值与查询、快捷添加数据 等工具与面板",
+    "升级 特殊坐标转换、MDB批量转GDB、Wayback 历史判定与拖拽加载交互，增强批量处理与兼容性",
+    "修复 WMTS/天地图兼容、临时文件占用、框选工具状态恢复与图幅连续查询等问题"
   ],
-  "notice": "欢迎使用XIAOFU工具箱，最新版本V1.2.6已发布，建议及时更新。该版本仅支持 ArcGIS Pro 3.6+。"
+  "notice": "欢迎使用XIAOFU工具箱，最新版本V1.2.7已发布，建议及时更新。该版本仅支持 ArcGIS Pro 3.6+。"
 }

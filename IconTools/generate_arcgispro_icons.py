@@ -647,6 +647,20 @@ def scene_batch_add_data() -> str:
     )
 
 
+def scene_quick_add_data() -> str:
+    return scene_single(
+        join(
+            [
+                window_panel(),
+                page_card(7.0, 12.1, 8.2, 6.7, tone="green", detail="lines", corner=False, header=False),
+                page_card(10.2, 9.5, 8.2, 6.7, tone="blue", detail="table", corner=False, header=False),
+                page_card(13.4, 12.1, 8.2, 6.7, tone="amber", detail="map", corner=False, header=False),
+                plus_badge(24.0, 21.0, "green"),
+            ]
+        )
+    )
+
+
 def scene_area_calculator() -> str:
     return join(
         [
@@ -761,6 +775,49 @@ def scene_symbology(paste: bool) -> str:
 
 def scene_special_coordinate_transform() -> str:
     return join([glass_base(), '<path d="M8.0 21.8V10.5M8.0 21.8h11.2" stroke="#607D94" stroke-width="1.1" stroke-linecap="round"/>', '<circle cx="11.5" cy="17.0" r="1.2" fill="#4E86CC"/><circle cx="17.5" cy="12.8" r="1.2" fill="#2E8E85"/>', '<path d="M12.7 16.0l3.6-2.6" stroke="#4E86CC" stroke-width="1.2" stroke-linecap="round"/>', '<path d="M18.8 11.8h4.8" stroke="#4E86CC" stroke-width="1.4" stroke-linecap="round"/>', '<path d="m22.0 9.8 3.0 2-3.0 2" fill="none" stroke="#4E86CC" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>', '<path d="M24.2 19.4h-4.8" stroke="#2E8E85" stroke-width="1.4" stroke-linecap="round"/>', '<path d="m20.6 17.4 -3.0 2 3.0 2" fill="none" stroke="#2E8E85" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>'])
+
+
+def scene_internet_tile_download() -> str:
+    return join(
+        [
+            glass_base(),
+            page_card(4.8, 8.2, 14.6, 14.6, tone="blue", detail="map", corner=False),
+            '<path d="M9.2 10.8h8.8M9.2 14.4h8.8M9.2 18.0h8.8M12.1 10.0v10.9M15.0 10.0v10.9" stroke="#EAF5FF" stroke-width=".95" stroke-linecap="round"/>',
+            globe_icon(23.1, 12.2, 3.8),
+            download_badge(24.0, 22.1, "blue"),
+        ]
+    )
+
+
+def scene_map_sheet_assign(kind: str) -> str:
+    cols = 2 if kind == "large" else 4
+    rows = 2 if kind == "large" else 4
+    x = 6.0
+    y = 7.2
+    w = 19.0
+    h = 17.0
+    cell_w = w / cols
+    cell_h = h / rows
+    lines = []
+    for i in range(1, cols):
+        px = x + i * cell_w
+        lines.append(f'<path d="M{px:.2f} {y+1.0}v{h-2.0}" stroke="#A6BED7" stroke-width=".8"/>')
+    for i in range(1, rows):
+        py = y + i * cell_h
+        lines.append(f'<path d="M{x+1.0} {py:.2f}h{w-2.0}" stroke="#A6BED7" stroke-width=".8"/>')
+    focus_w = cell_w - 2.8 if kind == "large" else cell_w + 0.1
+    focus_h = cell_h - 2.8 if kind == "large" else cell_h + 0.1
+    focus_x = x + 1.4
+    focus_y = y + 1.4 if kind == "large" else y + cell_h + 0.9
+    return join(
+        [
+            glass_base(),
+            page_card(x, y, w, h, tone="blue", detail="map", corner=False),
+            f'<rect x="{focus_x:.2f}" y="{focus_y:.2f}" width="{focus_w:.2f}" height="{focus_h:.2f}" rx="1.2" fill="#FFF3D7" opacity=".88" stroke="#D39A34" stroke-width=".9"/>',
+            "".join(lines),
+            pencil_badge(24.0, 24.0, "amber"),
+        ]
+    )
 
 
 def scene_map_sheets(kind: str) -> str:
@@ -948,6 +1005,8 @@ def build_icon(name: str) -> str:
         return scene_layers_plus()
     if name == "BatchAddData":
         return scene_batch_add_data()
+    if name == "QuickAddData":
+        return scene_quick_add_data()
     if name == "AreaCalculator":
         return scene_area_calculator()
     if name == "AreaSplit":
@@ -982,6 +1041,8 @@ def build_icon(name: str) -> str:
         return scene_historical(True, False)
     if name == "DownloadOnlineImagery":
         return scene_historical(False, True)
+    if name == "InternetTileDownload":
+        return scene_internet_tile_download()
     if name in {"WordToPdf", "ExcelToPdf", "PdfToImages", "ImagesToPdf", "FeatureToTxt", "TxtToFeature", "ExportExcel", "ExportCAD", "ExportToKml", "PolygonToDwgWithFill", "PolygonToDxfWithFill"}:
         return scene_doc_convert(name)
     if name in {"DocumentBatchReplace", "ExportLayout", "LayoutTextReplace", "LayoutCoordinateTable", "OCRCoordinateTable"}:
@@ -996,6 +1057,10 @@ def build_icon(name: str) -> str:
         return scene_map_sheets("large")
     if name == "MapSheetsSmall":
         return scene_map_sheets("small")
+    if name == "MapSheetsLargeAssign":
+        return scene_map_sheet_assign("large")
+    if name == "MapSheetsSmallAssign":
+        return scene_map_sheet_assign("small")
     if name == "AttributeTransfer":
         return scene_attribute_transfer(False)
     if name == "AttributeTransferFields":
@@ -1023,12 +1088,12 @@ ICON_NAMES = [
     "DownloadHistoricalImagery", "DownloadOnlineImagery", "ExcelToPdf", "ExportCAD", "ExportDatabaseSchema",
     "ExportExcel", "ExportLayout", "ExportShpFieldTable", "ExportToKml", "ExtractPolygonHoles", "FeatureToTxt",
     "FieldCopyTool", "GapCheck", "Globe", "GroupNumbering", "HistoricalImagery", "ImagesToPdf",
-    "IntersectSummary", "LayoutCoordinateTable", "LayoutTextReplace", "MapBoundaryPointLineGenerator",
-    "MapSeriesExport", "MapSheetsLarge", "MapSheetsSmall", "MatchSymbology", "MdbBatchToGdb", "MirrorDatabase",
+    "IntersectSummary", "InternetTileDownload", "LayoutCoordinateTable", "LayoutTextReplace", "MapBoundaryPointLineGenerator",
+    "MapSeriesExport", "MapSheetsLarge", "MapSheetsLargeAssign", "MapSheetsSmall", "MapSheetsSmallAssign", "MatchSymbology", "MdbBatchToGdb", "MirrorDatabase",
     "ModifyStartPoint", "MultiOverlaySummary", "NodeDistanceCheck", "NodeDistanceChecker", "OCRCoordinateTable",
     "Overture", "OvertureLoader", "PasteSymbology", "PdfToImages", "PluginUpdate", "PolygonToDwgWithFill",
     "PolygonToDxfWithFill", "PresetLayers", "ProtocolLineExtract", "RangeClipTool", "RotateGeometry", "Settings",
-    "ShapefileBuilder", "SpecialCoordinateTransform", "Toolbox", "TxtToFeature", "ViewArea", "ViewStartPoint",
+    "QuickAddData", "ShapefileBuilder", "SpecialCoordinateTransform", "Toolbox", "TxtToFeature", "ViewArea", "ViewStartPoint",
     "WordToPdf",
 ]
 

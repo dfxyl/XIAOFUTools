@@ -18,7 +18,7 @@ namespace XIAOFUTools.Tools.PluginUpdate
     /// </summary>
     public static class UpdateChecker
     {
-        private const string VersionUrl = "https://raw.githubusercontent.com/xiaofuX1/XIAOFUTools/main/version.json";
+        private const string VersionUrl = "https://gitee.com/XFTools/xiaofutools/raw/master/version.json";
 
         private static readonly HttpClient _httpClient = new HttpClient()
         {

@@ -10,6 +10,6 @@ namespace XIAOFUTools.Common
         /// <summary>
         /// 当前版本号
         /// </summary>
-        public const string CurrentVersion = "1.2.6";
+        public const string CurrentVersion = "1.2.7";
     }
 }
