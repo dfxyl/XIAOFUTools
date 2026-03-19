@@ -604,7 +604,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
                 }
 
                 var lockedLayers = map.GetLayersAsFlattenedList()
-                    .Where(layer => HistoricalLayerUriMatcher.IsMatch(outputFilePath, layer.URI))
+                    .Where(layer => HistoricalLayerUriMatcher.IsOutputFamilyMatch(outputFilePath, layer.URI))
                     .ToList();
 
                 foreach (var layer in lockedLayers)

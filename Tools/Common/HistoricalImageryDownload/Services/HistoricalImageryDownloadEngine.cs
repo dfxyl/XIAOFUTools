@@ -7,21 +7,14 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using ArcGIS.Core.Geometry;
-using OSGeo.GDAL;
-using OgrSpatialReference = OSGeo.OSR.SpatialReference;
+using XIAOFUTools.Tools.Common.RasterExport;
 using XIAOFUTools.Tools.HistoricalImageryDownload.Core;
-using XIAOFUTools.Tools.HistoricalImageryDownload.Infrastructure;
 
 namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
 {
     internal sealed class HistoricalImageryDownloadEngine
     {
         private readonly HistoricalImageryProviderFactory _providerFactory;
-
-        static HistoricalImageryDownloadEngine()
-        {
-            HistoricalGdalEnvironment.Register();
-        }
 
         public HistoricalImageryDownloadEngine(HistoricalImageryProviderFactory providerFactory)
         {
@@ -136,7 +129,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             };
 
             Directory.CreateDirectory(Path.GetDirectoryName(request.OutputFilePath)!);
-            var outputSessions = new Dictionary<string, HistoricalOutputSession>(StringComparer.OrdinalIgnoreCase);
+            var outputSessions = new Dictionary<string, ArcGisRasterExportPipeline>(StringComparer.OrdinalIgnoreCase);
 
             try
             {
@@ -180,17 +173,18 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                             }
                         }
 
-                        using var sourceTileDataset = OpenDataset(batchResult.Result.ImageBytes!);
                         var outputFilePath = ResolveOutputFilePath(request, batchResult.Result);
-                        var outputSession = GetOrCreateOutputSession(outputSessions, outputFilePath, planContext);
-                        var clipAlphaMask = planContext.PreciseClip == null
-                            ? null
-                            : CreateClipAlphaMask(
-                                batchResult.Tile,
-                                sourceTileDataset.RasterXSize,
-                                sourceTileDataset.RasterYSize,
-                                planContext.PreciseClip);
-                        WriteTile(outputSession.Dataset, sourceTileDataset, batchResult.Tile, clipAlphaMask);
+                        var outputSession = GetOrCreateOutputSession(outputSessions, outputFilePath);
+                        outputSession.AddTile(
+                            request.ZoomLevel.ToString(),
+                            batchResult.Tile.Row,
+                            batchResult.Tile.Column,
+                            batchResult.Tile.MinX,
+                            batchResult.Tile.MinY,
+                            batchResult.Tile.MaxX,
+                            batchResult.Tile.MaxY,
+                            batchResult.Result.ImageBytes!,
+                            planContext.PreciseClip);
 
                         result.DownloadedTileCount++;
                         if (!string.IsNullOrWhiteSpace(batchResult.Result.Message))
@@ -202,11 +196,13 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                     }
                 }
 
-                foreach (var outputSession in outputSessions.Values.OrderBy(item => item.OutputFilePath, StringComparer.OrdinalIgnoreCase))
+                foreach (var outputSession in outputSessions.OrderBy(item => item.Key, StringComparer.OrdinalIgnoreCase))
                 {
-                    outputSession.Dataset.FlushCache();
-                    ExportDataset(outputSession.TempFilePath, outputSession.OutputFilePath, planContext.SourceSpatialReferenceText, executionRequest.TargetSpatialReferenceText);
-                    result.OutputFilePaths.Add(outputSession.OutputFilePath);
+                    await outputSession.Value.ExportAsync(
+                        planContext.SourceSpatialReferenceText,
+                        executionRequest.TargetSpatialReferenceText,
+                        cancellationToken);
+                    result.OutputFilePaths.Add(outputSession.Key);
                 }
 
                 progress?.Report(1);
@@ -237,6 +233,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 {
                     result.Messages.Add(message);
                 }
+
                 return result;
             }
             finally
@@ -244,200 +241,9 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
                 foreach (var outputSession in outputSessions.Values)
                 {
                     outputSession.Dispose();
-                    if (File.Exists(outputSession.TempFilePath))
-                    {
-                        File.Delete(outputSession.TempFilePath);
-                    }
                 }
             }
         }
-
-        private static Dataset CreateTempDataset(string tempFile, HistoricalPlanContext planContext)
-        {
-            using var driver = Gdal.GetDriverByName("GTiff");
-            var createOptions = new[]
-            {
-                "TILED=TRUE",
-                "BIGTIFF=IF_SAFER",
-                $"NUM_THREADS={Math.Max(1, Environment.ProcessorCount / 2)}"
-            };
-            var dataset = driver.Create(
-                tempFile,
-                planContext.Plan.PixelWidth,
-                planContext.Plan.PixelHeight,
-                HistoricalRasterCompositionOptions.OutputBandCount,
-                DataType.GDT_Byte,
-                createOptions);
-            using var spatialReference = new OgrSpatialReference(string.Empty);
-            spatialReference.SetFromUserInput(planContext.SourceSpatialReferenceText);
-            dataset.SetSpatialRef(spatialReference);
-            dataset.SetGeoTransform(
-            [
-                planContext.Plan.OriginX,
-                planContext.Plan.PixelSizeX,
-                0,
-                planContext.Plan.OriginY,
-                0,
-                planContext.Plan.PixelSizeY
-            ]);
-            InitializeOutputBands(dataset);
-            return dataset;
-        }
-
-        private static void WriteTile(
-            Dataset destinationDataset,
-            Dataset tileDataset,
-            HistoricalTileDefinition tile,
-            byte[]? clipAlphaMask)
-        {
-            var colorBandCount = Math.Min(3, tileDataset.RasterCount);
-            if (colorBandCount <= 0)
-            {
-                return;
-            }
-
-            var width = Math.Min(tileDataset.RasterXSize, destinationDataset.RasterXSize - tile.PixelOffsetX);
-            var height = Math.Min(tileDataset.RasterYSize, destinationDataset.RasterYSize - tile.PixelOffsetY);
-            if (width <= 0 || height <= 0)
-            {
-                return;
-            }
-
-            var colorBandMap = Enumerable.Range(1, colorBandCount).ToArray();
-            var colorBuffer = GC.AllocateUninitializedArray<byte>(width * height * colorBandCount);
-            tileDataset.ReadRaster(0, 0, width, height, colorBuffer, width, height, colorBandCount, colorBandMap, colorBandCount, width * colorBandCount, 1);
-            destinationDataset.WriteRaster(tile.PixelOffsetX, tile.PixelOffsetY, width, height, colorBuffer, width, height, colorBandCount, colorBandMap, colorBandCount, width * colorBandCount, 1);
-
-            var alphaBuffer = CreateAlphaBuffer(tileDataset, width, height, clipAlphaMask);
-            destinationDataset.WriteRaster(tile.PixelOffsetX, tile.PixelOffsetY, width, height, alphaBuffer, width, height, 1, [4], 1, width, 1);
-        }
-
-        private static byte[] CreateClipAlphaMask(HistoricalTileDefinition tile, int width, int height, Polygon preciseClip)
-        {
-            var alphaMask = GC.AllocateUninitializedArray<byte>(width * height);
-
-            var pixelWidth = (tile.MaxX - tile.MinX) / width;
-            var pixelHeight = (tile.MaxY - tile.MinY) / height;
-
-            for (var y = 0; y < height; y++)
-            {
-                for (var x = 0; x < width; x++)
-                {
-                    var centerX = tile.MinX + (x + 0.5) * pixelWidth;
-                    var centerY = tile.MaxY - (y + 0.5) * pixelHeight;
-                    var point = MapPointBuilderEx.CreateMapPoint(centerX, centerY, preciseClip.SpatialReference);
-                    if (GeometryEngine.Instance.Contains(preciseClip, point))
-                    {
-                        alphaMask[y * width + x] = 255;
-                        continue;
-                    }
-                }
-            }
-
-            return alphaMask;
-        }
-
-        private static Dataset OpenDataset(byte[] imageBytes)
-        {
-            var memFile = $"/vsimem/{Guid.NewGuid():N}.img";
-            Gdal.FileFromMemBuffer(memFile, imageBytes);
-
-            try
-            {
-                return Gdal.Open(memFile, Access.GA_ReadOnly)
-                    ?? throw new InvalidOperationException("Unable to open raster tile bytes.");
-            }
-            finally
-            {
-                Gdal.Unlink(memFile);
-            }
-        }
-
-        private static void ExportDataset(
-            string tempFile,
-            string outputFilePath,
-            string sourceSpatialReferenceText,
-            string? targetSpatialReferenceText)
-        {
-            using var sourceDataset = Gdal.Open(tempFile, Access.GA_ReadOnly)
-                ?? throw new InvalidOperationException("Unable to open temporary raster dataset.");
-
-            var normalizedTarget = string.IsNullOrWhiteSpace(targetSpatialReferenceText)
-                ? sourceSpatialReferenceText
-                : targetSpatialReferenceText;
-
-            if (!string.Equals(normalizedTarget, sourceSpatialReferenceText, StringComparison.OrdinalIgnoreCase))
-            {
-                using var options = CreateWarpOptions(sourceSpatialReferenceText, normalizedTarget);
-                using var _ = Gdal.Warp(outputFilePath, new[] { sourceDataset }, options, null, null)
-                    ?? throw new InvalidOperationException("Unable to export warped GeoTIFF.");
-                return;
-            }
-
-            using var driver = Gdal.GetDriverByName("GTiff");
-            using var __ = driver.CreateCopy(outputFilePath, sourceDataset, 1, CreateCopyOptions(), null, null)
-                ?? throw new InvalidOperationException("Unable to export GeoTIFF.");
-        }
-
-        private static GDALWarpAppOptions CreateWarpOptions(string sourceSpatialReferenceText, string targetSpatialReferenceText)
-        {
-            return new GDALWarpAppOptions(
-                HistoricalRasterExportOptions.CreateWarpParameters(sourceSpatialReferenceText, targetSpatialReferenceText));
-        }
-
-        private static string[] CreateCopyOptions()
-            => HistoricalRasterExportOptions.CreateCopyOptions();
-
-        private static void InitializeOutputBands(Dataset dataset)
-        {
-            if (dataset.RasterCount < HistoricalRasterCompositionOptions.OutputBandCount)
-            {
-                return;
-            }
-
-            for (var bandIndex = 1; bandIndex <= dataset.RasterCount; bandIndex++)
-            {
-                using var band = dataset.GetRasterBand(bandIndex);
-                band?.Fill(0, 0);
-            }
-
-            dataset.GetRasterBand(1)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_RedBand);
-            dataset.GetRasterBand(2)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_GreenBand);
-            dataset.GetRasterBand(3)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_BlueBand);
-            dataset.GetRasterBand(4)?.SetColorInterpretation(OSGeo.GDAL.ColorInterp.GCI_AlphaBand);
-            dataset.FlushCache();
-        }
-
-        private static byte[] CreateAlphaBuffer(Dataset tileDataset, int width, int height, byte[]? clipAlphaMask)
-        {
-            byte[] alphaBuffer;
-
-            if (tileDataset.RasterCount >= 4)
-            {
-                alphaBuffer = GC.AllocateUninitializedArray<byte>(width * height);
-                tileDataset.ReadRaster(0, 0, width, height, alphaBuffer, width, height, 1, [4], 1, width, 1);
-            }
-            else
-            {
-                alphaBuffer = new byte[width * height];
-                Array.Fill(alphaBuffer, (byte)255);
-            }
-
-            if (clipAlphaMask == null)
-            {
-                return alphaBuffer;
-            }
-
-            for (var index = 0; index < alphaBuffer.Length; index++)
-            {
-                alphaBuffer[index] = (byte)Math.Min(alphaBuffer[index], clipAlphaMask[index]);
-            }
-
-            return alphaBuffer;
-        }
-
-        private static string CreateTempRasterCachePath()
-            => Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.tif");
 
         private static string ResolveOutputFilePath(HistoricalDownloadRequest request, HistoricalTileDownloadResult tileResult)
         {
@@ -453,19 +259,16 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             return HistoricalOutputPathBuilder.BuildForResolvedDate(request.OutputFilePath, resolvedDate);
         }
 
-        private static HistoricalOutputSession GetOrCreateOutputSession(
-            IDictionary<string, HistoricalOutputSession> outputSessions,
-            string outputFilePath,
-            HistoricalPlanContext planContext)
+        private static ArcGisRasterExportPipeline GetOrCreateOutputSession(
+            IDictionary<string, ArcGisRasterExportPipeline> outputSessions,
+            string outputFilePath)
         {
             if (outputSessions.TryGetValue(outputFilePath, out var existingSession))
             {
                 return existingSession;
             }
 
-            var tempFilePath = CreateTempRasterCachePath();
-            var dataset = CreateTempDataset(tempFilePath, planContext);
-            var createdSession = new HistoricalOutputSession(outputFilePath, tempFilePath, dataset);
+            var createdSession = new ArcGisRasterExportPipeline(outputFilePath);
             outputSessions[outputFilePath] = createdSession;
             return createdSession;
         }
@@ -489,15 +292,8 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
             return new HistoricalDownloadedTile(tile, result);
         }
 
-        private sealed record HistoricalOutputSession(string OutputFilePath, string TempFilePath, Dataset Dataset) : IDisposable
-        {
-            public void Dispose()
-            {
-                Dataset.Dispose();
-            }
-        }
-
         private sealed record HistoricalDownloadedTile(HistoricalTileDefinition Tile, HistoricalTileDownloadResult Result);
+
         private sealed record HistoricalPlanContext(
             HistoricalTilePlan Plan,
             Polygon? PreciseClip,

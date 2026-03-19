@@ -298,6 +298,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tools\Common\PresetLayers\PresetLayersGalleryTemplate.xaml" />
+    <None Update="scripts\mdb_to_gdb_arcgispro.py">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Tools\User\AIAssistant\UI\chat.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -518,8 +521,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageReference Include="DuckDB.NET.Data.Full" Version="1.4.1" />
-    <PackageReference Include="GDAL" Version="3.12.1" />
-    <PackageReference Include="GDAL.Native" Version="3.12.1" />
     <PackageReference Include="Google.Protobuf" Version="3.34.0" />
     <PackageReference Include="ACadSharp" Version="3.4.9" />
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
@@ -533,11 +534,5 @@
     <PackageReference Include="netDxf" Version="2023.11.10" />
     <PackageReference Include="PDFtoImage" Version="5.2.0" />
   </ItemGroup>
-  <Target Name="TrackGdalRuntimeFiles" BeforeTargets="ArcGISInstallOutput" Condition="Exists('$(OutDir)gdal')">
-    <ItemGroup>
-      <FileWrites Include="$(OutDir)gdal\**\*.*" />
-      <FileWritesShareable Include="$(OutDir)gdal\**\*.*" />
-    </ItemGroup>
-  </Target>
    <Import Project="D:\RUANJIAN\ArcGIS\Pro\bin\Esri.ProApp.SDK.Desktop.targets" Condition="Exists('D:\RUANJIAN\ArcGIS\Pro\bin\Esri.ProApp.SDK.Desktop.targets') AND !Exists('Esri.ArcGISPro.Extensions.targets')" />
 </Project>

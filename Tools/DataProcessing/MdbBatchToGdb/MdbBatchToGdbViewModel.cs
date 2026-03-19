@@ -15,7 +15,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 {
     internal class MdbBatchToGdbViewModel : PropertyChangedBase
     {
-        private readonly GdalMdbToGdbConverter _converter = new GdalMdbToGdbConverter();
+        private readonly ArcGisProMdbToGdbConverter _converter = new ArcGisProMdbToGdbConverter();
 
         private readonly RelayCommand _browseInputFolderCommand;
         private readonly RelayCommand _browseOutputFolderCommand;
@@ -373,7 +373,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 
             try
             {
-                await Task.Run(() => ExecuteConversionBatch(plans, overwriteExisting, _cancellationTokenSource.Token));
+                await Task.Run(() => ExecuteConversionBatchV2(plans, overwriteExisting, _cancellationTokenSource.Token));
 
                 if (_cancellationTokenSource.Token.IsCancellationRequested)
                 {
@@ -450,6 +450,89 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                     UpdateProgress(completed, total);
                 }
             }
+        }
+
+        private void ExecuteConversionBatchV2(IReadOnlyList<MdbConversionPlan> plans, bool overwriteExisting, CancellationToken token)
+        {
+            int total = plans.Count;
+            int completed = 0;
+            var runnablePlans = new List<MdbConversionPlan>();
+            var syncRoot = new object();
+
+            foreach (MdbConversionPlan plan in plans)
+            {
+                token.ThrowIfCancellationRequested();
+
+                try
+                {
+                    bool outputExists = Directory.Exists(plan.OutputPath) || File.Exists(plan.OutputPath);
+                    if (outputExists)
+                    {
+                        if (!overwriteExisting)
+                        {
+                            UpdateItemStatus(plan.Item, "宸茶烦杩?宸插瓨鍦?");
+                            AppendWarning($"璺宠繃宸插瓨鍦ㄨ緭鍑? {plan.OutputPath}");
+                            completed++;
+                            UpdateProgress(completed, total);
+                            continue;
+                        }
+
+                        DeleteOutput(plan.OutputPath);
+                    AppendInfo($"Deleted old output: {plan.OutputPath}");
+                    }
+
+                    UpdateItemStatus(plan.Item, "Pending");
+                    runnablePlans.Add(plan);
+                }
+                catch (Exception ex)
+                {
+                    UpdateItemStatus(plan.Item, "Failed");
+                    AppendError($"{plan.Item.Name} conversion failed: {ex.Message}");
+                    completed++;
+                    UpdateProgress(completed, total);
+                }
+            }
+
+            if (runnablePlans.Count == 0)
+            {
+                return;
+            }
+
+            _converter.ConvertBatch(
+                runnablePlans,
+                evt =>
+                {
+                    MdbConversionPlan plan = runnablePlans[evt.Index];
+                    switch (evt.Kind)
+                    {
+                        case BatchConversionEventKind.Started:
+                            UpdateItemStatus(plan.Item, "Running");
+                            AppendInfo($"[{evt.Index + 1}/{runnablePlans.Count}] {plan.Item.Name} -> {plan.OutputPath}");
+                            break;
+
+                        case BatchConversionEventKind.Completed:
+                            UpdateItemStatus(plan.Item, "Done");
+                            AppendInfo($"Done: {plan.OutputPath}");
+                            lock (syncRoot)
+                            {
+                                completed++;
+                                UpdateProgress(completed, total);
+                            }
+                            break;
+
+                        case BatchConversionEventKind.Failed:
+                            UpdateItemStatus(plan.Item, "Failed");
+                            AppendError($"{plan.Item.Name} conversion failed: {evt.Message}");
+                            lock (syncRoot)
+                            {
+                                completed++;
+                                UpdateProgress(completed, total);
+                            }
+                            break;
+                    }
+                },
+                message => AppendInfo($"  {message}"),
+                token);
         }
 
         private void ReplaceItems(IEnumerable<string> mdbFiles)
@@ -551,7 +634,7 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
                 "4. 输出支持两种模式：\n" +
                 "   - 输出到源路径：每个 MDB 在原目录生成同名 GDB。\n" +
                 "   - 指定输出文件夹：统一输出到同一目录。\n" +
-                "5. 转换引擎为 GDAL，保留要素数据集与表结构。\n\n" +
+                "5. 转换使用 ArcGIS Pro 自带 Python 引擎，保留要素数据集与表结构。\n\n" +
                 "注意：转换 MDB 需系统安装 Access Database Engine。";
 
             MessageBox.Show(helpText, "MDB批量转GDB 工具说明", MessageBoxButton.OK, MessageBoxImage.Information);
