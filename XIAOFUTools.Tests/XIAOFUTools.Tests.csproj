@@ -33,6 +33,9 @@
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Core\HistoricalTilePlanner.cs" Link="Shared\HistoricalTilePlanner.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\HistoricalCachePathProvider.cs" Link="Shared\HistoricalCachePathProvider.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\HistoricalHttpClient.cs" Link="Shared\HistoricalHttpClient.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\WaybackHostSelector.cs" Link="Shared\WaybackHostSelector.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\WaybackHostPreferenceResolver.cs" Link="Shared\WaybackHostPreferenceResolver.cs" />
+    <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\WaybackUrlNormalizer.cs" Link="Shared\WaybackUrlNormalizer.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\WaybackCatalogParser.cs" Link="Shared\WaybackCatalogParser.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\Google\GoogleDbRootParser.cs" Link="Shared\GoogleDbRootParser.cs" />
     <Compile Include="..\Tools\Common\HistoricalImageryDownload\Infrastructure\Google\GooglePacketCodec.cs" Link="Shared\GooglePacketCodec.cs" />

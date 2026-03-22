@@ -1,5 +1,6 @@
 #nullable disable
 using System;
+using XIAOFUTools.Tools.HistoricalImageryDownload.Infrastructure;
 
 namespace XIAOFUTools.Tools.HistoricalImagery
 {
@@ -18,7 +19,8 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                 return false;
             }
 
-            if (!Uri.TryCreate(url, UriKind.Absolute, out var layerUri))
+            var normalizedUrl = WaybackUrlNormalizer.Normalize(url);
+            if (!Uri.TryCreate(normalizedUrl, UriKind.Absolute, out var layerUri))
             {
                 errorMessage = "所选历史影像版本的图层地址无效。";
                 return false;

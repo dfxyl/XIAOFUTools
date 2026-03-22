@@ -25,27 +25,23 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Infrastructure
             TimeSpan? cacheDuration = null,
             CancellationToken cancellationToken = default)
         {
+            var normalizedCacheKey = WaybackUrlNormalizer.CanonicalizeCacheKey(cacheKey ?? url);
+
             if (!string.IsNullOrWhiteSpace(cacheDirectory))
             {
-                var cachePath = GetCachePath(cacheDirectory, cacheKey ?? url);
+                var cachePath = GetCachePath(cacheDirectory, normalizedCacheKey);
                 if (IsCacheValid(cachePath, cacheDuration))
                 {
                     return await File.ReadAllBytesAsync(cachePath, cancellationToken);
                 }
 
-                using var response = await HttpClient.GetAsync(url, cancellationToken);
-                response.EnsureSuccessStatusCode();
-                var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+                var bytes = await GetBytesCoreAsync(url, cancellationToken);
                 Directory.CreateDirectory(cacheDirectory);
                 await File.WriteAllBytesAsync(cachePath, bytes, cancellationToken);
                 return bytes;
             }
 
-            using (var response = await HttpClient.GetAsync(url, cancellationToken))
-            {
-                response.EnsureSuccessStatusCode();
-                return await response.Content.ReadAsByteArrayAsync(cancellationToken);
-            }
+            return await GetBytesCoreAsync(url, cancellationToken);
         }
 
         public async Task<string> GetStringAsync(
@@ -64,10 +60,56 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Infrastructure
             IReadOnlyDictionary<string, string> formValues,
             CancellationToken cancellationToken = default)
         {
-            using var content = new FormUrlEncodedContent(formValues);
-            using var response = await HttpClient.PostAsync(url, content, cancellationToken);
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync(cancellationToken);
+            Exception? lastError = null;
+            foreach (var candidateUrl in await GetCandidateUrlsAsync(url, cancellationToken))
+            {
+                try
+                {
+                    using var content = new FormUrlEncodedContent(formValues);
+                    using var response = await HttpClient.PostAsync(candidateUrl, content, cancellationToken);
+                    response.EnsureSuccessStatusCode();
+                    WaybackHostPreferenceResolver.RememberPreferredHost(candidateUrl);
+                    return await response.Content.ReadAsStringAsync(cancellationToken);
+                }
+                catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
+                {
+                    lastError = ex;
+                }
+            }
+
+            throw lastError ?? new HttpRequestException($"Request failed: {url}");
+        }
+
+        private static async Task<byte[]> GetBytesCoreAsync(string url, CancellationToken cancellationToken)
+        {
+            Exception? lastError = null;
+            foreach (var candidateUrl in await GetCandidateUrlsAsync(url, cancellationToken))
+            {
+                try
+                {
+                    using var response = await HttpClient.GetAsync(candidateUrl, cancellationToken);
+                    response.EnsureSuccessStatusCode();
+                    WaybackHostPreferenceResolver.RememberPreferredHost(candidateUrl);
+                    return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+                }
+                catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException)
+                {
+                    lastError = ex;
+                }
+            }
+
+            throw lastError ?? new HttpRequestException($"Request failed: {url}");
+        }
+
+        private static async Task<IReadOnlyList<string>> GetCandidateUrlsAsync(string url, CancellationToken cancellationToken)
+        {
+            var preferredHost = WaybackUrlNormalizer.TryExtractWaybackHost(url) == null
+                ? (string?)null
+                : await WaybackHostPreferenceResolver.GetPreferredHostAsync(HttpClient, cancellationToken);
+
+            return preferredHost == null
+                ? [url]
+                : WaybackUrlNormalizer.BuildCandidateUrls(url, preferredHost);
         }
 
         private static string GetCachePath(string cacheDirectory, string cacheKey)

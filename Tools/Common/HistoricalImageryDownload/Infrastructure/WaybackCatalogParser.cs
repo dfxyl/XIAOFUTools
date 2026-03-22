@@ -33,7 +33,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Infrastructure
                     DisplayDate = ExtractDate(title) ?? property.Name,
                     Summary = title,
                     TileUrlTemplate = item.TryGetProperty("itemURL", out var itemUrlProperty)
-                        ? itemUrlProperty.GetString()
+                        ? WaybackUrlNormalizer.Normalize(itemUrlProperty.GetString())
                         : null,
                     MetadataLayerUrl = item.TryGetProperty("metadataLayerUrl", out var metadataProperty)
                         ? metadataProperty.GetString()

@@ -90,21 +90,7 @@ def looks_like_utf8(raw_bytes):
         return False
 
 
-def decode_best_text(raw_value):
-    if raw_value is None:
-        return ""
-    if not isinstance(raw_value, str):
-        return str(raw_value)
-    if raw_value.isascii():
-        return raw_value
-    if not any(0xDC80 <= ord(ch) <= 0xDCFF for ch in raw_value):
-        return raw_value
-
-    try:
-        raw_bytes = raw_value.encode("utf-8", "surrogateescape")
-    except Exception:
-        return raw_value
-
+def build_decode_candidates_from_bytes(raw_bytes):
     candidates = []
     if looks_like_utf8(raw_bytes):
         candidates.append(raw_bytes.decode("utf-8", errors="replace"))
@@ -114,6 +100,29 @@ def decode_best_text(raw_value):
             candidates.append(raw_bytes.decode(encoding))
         except Exception:
             continue
+    return candidates
+
+
+def decode_best_text(raw_value):
+    if raw_value is None:
+        return ""
+    if not isinstance(raw_value, str):
+        return str(raw_value)
+    if raw_value.isascii():
+        return raw_value
+    candidates = []
+    if any(0xDC80 <= ord(ch) <= 0xDCFF for ch in raw_value):
+        try:
+            raw_bytes = raw_value.encode("utf-8", "surrogateescape")
+            candidates.extend(build_decode_candidates_from_bytes(raw_bytes))
+        except Exception:
+            pass
+
+    try:
+        latin1_bytes = raw_value.encode("latin1")
+        candidates.extend(build_decode_candidates_from_bytes(latin1_bytes))
+    except Exception:
+        pass
 
     candidates.append(raw_value)
     return max(candidates, key=score_text).strip()
@@ -405,7 +414,11 @@ def merge_metadata_xml(xml_text, info, source_layer_name, output_layer_name):
         )
 
 
-def read_layer_metadata(source_ds, layer_name):
+def read_layer_metadata(source_ds, layer_name, metadata_cache=None):
+    cache_key = normalize_layer_path(layer_name).lower()
+    if metadata_cache is not None and cache_key in metadata_cache:
+        return metadata_cache[cache_key]
+
     info = {"feature_dataset_name": "", "alias_name": "", "field_aliases": {}}
     output_name = get_output_name_from_layer_name(layer_name)
     escaped_layer_name = layer_name.replace("'", "''")
@@ -442,6 +455,8 @@ def read_layer_metadata(source_ds, layer_name):
             if metadata_layer is not None:
                 source_ds.ReleaseResultSet(metadata_layer)
 
+    if metadata_cache is not None:
+        metadata_cache[cache_key] = info
     return info
 
 
@@ -501,6 +516,7 @@ def read_feature_dataset_lookup(source_ds):
 
 def collect_layer_infos(source_ds):
     feature_dataset_lookup = read_feature_dataset_lookup(source_ds)
+    metadata_cache = {}
     layer_infos = []
     for index in range(source_ds.GetLayerCount()):
         layer = source_ds.GetLayerByIndex(index)
@@ -508,7 +524,7 @@ def collect_layer_infos(source_ds):
             continue
 
         source_name = get_layer_name(layer)
-        metadata = read_layer_metadata(source_ds, source_name)
+        metadata = read_layer_metadata(source_ds, source_name, metadata_cache)
         output_name = get_output_name_from_layer_name(source_name)
         feature_dataset_name = (
             feature_dataset_lookup.get(source_name)
@@ -648,6 +664,20 @@ def build_fields(defn, layer_info):
     return fields
 
 
+def build_add_fields_payload(fields):
+    payload = []
+    for field in fields:
+        payload.append(
+            [
+                field["name"],
+                field["target_type"],
+                field["alias_name"],
+                field["length"],
+            ]
+        )
+    return payload
+
+
 def read_datetime_value(feature, field_index, mode):
     try:
         year, month, day, hour, minute, seconds, _timezone = feature.GetFieldAsDateTime(
@@ -698,6 +728,43 @@ def read_field_value(feature, field):
     return get_field_as_text(feature, field_index)
 
 
+def compile_field_reader(field):
+    field_index = field["source_index"]
+    target_type = field["target_type"]
+    serialize_as_text = field["serialize_as_text"]
+
+    def read_value(feature):
+        if not feature.IsFieldSet(field_index) or feature.IsFieldNull(field_index):
+            return None
+
+        if serialize_as_text:
+            return get_field_as_text(feature, field_index)
+
+        if target_type in ("SHORT", "LONG"):
+            return int(feature.GetFieldAsInteger(field_index))
+        if target_type == "BIGINTEGER":
+            return int(feature.GetFieldAsInteger64(field_index))
+        if target_type in ("FLOAT", "DOUBLE"):
+            return float(feature.GetFieldAsDouble(field_index))
+        if target_type in ("TEXT", "GUID"):
+            return get_field_as_text(feature, field_index)
+        if target_type == "BLOB":
+            return feature.GetFieldAsBinary(field_index)
+        if target_type in ("DATE", "DATEONLY", "TIMEONLY"):
+            return read_datetime_value(feature, field_index, target_type)
+        return get_field_as_text(feature, field_index)
+
+    return read_value
+
+
+def compile_field_readers(fields):
+    return [compile_field_reader(field) for field in fields]
+
+
+def read_feature_values(feature, field_readers):
+    return [reader(feature) for reader in field_readers]
+
+
 def prepare_geometry_for_insert(geometry):
     if geometry is None or geometry.IsEmpty():
         return None, False
@@ -722,6 +789,200 @@ def prepare_geometry_for_insert(geometry):
             pass
 
     return geometry, False
+
+
+def point_to_xy(point):
+    return [point[0], point[1]]
+
+
+def circular_string_to_esri_items(geometry, include_start):
+    point_count = geometry.GetPointCount()
+    points = [point_to_xy(geometry.GetPoint(i)) for i in range(point_count)]
+    items = []
+    if include_start and points:
+        items.append(points[0])
+
+    for index in range(0, point_count - 2, 2):
+        items.append({"c": [points[index + 2], points[index + 1]]})
+    return items
+
+
+def line_string_to_esri_items(geometry, include_start):
+    point_count = geometry.GetPointCount()
+    points = [point_to_xy(geometry.GetPoint(i)) for i in range(point_count)]
+    return points if include_start else points[1:]
+
+
+def compound_curve_to_esri_items(geometry):
+    items = []
+    for index in range(geometry.GetGeometryCount()):
+        child = geometry.GetGeometryRef(index)
+        child_name = (child.GetGeometryName() or "").upper()
+        include_start = len(items) == 0
+        if child_name == "CIRCULARSTRING":
+            items.extend(circular_string_to_esri_items(child, include_start))
+        elif child_name == "LINESTRING":
+            items.extend(line_string_to_esri_items(child, include_start))
+        else:
+            raise NotImplementedError(f"不支持的复合曲线子类型: {child_name}")
+    return items
+
+
+def polygon_child_to_esri_rings(geometry):
+    rings = []
+    for index in range(geometry.GetGeometryCount()):
+        child = geometry.GetGeometryRef(index)
+        child_name = (child.GetGeometryName() or "").upper()
+        if child_name == "COMPOUNDCURVE":
+            rings.append(compound_curve_to_esri_items(child))
+        elif child_name in ("LINEARRING", "LINESTRING"):
+            rings.append(line_string_to_esri_items(child, True))
+        else:
+            raise NotImplementedError(f"不支持的面环类型: {child_name}")
+    return rings
+
+
+def geometry_to_esri_json(geometry):
+    geometry_name = (geometry.GetGeometryName() or "").upper()
+    if geometry_name == "CURVEPOLYGON":
+        curve_rings = []
+        for index in range(geometry.GetGeometryCount()):
+            child = geometry.GetGeometryRef(index)
+            child_name = (child.GetGeometryName() or "").upper()
+            if child_name == "COMPOUNDCURVE":
+                curve_rings.append(compound_curve_to_esri_items(child))
+            elif child_name in ("POLYGON", "MULTIPOLYGON"):
+                curve_rings.extend(polygon_child_to_esri_rings(child))
+            elif child_name in ("LINEARRING", "LINESTRING"):
+                curve_rings.append(line_string_to_esri_items(child, True))
+            else:
+                raise NotImplementedError(f"不支持的曲面子类型: {child_name}")
+        return {"curveRings": curve_rings}
+
+    raise NotImplementedError(f"暂不支持转换为 Esri JSON 的几何类型: {geometry_name}")
+
+
+def build_arcpy_geometry(geometry, spatial_reference):
+    prepared_geometry, linearized = prepare_geometry_for_insert(geometry)
+    if prepared_geometry is None:
+        return None, linearized, False
+
+    geometry_name = (geometry.GetGeometryName() or "").upper()
+    if "CURVE" in geometry_name or "CIRCULAR" in geometry_name:
+        esri_json = geometry_to_esri_json(geometry)
+        esri_json["spatialReference"] = {"wkt": spatial_reference.exportToString()}
+        return arcpy.AsShape(esri_json, True), False, True
+
+    return (
+        arcpy.FromWKB(bytes(prepared_geometry.ExportToWkb()), spatial_reference),
+        linearized,
+        False,
+    )
+
+
+def is_simple_geometry_type(geometry_type):
+    flat_type = ogr.GT_Flatten(geometry_type)
+    return flat_type in (
+        ogr.wkbPoint,
+        ogr.wkbMultiPoint,
+        ogr.wkbLineString,
+        ogr.wkbMultiLineString,
+        ogr.wkbPolygon,
+        ogr.wkbMultiPolygon,
+    )
+
+
+def build_fast_arcpy_geometry(geometry, spatial_reference):
+    if geometry is None or geometry.IsEmpty():
+        return None, False, False
+    return arcpy.FromWKB(bytes(geometry.ExportToWkb()), spatial_reference), False, False
+
+
+def geometry_has_curve_signature(geometry):
+    if geometry is None:
+        return False
+
+    try:
+        if bool(geometry.HasCurveGeometry()):
+            return True
+    except Exception:
+        pass
+
+    try:
+        geometry_name = (geometry.GetGeometryName() or "").upper()
+    except Exception:
+        geometry_name = ""
+    return "CURVE" in geometry_name or "CIRCULAR" in geometry_name
+
+
+def get_geometry_point_count(geometry):
+    if geometry is None:
+        return None
+    try:
+        return geometry.GetPointCount()
+    except Exception:
+        return None
+
+
+def build_curve_degradation_summary(feature_index, geometry):
+    geometry_name = (geometry.GetGeometryName() or "UNKNOWN").upper()
+    parts = []
+    for child_index in range(geometry.GetGeometryCount()):
+        child = geometry.GetGeometryRef(child_index)
+        if child is None:
+            continue
+        child_name = (child.GetGeometryName() or "UNKNOWN").upper()
+        point_count = get_geometry_point_count(child)
+        if point_count is None:
+            parts.append(child_name)
+        else:
+            parts.append(f"{child_name}({point_count}点)")
+
+    if parts:
+        return f"#{feature_index} {geometry_name} -> {' + '.join(parts)}"
+    return f"#{feature_index} {geometry_name}"
+
+
+def is_curve_degraded(source_geometry, arc_geometry):
+    if not geometry_has_curve_signature(source_geometry):
+        return False
+    return not bool(getattr(arc_geometry, "hasCurves", False))
+
+
+def layer_has_curve_features(layer):
+    if not hasattr(layer, "ResetReading") or not hasattr(layer, "GetNextFeature"):
+        return False
+
+    try:
+        layer.ResetReading()
+        feature = layer.GetNextFeature()
+        while feature is not None:
+            geometry = feature.GetGeometryRef()
+            if geometry_has_curve_signature(geometry):
+                layer.ResetReading()
+                return True
+            feature = layer.GetNextFeature()
+    except Exception:
+        layer.ResetReading()
+        return True
+
+    layer.ResetReading()
+    return False
+
+
+def build_geometry_writer(layer, is_table):
+    if is_table:
+        return None
+
+    defn = layer.GetLayerDefn()
+    if defn is None:
+        return build_arcpy_geometry
+
+    if is_simple_geometry_type(defn.GetGeomType()) and not layer_has_curve_features(
+        layer
+    ):
+        return build_fast_arcpy_geometry
+    return build_arcpy_geometry
 
 
 def create_spatial_reference(spatial_ref):
@@ -767,87 +1028,87 @@ def ensure_schema(output_gdb, layer, layer_info):
     existing_field_names = {
         field.name.upper() for field in arcpy.ListFields(dataset_path)
     }
-    for field in fields:
-        if field["name"].upper() in existing_field_names:
-            continue
-
-        arcpy.management.AddField(
-            dataset_path,
-            field["name"],
-            field["target_type"],
-            field_precision=field["precision"],
-            field_length=field["length"],
-            field_alias=field["alias_name"],
-            field_is_nullable="NULLABLE" if field["nullable"] else "NON_NULLABLE",
-        )
+    missing_fields = [
+        field for field in fields if field["name"].upper() not in existing_field_names
+    ]
+    if missing_fields:
+        try:
+            arcpy.management.AddFields(
+                dataset_path,
+                build_add_fields_payload(missing_fields),
+            )
+        except Exception:
+            for field in missing_fields:
+                arcpy.management.AddField(
+                    dataset_path,
+                    field["name"],
+                    field["target_type"],
+                    field_precision=field["precision"],
+                    field_length=field["length"],
+                    field_alias=field["alias_name"],
+                    field_is_nullable="NULLABLE"
+                    if field["nullable"]
+                    else "NON_NULLABLE",
+                )
     return dataset_path, spatial_reference, fields
 
 
 def insert_rows(dataset_path, spatial_reference, layer, fields, is_table):
     cursor_fields = [field["name"] for field in fields]
     if not is_table:
-        cursor_fields.append("SHAPE@WKB")
+        cursor_fields.append("SHAPE@")
 
+    field_readers = compile_field_readers(fields)
+    geometry_writer = build_geometry_writer(layer, is_table)
     inserted_count = 0
-    fallback_count = 0
     linearized_count = 0
+    curve_count = 0
+    degraded_curve_count = 0
+    degraded_curve_summaries = []
     with arcpy.da.InsertCursor(dataset_path, cursor_fields) as cursor:
         layer.ResetReading()
         feature = layer.GetNextFeature()
         while feature is not None:
-            values = [read_field_value(feature, field) for field in fields]
-            prepared_geometry = None
+            feature_index = inserted_count + 1
+            values = read_feature_values(feature, field_readers)
             linearized_for_feature = False
+            source_curve_geometry = False
+            geometry = None
+            arc_geometry = None
             if not is_table:
                 geometry = feature.GetGeometryRef()
                 if geometry is None or geometry.IsEmpty():
                     values.append(None)
                 else:
-                    prepared_geometry, linearized = prepare_geometry_for_insert(
-                        geometry
+                    source_curve_geometry = geometry_has_curve_signature(geometry)
+                    arc_geometry, linearized, _used_curve_json = geometry_writer(
+                        geometry, spatial_reference
                     )
-                    if prepared_geometry is None:
-                        values.append(None)
-                    else:
-                        linearized_for_feature = bool(linearized)
-                        wkb = bytes(prepared_geometry.ExportToWkb())
-                        values.append(wkb)
-            try:
-                cursor.insertRow(values)
-            except RuntimeError as ex:
-                if not is_table and "invalid WKB data" in str(ex):
-                    fallback_geometry = prepared_geometry
-                    if fallback_geometry is None:
-                        geometry = feature.GetGeometryRef()
-                        fallback_geometry, linearized = prepare_geometry_for_insert(
-                            geometry
-                        )
-                        linearized_for_feature = bool(
-                            linearized and fallback_geometry is not None
-                        )
-
-                    if fallback_geometry is None:
-                        fallback_values = values[:-1] + [None]
-                    else:
-                        fallback_values = values[:-1] + [
-                            arcpy.FromWKB(
-                                bytes(fallback_geometry.ExportToWkb()),
-                                spatial_reference,
-                            )
-                        ]
-                    cursor.insertRow(fallback_values)
-                    fallback_count += 1
-                else:
-                    raise
+                    linearized_for_feature = bool(linearized)
+                    values.append(arc_geometry)
+            cursor.insertRow(values)
             if linearized_for_feature:
                 linearized_count += 1
+            if not is_table and source_curve_geometry:
+                if is_curve_degraded(geometry, arc_geometry):
+                    degraded_curve_count += 1
+                    if len(degraded_curve_summaries) < 5:
+                        degraded_curve_summaries.append(
+                            build_curve_degradation_summary(feature_index, geometry)
+                        )
+                else:
+                    curve_count += 1
             inserted_count += 1
             feature = layer.GetNextFeature()
 
     if linearized_count:
         warn(f"{os.path.basename(dataset_path)} 线性化曲线几何 {linearized_count} 条")
-    if fallback_count:
-        warn(f"{os.path.basename(dataset_path)} 使用 FromWKB 回退 {fallback_count} 条")
+    if curve_count:
+        warn(f"{os.path.basename(dataset_path)} 保留曲线几何 {curve_count} 条")
+    if degraded_curve_count:
+        warn(f"{os.path.basename(dataset_path)} 曲线退化 {degraded_curve_count} 条")
+        for summary in degraded_curve_summaries:
+            warn(f"{os.path.basename(dataset_path)} 退化要素: {summary}")
     return inserted_count
 
 

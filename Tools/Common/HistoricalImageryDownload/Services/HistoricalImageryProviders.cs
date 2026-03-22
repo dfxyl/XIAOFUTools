@@ -243,7 +243,7 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload.Services
     internal sealed class WaybackHistoricalImageryProvider : IHistoricalImageryProvider
     {
         private const string WaybackConfigUrl = "https://s3-us-west-2.amazonaws.com/config.maptiles.arcgis.com/waybackconfig.json";
-        private const string WaybackTilemapUrlTemplate = "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tilemap/{0}/{1}/{2}/{3}?f=json";
+        private const string WaybackTilemapUrlTemplate = "https://wayback-b.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tilemap/{0}/{1}/{2}/{3}?f=json";
         private const int TilemapConcurrency = 24;
         private const int MetadataConcurrency = 24;
         private const double MaxMercatorLatitude = 85.0511287798066d;

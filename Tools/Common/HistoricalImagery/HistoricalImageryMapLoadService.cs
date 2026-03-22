@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using XIAOFUTools.Tools.HistoricalImageryDownload.Infrastructure;
 
 namespace XIAOFUTools.Tools.HistoricalImagery
 {
@@ -58,6 +59,7 @@ namespace XIAOFUTools.Tools.HistoricalImagery
                 }
 
                 var layerToUpdate = candidates.FirstOrDefault(layer =>
+                    WaybackUrlNormalizer.AreEquivalent(layer.URI, request.LayerUri.AbsoluteUri) ||
                     string.Equals(layer.URI, request.LayerUri.AbsoluteUri, StringComparison.OrdinalIgnoreCase));
 
                 if (layerToUpdate == null)

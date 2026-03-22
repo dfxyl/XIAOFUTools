@@ -54,4 +54,22 @@ public class HistoricalImageryLayerRequestFactoryTests
         Assert.NotNull(request);
         Assert.Equal("Wayback 654", request!.LayerName);
     }
+
+    [Fact]
+    public void TryCreate_NormalizesWaybackLayerHost()
+    {
+        var ok = HistoricalImageryLayerRequestFactory.TryCreate(
+            "2024-03-18",
+            "Wayback 2024-03-18",
+            "https://wayback-a.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/64001/{level}/{row}/{col}",
+            64001,
+            out var request,
+            out _);
+
+        Assert.True(ok);
+        Assert.NotNull(request);
+        Assert.Equal(
+            "https://wayback-b.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/64001/%7Blevel%7D/%7Brow%7D/%7Bcol%7D",
+            request!.LayerUri.AbsoluteUri);
+    }
 }
