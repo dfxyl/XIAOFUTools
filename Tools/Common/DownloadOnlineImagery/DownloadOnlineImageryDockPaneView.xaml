@@ -47,7 +47,7 @@
                       DisplayMemberPath="Name"
                       Style="{StaticResource ComboBoxStyle}" Height="24"
                       ToolTip="选择用于确定下载范围的要素图层"/>
-            <Button Grid.Column="2" Width="22" Height="20" Margin="5,0,0,0"
+            <Button Grid.Column="2" Width="22" Height="26" Margin="5,0,0,0"
                     Style="{StaticResource DefaultButtonStyle}"
                     Command="{Binding RefreshLayersCommand}"
                     ToolTip="刷新图层列表"
@@ -69,7 +69,7 @@
             <TextBox Grid.Column="1" Text="{Binding OutputFolder}"
                      Style="{StaticResource TextBoxStyle}" Height="24" Margin="0,0,3,0"
                      ToolTip="选择影像输出文件夹"/>
-            <Button Grid.Column="2" Content="浏览" Height="20" Margin="0" Width="45"
+            <Button Grid.Column="2" Content="浏览" Height="26" Margin="0" Width="45"
                     Command="{Binding BrowseOutputFolderCommand}"
                     Style="{StaticResource DefaultButtonStyle}"
                     ToolTip="浏览选择输出文件夹"/>

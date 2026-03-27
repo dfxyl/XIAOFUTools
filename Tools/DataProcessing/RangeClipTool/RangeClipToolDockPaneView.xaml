@@ -45,7 +45,7 @@
                     ItemsSource="{Binding RangeLayers}"
                     SelectedItem="{Binding SelectedRangeLayer}"
                     DisplayMemberPath="Name"/>
-            <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0"
+            <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0"
                     Style="{StaticResource DefaultButtonStyle}"
                     Command="{Binding RefreshLayersCommand}"
                     ToolTip="刷新图层列表"
@@ -106,7 +106,7 @@
             </Grid.ColumnDefinitions>
             <TextBox Grid.Column="0" Text="{Binding OutputFolder}" VerticalAlignment="Center" Height="24"
                     Style="{StaticResource TextBoxStyle}"/>
-            <Button Grid.Column="1" Content="浏览..." Height="22" Margin="5,0,0,0" Command="{Binding BrowseFolderCommand}"
+            <Button Grid.Column="1" Content="浏览..." Height="26" Margin="5,0,0,0" Command="{Binding BrowseFolderCommand}"
                     Style="{StaticResource DefaultButtonStyle}" VerticalAlignment="Center"/>
         </Grid>
 

@@ -58,7 +58,7 @@
                         ItemsSource="{Binding PolygonLayers}"
                         SelectedItem="{Binding SelectedPolygonLayer}"
                         DisplayMemberPath="Name"/>
-                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0"
+                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0"
                         Style="{StaticResource DefaultButtonStyle}"
                         Command="{Binding RefreshLayersCommand}"
                         ToolTip="刷新图层列表"
@@ -110,7 +110,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" Text="{Binding OutputPath}" VerticalAlignment="Center"
                         Style="{StaticResource CompactTextBoxStyle}"/>
-                <Button Grid.Column="1" Content="浏览..." Height="22" Margin="5,0,0,0" Command="{Binding BrowseOutputCommand}"
+                <Button Grid.Column="1" Content="浏览..." Height="26" Margin="5,0,0,0" Command="{Binding BrowseOutputCommand}"
                         Style="{StaticResource DefaultButtonStyle}" VerticalAlignment="Center"/>
             </Grid>
 
@@ -124,7 +124,7 @@
                 <TextBlock Grid.Column="0" VerticalAlignment="Center" Height="22" Margin="5,0,0,0"
                           Text="{Binding SelectedFieldsDisplayText}"
                           Foreground="{StaticResource TextSecondaryBrush}"/>
-                <Button Grid.Column="1" Content="选择字段..." Height="22" Margin="5,0,0,0" Command="{Binding SelectFieldsCommand}"
+                <Button Grid.Column="1" Content="选择字段..." Height="26" Margin="5,0,0,0" Command="{Binding SelectFieldsCommand}"
                         Style="{StaticResource DefaultButtonStyle}" VerticalAlignment="Center"
                         IsEnabled="{Binding HasSelectedLayer}"/>
             </Grid>

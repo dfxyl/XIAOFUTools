@@ -39,7 +39,7 @@
                         <TextBlock Grid.Column="0" Text="输出文件夹:" VerticalAlignment="Center"/>
                         <TextBox Grid.Column="1" Text="{Binding OutputFolder}"
                                  Style="{StaticResource TextBoxStyle}" Height="24" Margin="0,0,3,0"/>
-                        <Button Grid.Column="2" Content="浏览" Height="20" Margin="0" Width="45"
+                        <Button Grid.Column="2" Content="浏览" Height="26" Margin="0" Width="45"
                                 Command="{Binding BrowseFolderCommand}"
                                 Style="{StaticResource DefaultButtonStyle}"/>
                     </Grid>
@@ -82,10 +82,10 @@
                     <!-- 全选/反选按钮 -->
                     <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,3">
                         <Button Content="全选" Command="{Binding SelectAllCommand}"
-                                Style="{StaticResource DefaultButtonStyle}" Width="60" Height="20" Margin="0,0,4,0"/>
+                                Style="{StaticResource DefaultButtonStyle}" Width="60" Height="26" Margin="0,0,4,0"/>
                         <Button Content="反选" Command="{Binding InvertSelectionCommand}"
-                                Style="{StaticResource DefaultButtonStyle}" Width="60" Height="20" Margin="0,0,4,0"/>
-                        <Button Content="⟲" Width="20" Height="20" Margin="0,0,0,0"
+                                Style="{StaticResource DefaultButtonStyle}" Width="60" Height="26" Margin="0,0,4,0"/>
+                        <Button Content="⟲" Width="26" Height="26" Margin="0,0,0,0"
                                 Style="{StaticResource DefaultButtonStyle}"
                                 Command="{Binding RefreshLayoutsCommand}"
                                 ToolTip="刷新布局列表"

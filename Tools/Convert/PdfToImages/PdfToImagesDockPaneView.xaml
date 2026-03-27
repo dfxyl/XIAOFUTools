@@ -39,7 +39,7 @@
                     <Button Grid.Column="1" Content="浏览" 
                             Command="{Binding SelectInputFolderCommand}"
                             Style="{StaticResource DefaultButtonStyle}"
-                            Width="60" Height="22" Margin="5,0,0,0"/>
+                            Width="60" Height="26" Margin="5,0,0,0"/>
                 </Grid>
 
                 <!-- 保存在源路径 -->
@@ -63,7 +63,7 @@
                         <Button Grid.Column="1" Content="浏览" 
                                 Command="{Binding SelectOutputFolderCommand}"
                                 Style="{StaticResource DefaultButtonStyle}"
-                                Width="60" Height="22" Margin="5,0,0,0"/>
+                                Width="60" Height="26" Margin="5,0,0,0"/>
                     </Grid>
                 </StackPanel>
 
@@ -163,13 +163,13 @@
             <Button Grid.Column="2" Content="停止" 
                     Command="{Binding StopConversionCommand}"
                     Style="{StaticResource CancelButtonStyle}"
-                    Width="60" Height="22" Margin="5,0"/>
+                    Width="60" Height="26" Margin="5,0"/>
 
             <!-- 开始按钮 -->
             <Button Grid.Column="3" Content="开始" 
                     Command="{Binding StartConversionCommand}"
                     Style="{StaticResource ExecuteButtonStyle}"
-                    Width="60" Height="22"/>
+                    Width="60" Height="26"/>
         </Grid>
     </Grid>
 </UserControl>

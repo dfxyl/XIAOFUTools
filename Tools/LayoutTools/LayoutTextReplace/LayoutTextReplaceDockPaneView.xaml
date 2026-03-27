@@ -56,10 +56,10 @@
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,3">
                                 <Button Content="全选" Command="{Binding SelectAllLayoutsCommand}"
-                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="20" Margin="0,0,4,0"/>
+                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="26" Margin="0,0,4,0"/>
                                 <Button Content="反选" Command="{Binding InvertLayoutSelectionCommand}"
-                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="20" Margin="0,0,4,0"/>
-                                <Button Content="⟲" Width="20" Height="20"
+                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="26" Margin="0,0,4,0"/>
+                                <Button Content="⟲" Width="26" Height="26"
                                         Style="{StaticResource DefaultButtonStyle}"
                                         Command="{Binding RefreshLayoutsCommand}"
                                         ToolTip="刷新布局列表" FontSize="12" FontWeight="Bold"/>
@@ -114,7 +114,7 @@
                             </Border>
                             <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,5,0,0">
                                 <Button Content="查找全部" Command="{Binding SearchAllCommand}"
-                                        Style="{StaticResource ExecuteButtonStyle}" Width="80" Height="24"/>
+                                        Style="{StaticResource ExecuteButtonStyle}" Width="80" Height="26"/>
                                 <TextBlock Text="{Binding SearchResultCount, StringFormat='共找到 {0} 个结果'}"
                                            VerticalAlignment="Center" Margin="10,0,0,0"/>
                             </StackPanel>
@@ -165,10 +165,10 @@
                             </Grid.RowDefinitions>
                             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,3">
                                 <Button Content="全选" Command="{Binding SelectAllLayoutsCommand}"
-                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="20" Margin="0,0,4,0"/>
+                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="26" Margin="0,0,4,0"/>
                                 <Button Content="反选" Command="{Binding InvertLayoutSelectionCommand}"
-                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="20" Margin="0,0,4,0"/>
-                                <Button Content="⟲" Width="20" Height="20"
+                                        Style="{StaticResource DefaultButtonStyle}" Width="50" Height="26" Margin="0,0,4,0"/>
+                                <Button Content="⟲" Width="26" Height="26"
                                         Style="{StaticResource DefaultButtonStyle}"
                                         Command="{Binding RefreshLayoutsCommand}"
                                         ToolTip="刷新布局列表" FontSize="12" FontWeight="Bold"/>
@@ -231,15 +231,15 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                                     <Button Content="查找全部" Command="{Binding SearchForReplaceCommand}"
-                                            Style="{StaticResource DefaultButtonStyle}" Width="70" Height="24" Margin="0,0,4,0"/>
+                                            Style="{StaticResource DefaultButtonStyle}" Width="70" Height="26" Margin="0,0,4,0"/>
                                 </StackPanel>
                                 <TextBlock Grid.Column="1" Text="{Binding ReplaceResultCount, StringFormat='共 {0} 个结果'}"
                                            VerticalAlignment="Center" Margin="5,0,0,0"/>
                                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                                     <Button Content="替换所选" Command="{Binding ReplaceSelectedCommand}"
-                                            Style="{StaticResource DefaultButtonStyle}" Width="70" Height="24" Margin="0,0,4,0"/>
+                                            Style="{StaticResource DefaultButtonStyle}" Width="70" Height="26" Margin="0,0,4,0"/>
                                     <Button Content="全部替换" Command="{Binding ReplaceAllCommand}"
-                                            Style="{StaticResource ExecuteButtonStyle}" Width="70" Height="24"/>
+                                            Style="{StaticResource ExecuteButtonStyle}" Width="70" Height="26"/>
                                 </StackPanel>
                             </Grid>
                         </Grid>

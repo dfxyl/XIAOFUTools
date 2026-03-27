@@ -99,7 +99,7 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 
-                                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0"
+                                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0"
                                         Style="{StaticResource DefaultButtonStyle}"
                                         Command="{Binding RefreshDatasetsCommand}"
                                         ToolTip="刷新图层/表列表"
@@ -145,7 +145,7 @@
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
-                                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0"
+                                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0"
                                         Style="{StaticResource DefaultButtonStyle}"
                                         Command="{Binding RefreshDatasetsCommand}"
                                         ToolTip="刷新图层/表列表"

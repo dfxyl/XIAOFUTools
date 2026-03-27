@@ -53,14 +53,14 @@
                         DisplayMemberPath="Name"
                         Margin="0,0,0,5"/>
                 <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="5,0,0,5" VerticalAlignment="Center">
-                    <Button Width="22" Height="22"
+                    <Button Width="26" Height="26"
                             Style="{StaticResource DefaultButtonStyle}"
                             Command="{Binding RefreshLayersCommand}"
                             ToolTip="刷新图层列表">
                         <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"
                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
-                    <Button Width="60" Height="22" Margin="5,0,0,0"
+                    <Button Width="60" Height="26" Margin="5,0,0,0"
                             Style="{StaticResource DefaultButtonStyle}"
                             Command="{Binding AutoMatchLayersCommand}"
                             ToolTip="根据图层名称自动匹配所有图层">
@@ -338,7 +338,7 @@
                         Style="{StaticResource LocalHelpButtonStyle}"
                         Command="{Binding ShowHelpCommand}"
                         ToolTip="查看工具使用说明"/>
-                <Button Content="导出报告" Height="22" Margin="8,0,0,0"
+                <Button Content="导出报告" Height="26" Margin="8,0,0,0"
                         Style="{StaticResource DefaultButtonStyle}"
                         Command="{Binding ExportReportCommand}"
                         Visibility="{Binding HasResult, Converter={StaticResource BooleanToVisibilityConverter}}"

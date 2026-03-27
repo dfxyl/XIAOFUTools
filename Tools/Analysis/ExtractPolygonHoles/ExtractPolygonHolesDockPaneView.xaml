@@ -43,8 +43,8 @@
                       SelectedItem="{Binding SelectedPolygonLayer}"
                       DisplayMemberPath="Name"/>
             <Button Grid.Column="1"
-                    Width="22"
-                    Height="22"
+                    Width="26"
+                    Height="26"
                     Margin="5,0,0,0"
                     Style="{StaticResource DefaultButtonStyle}"
                     Command="{Binding RefreshLayersCommand}"
@@ -65,7 +65,7 @@
                      Text="{Binding OutputPath, UpdateSourceTrigger=PropertyChanged}"/>
             <Button Grid.Column="1"
                     Margin="5,0,0,0"
-                    Height="22"
+                    Height="26"
                     Content="浏览..."
                     Style="{StaticResource DefaultButtonStyle}"
                     Command="{Binding BrowseOutputCommand}"/>

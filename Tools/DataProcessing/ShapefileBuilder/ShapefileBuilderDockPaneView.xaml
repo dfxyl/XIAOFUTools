@@ -181,7 +181,7 @@
                             <Button Content="导出模板"
                                     Style="{StaticResource DefaultButtonStyle}"
                                     Width="80"
-                                    Height="22"
+                                    Height="26"
                                     Margin="8,0,0,0"
                                     Command="{Binding ExportTemplateCommand}"
                                     IsEnabled="{Binding IsProcessing, Converter={StaticResource BooleanInverseConverter}}"

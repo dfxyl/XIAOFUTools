@@ -39,7 +39,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Column="0" x:Name="LayoutComboBox" Style="{StaticResource ComboBoxStyle}"/>
-                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" Click="RefreshLayoutsButton_Click" ToolTip="刷新布局列表">
+                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" Click="RefreshLayoutsButton_Click" ToolTip="刷新布局列表">
                     <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"/>
                 </Button>
             </Grid>
@@ -52,7 +52,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <ComboBox Grid.Column="0" x:Name="LayerComboBox" Style="{StaticResource ComboBoxStyle}" SelectionChanged="LayerComboBox_SelectionChanged"/>
-                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" Click="RefreshLayersButton_Click" ToolTip="刷新图层列表">
+                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" Click="RefreshLayersButton_Click" ToolTip="刷新图层列表">
                     <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"/>
                 </Button>
             </Grid>

@@ -43,7 +43,7 @@
                           ItemsSource="{Binding PolygonLayers}"
                           SelectedItem="{Binding SelectedPolygonLayer}"
                           DisplayMemberPath="Name"/>
-                <Button Grid.Column="1" Width="22" Height="22" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" 
+                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" 
                         Command="{Binding RefreshCommand}" ToolTip="刷新图层和布局列表">
                     <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"/>
                 </Button>

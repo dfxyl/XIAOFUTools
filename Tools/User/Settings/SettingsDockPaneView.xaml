@@ -97,7 +97,7 @@
                                     Command="{Binding ImportLayersCommand}"
                                     ToolTip="导入.lyr或.lyrx文件到预设图层文件夹"
                                     Width="70"
-                                    Height="22"
+                                    Height="26"
                                     Margin="0,0,8,0"/>
 
                             <Button Content="打开文件夹"
@@ -105,7 +105,7 @@
                                     Command="{Binding OpenLayersFolderCommand}"
                                     ToolTip="在资源管理器中打开预设图层文件夹"
                                     Width="80"
-                                    Height="22"/>
+                                    Height="26"/>
                         </StackPanel>
                     </StackPanel>
                 </GroupBox>
@@ -160,7 +160,7 @@
                                 Command="{Binding CheckUpdateCommand}"
                                 ToolTip="立即检查是否有新版本可用"
                                 Width="100"
-                                Height="22"
+                                Height="26"
                                 HorizontalAlignment="Left"/>
                     </StackPanel>
                 </GroupBox>
@@ -194,13 +194,13 @@
                             Command="{Binding ResetCommand}"
                             ToolTip="重置所有设置为默认值"
                             Width="50"
-                            Height="22"/>
+                            Height="26"/>
                     <Button Content="应用"
                             Style="{StaticResource ExecuteButtonStyle}"
                             Command="{Binding ApplyCommand}"
                             ToolTip="手动保存当前设置"
                             Width="50"
-                            Height="22"/>
+                            Height="26"/>
                 </StackPanel>
             </Grid>
         </Border>

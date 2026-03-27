@@ -50,7 +50,7 @@
                     <Button Grid.Column="1" Content="选择坐标系" 
                            Command="{Binding SelectCoordinateSystemCommand}"
                            Style="{StaticResource DefaultButtonStyle}"
-                           Width="80" Height="22" Margin="10,0,0,0"/>
+                           Width="80" Height="26" Margin="10,0,0,0"/>
                 </Grid>
             </Grid>
         </Border>
@@ -59,11 +59,11 @@
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
             <Button Content="全选" Command="{Binding SelectAllCommand}"
                    Style="{StaticResource DefaultButtonStyle}"
-                   Width="60" Height="22" Margin="0,0,10,0"/>
+                   Width="60" Height="26" Margin="0,0,10,0"/>
             <Button Content="反选" Command="{Binding SelectNoneCommand}"
                    Style="{StaticResource DefaultButtonStyle}"
-                   Width="60" Height="22" Margin="0,0,10,0"/>
-            <Button Content="⟲" Width="22" Height="22" Margin="0,0,0,0"
+                   Width="60" Height="26" Margin="0,0,10,0"/>
+            <Button Content="⟲" Width="26" Height="26" Margin="0,0,0,0"
                    Style="{StaticResource DefaultButtonStyle}"
                    Command="{Binding RefreshLayersCommand}"
                    ToolTip="刷新图层列表"

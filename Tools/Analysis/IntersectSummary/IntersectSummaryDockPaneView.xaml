@@ -63,7 +63,7 @@
                         SelectedItem="{Binding SelectedRedlineLayer}"
                         DisplayMemberPath="Name"
                         Margin="0,0,0,5"/>
-                <Button Grid.Row="0" Grid.Column="2" Width="22" Height="22" Margin="5,0,0,5"
+                <Button Grid.Row="0" Grid.Column="2" Width="26" Height="26" Margin="5,0,0,5"
                         Style="{StaticResource DefaultButtonStyle}"
                         Command="{Binding RefreshLayersCommand}"
                         ToolTip="刷新图层列表"
@@ -190,12 +190,12 @@
                             Style="{StaticResource LocalHelpButtonStyle}"
                             Command="{Binding ShowHelpCommand}"
                             ToolTip="查看工具使用说明"/>
-                    <Button Content="查看结果" Height="22" Margin="8,0,0,0"
+                    <Button Content="查看结果" Height="26" Margin="8,0,0,0"
                             Style="{StaticResource DefaultButtonStyle}"
                             Command="{Binding ShowResultCommand}"
                             Visibility="{Binding HasResult, Converter={StaticResource BooleanToVisibilityConverter}}"
                             ToolTip="点击查看详细汇总结果表格"/>
-                    <Button Content="导出" Height="22" Margin="8,0,0,0"
+                    <Button Content="导出" Height="26" Margin="8,0,0,0"
                             Style="{StaticResource DefaultButtonStyle}"
                             Command="{Binding ExportCommand}"
                             Visibility="{Binding HasResult, Converter={StaticResource BooleanToVisibilityConverter}}"

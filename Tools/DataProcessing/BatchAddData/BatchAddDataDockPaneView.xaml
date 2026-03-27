@@ -45,7 +45,7 @@
             <TextBox Grid.Column="1" Text="{Binding SearchPath}"
                      Style="{StaticResource TextBoxStyle}" Height="24"
                      ToolTip="输入文件夹路径，支持驱动器根目录（如 E:\）"/>
-            <Button Grid.Column="2" Content="浏览" Height="22" Margin="3,0,0,0" Width="45"
+            <Button Grid.Column="2" Content="浏览" Height="26" Margin="3,0,0,0" Width="45"
                     Command="{Binding BrowseFolderCommand}"
                     Style="{StaticResource DefaultButtonStyle}"
                     ToolTip="浏览选择文件夹，支持选择驱动器根目录"/>
@@ -86,7 +86,7 @@
                      ToolTip="关键字过滤，空白表示全部"/>
 
             <Button Grid.Column="2" Content="搜索" Command="{Binding SearchCommand}"
-                    Style="{StaticResource ExecuteButtonStyle}" Height="22" Width="50" Margin="3,0,0,0"
+                    Style="{StaticResource ExecuteButtonStyle}" Height="26" Width="50" Margin="3,0,0,0"
                     IsEnabled="{Binding CanProcess}"/>
         </Grid>
 
@@ -106,9 +106,9 @@
                 </Grid.ColumnDefinitions>
 
                 <Button Grid.Column="0" Content="全选" Style="{StaticResource DefaultButtonStyle}"
-                        Command="{Binding SelectAllCommand}" Width="40" Height="20" Margin="0,0,3,0"/>
+                        Command="{Binding SelectAllCommand}" Width="40" Height="26" Margin="0,0,3,0"/>
                 <Button Grid.Column="1" Content="反选" Style="{StaticResource DefaultButtonStyle}"
-                        Command="{Binding InvertSelectionCommand}" Width="40" Height="20" Margin="0,0,10,0"/>
+                        Command="{Binding InvertSelectionCommand}" Width="40" Height="26" Margin="0,0,10,0"/>
                 <TextBlock Grid.Column="2" Text="{Binding StatusMessage}"
                            VerticalAlignment="Center" FontSize="11" Foreground="#666666"
                            TextTrimming="CharacterEllipsis"/>
@@ -158,7 +158,7 @@
                      Style="{StaticResource TextBoxStyle}" Height="24"
                      ToolTip="输入名称将创建图层组，空白则直接添加到地图"/>
             <Button Grid.Column="2" Content="添加数据" Command="{Binding AddDataCommand}"
-                    Style="{StaticResource ExecuteButtonStyle}" Height="22" Width="60" Margin="3,0,0,0"
+                    Style="{StaticResource ExecuteButtonStyle}" Height="26" Width="60" Margin="3,0,0,0"
                     IsEnabled="{Binding CanProcess}"/>
         </Grid>
 
