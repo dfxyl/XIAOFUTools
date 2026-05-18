@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.HistoricalImagery
 {
@@ -11,12 +10,6 @@ namespace XIAOFUTools.Tools.HistoricalImagery
     {
         protected override void OnClick()
         {
-            // 检查授权
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("历史影像工具"))
-            {
-                return;
-            }
-
             // 检查是否有活动地图
             if (MapView.Active == null)
             {

@@ -93,7 +93,7 @@ ToolName/
 
 | 组件 | 职责 |
 |------|------|
-| Button | 工具入口，授权检查，打开窗格 |
+| Button | 工具入口，输入状态检查，打开窗格 |
 | DockPane | 窗格容器，管理视图生命周期 |
 | View | UI 界面定义，纯 XAML 声明式 |
 | ViewModel | 业务逻辑，数据绑定，命令处理 |
@@ -293,7 +293,6 @@ Tools/DataProcessing/NewTool/
 
 ```csharp
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.NewTool
 {
@@ -303,8 +302,6 @@ namespace XIAOFUTools.Tools.NewTool
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("新工具"))
-                    return;
                 NewToolDockPane.Show();
             }
             catch (Exception ex)
@@ -447,7 +444,7 @@ namespace XIAOFUTools.Tools.NewTool
         largeImage="Images\NewTool_32.png">
   <tooltip heading="新工具">
     新工具的功能描述
-    <disabledText>无权限使用新工具</disabledText>
+    <disabledText>当前状态不可用</disabledText>
   </tooltip>
 </button>
 

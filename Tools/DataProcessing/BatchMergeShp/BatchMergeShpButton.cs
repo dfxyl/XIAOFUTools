@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataProcessing.BatchMergeShp
 {
@@ -13,10 +12,6 @@ namespace XIAOFUTools.Tools.DataProcessing.BatchMergeShp
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("批量合并SHP"))
-                {
-                    return;
-                }
 
                 BatchMergeShpDockPane.Show();
             }

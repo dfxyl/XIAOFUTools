@@ -11,6 +11,9 @@
     <NoWarn>CA1416</NoWarn>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/xiaofuX1/XIAOFUTools</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="XIAOFUTools.Tests\**" />
@@ -20,8 +23,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="Config.daml" />
-    <None Remove="Images\AddInDesktop_16.png" />
-    <None Remove="Images\AddInDesktop_32.png" />
 
     <None Remove="Images\AreaCalculator_16.png" />
     <None Remove="Images\AreaCalculator_32.png" />
@@ -56,8 +57,6 @@
     <None Remove="Images\FieldCopyTool_16.png" />
     <None Remove="Images\FieldCopyTool_32.png" />
     <None Remove="Images\Globe16.png" />
-    <None Remove="Images\Globe_16.png" />
-    <None Remove="Images\Globe_32.png" />
     <None Remove="Images\GroupNumbering_16.png" />
     <None Remove="Images\GroupNumbering_32.png" />
     <None Remove="Images\HistoricalImagery_16.png" />
@@ -78,12 +77,8 @@
     <None Remove="Images\MirrorDatabase_32.png" />
     <None Remove="Images\MultiOverlaySummary_16.png" />
     <None Remove="Images\MultiOverlaySummary_32.png" />
-    <None Remove="Images\NodeDistanceCheck_16.png" />
-    <None Remove="Images\NodeDistanceCheck_32.png" />
     <None Remove="Images\PasteSymbology_16.png" />
     <None Remove="Images\PasteSymbology_32.png" />
-    <None Remove="Images\PluginUpdate_16.png" />
-    <None Remove="Images\PluginUpdate_32.png" />
     <None Remove="Images\PolygonToDxfWithFill_16.png" />
     <None Remove="Images\PolygonToDxfWithFill_32.png" />
     <None Remove="Images\PresetLayers_16.png" />
@@ -97,7 +92,6 @@
     <None Remove="Images\SpecialCoordinateTransform_16.png" />
     <None Remove="Images\SpecialCoordinateTransform_32.png" />
     <None Remove="Images\Toolbox.png" />
-    <None Remove="Images\Toolbox_16.png" />
     <None Remove="Images\Toolbox_32.png" />
     <None Remove="Images\TxtToFeature_16.png" />
     <None Remove="Images\TxtToFeature_32.png" />
@@ -109,8 +103,6 @@
     <None Remove="Images\BatchMergeShp_32.png" />
     <None Remove="Images\MdbBatchToGdb_16.png" />
     <None Remove="Images\MdbBatchToGdb_32.png" />
-    <None Remove="Images\OCRCoordinateTable_16.png" />
-    <None Remove="Images\OCRCoordinateTable_32.png" />
     <None Remove="Images\FeatureToTxt_16.png" />
     <None Remove="Images\FeatureToTxt_32.png" />
     <None Remove="Images\DownloadOnlineImagery_16.png" />
@@ -121,8 +113,6 @@
     <None Remove="Images\ExportLayout_32.png" />
     <None Remove="Images\Overture16.png" />
     <None Remove="Images\Overture32.png" />
-    <None Remove="Images\OvertureLoader_16.png" />
-    <None Remove="Images\OvertureLoader_32.png" />
     <None Remove="Images\About_16.png" />
     <None Remove="Images\About_32.png" />
     <None Remove="Images\OverlapCheck_16.png" />
@@ -150,10 +140,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config.daml" />
-    <Content Include="Images\AddInDesktop16.png" />
-    <Content Include="Images\AddInDesktop32.png" />
-    <Content Include="Images\AddInDesktop_16.png" />
-    <Content Include="Images\AddInDesktop_32.png" />
     <Content Include="Images\AreaCalculator_16.png" />
     <Content Include="Images\AreaCalculator_32.png" />
     <Content Include="Images\AreaSplit_16.png" />
@@ -189,8 +175,6 @@
     <Content Include="Images\FieldCopyTool_16.png" />
     <Content Include="Images\FieldCopyTool_32.png" />
     <Content Include="Images\Globe16.png" />
-    <Content Include="Images\Globe_16.png" />
-    <Content Include="Images\Globe_32.png" />
     <Content Include="Images\GroupNumbering_16.png" />
     <Content Include="Images\GroupNumbering_32.png" />
     <Content Include="Images\HistoricalImagery_16.png" />
@@ -211,12 +195,8 @@
     <Content Include="Images\MirrorDatabase_32.png" />
     <Content Include="Images\MultiOverlaySummary_16.png" />
     <Content Include="Images\MultiOverlaySummary_32.png" />
-    <Content Include="Images\NodeDistanceCheck_16.png" />
-    <Content Include="Images\NodeDistanceCheck_32.png" />
     <Content Include="Images\PasteSymbology_16.png" />
     <Content Include="Images\PasteSymbology_32.png" />
-    <Content Include="Images\PluginUpdate_16.png" />
-    <Content Include="Images\PluginUpdate_32.png" />
     <Content Include="Images\PolygonToDxfWithFill_16.png" />
     <Content Include="Images\PolygonToDxfWithFill_32.png" />
     <Content Include="Images\PresetLayers_16.png" />
@@ -229,7 +209,6 @@
     <Content Include="Images\RotateGeometry_32.png" />
     <Content Include="Images\SpecialCoordinateTransform_16.png" />
     <Content Include="Images\SpecialCoordinateTransform_32.png" />
-    <Content Include="Images\Toolbox_16.png" />
     <Content Include="Images\Toolbox_32.png" />
     <Content Include="Images\TxtToFeature_16.png" />
     <Content Include="Images\TxtToFeature_32.png" />
@@ -247,16 +226,12 @@
     <Content Include="Images\PolygonToDwgWithFill_32.png" />
     <Content Include="Images\Overture16.png" />
     <Content Include="Images\Overture32.png" />
-    <Content Include="Images\OvertureLoader_16.png" />
-    <Content Include="Images\OvertureLoader_32.png" />
 
     <!-- 工具图标文件 - 明亮主题 -->
 
     <!-- 工具图标文件 - 暗色主题 -->
     <Content Include="Images\Settings_16.png" />
     <Content Include="Images\Settings_32.png" />
-    <Content Include="Images\Authorization_16.png" />
-    <Content Include="Images\Authorization_32.png" />
     <Content Include="Images\About_16.png" />
     <Content Include="Images\About_32.png" />
     <Content Include="Images\NodeDistanceChecker_16.png" />
@@ -279,8 +254,6 @@
     <Content Include="Images\AIAssistant_32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Images\AttributeTransfer_16.png" />
-    <Content Include="Images\AttributeTransfer_32.png" />
     <Content Include="Images\AttributeTransferFields_16.png" />
     <Content Include="Images\AttributeTransferFields_32.png" />
     <Content Include="Images\MapSheetsSmall_16.png" />
@@ -309,8 +282,6 @@
     <Content Include="Images\MdbBatchToGdb_32.png" />
     <Content Include="Images\ExtractPolygonHoles_16.png" />
     <Content Include="Images\ExtractPolygonHoles_32.png" />
-    <Content Include="Images\OCRCoordinateTable_16.png" />
-    <Content Include="Images\OCRCoordinateTable_32.png" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Tools\Common\PresetLayers\PresetLayersGalleryTemplate.xaml" />

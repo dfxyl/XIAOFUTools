@@ -108,6 +108,7 @@
           <button refID="XIAOFUTools_IntersectSummaryButton" />
           <button refID="XIAOFUTools_MultiOverlaySummaryButton" />
           <button refID="XIAOFUTools_DataPivotButton" />
+          <button refID="XIAOFUTools_BrowseFeaturesButton" />
           <button refID="XIAOFUTools_NodeDistanceCheckButton" />
           <button refID="XIAOFUTools_OverlapCheckButton" />
           <button refID="XIAOFUTools_GapCheckButton" />
@@ -150,7 +151,6 @@
         </buttonPalette>
         <buttonPalette id="XIAOFUTools_UserConfigButtonPalette" caption="配置" dropDown="true" menuStyle="false">
           <button refID="XIAOFUTools_SettingsButton" />
-          <button refID="XIAOFUTools_AuthorizationButton" />
           <button refID="XIAOFUTools_AboutButton" />
         </buttonPalette>
       </palettes>
@@ -160,7 +160,7 @@
         <gallery id="XIAOFUTools_PresetLayersGallery" caption="添加预设图层" className="XIAOFUTools.Tools.PresetLayers.PresetLayersGallery" keytip="PL" itemsInRow="3" itemWidth="60" itemHeight="120" showItemCaption="true" showItemCaptionBelow="true" resizable="false" loadingMessage="加载中..." dropDownHeight="250" dropDownWidth="320" menuStyle="true" dataTemplateFile="Tools\Common\PresetLayers\PresetLayersGalleryTemplate.xaml" templateID="PresetLayerItemTemplate" smallImage="Images\PresetLayers_16.png" largeImage="Images\PresetLayers_32.png">
           <tooltip heading="添加预设图层">
             从预设图层库中选择并添加图层到地图
-            <disabledText>无权限使用添加预设图层功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </gallery>
       </galleries>
       <!-- ============================== 停靠窗格定义 ============================== -->
@@ -188,14 +188,14 @@
         <dockPane id="XIAOFUTools_MultiOverlaySummaryDockPane" caption="多图层压盖汇总" className="XIAOFUTools.Tools.MultiOverlaySummary.MultiOverlaySummaryDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 数据透视停靠窗格 -->
         <dockPane id="XIAOFUTools_DataPivotDockPane" caption="数据透视" className="XIAOFUTools.Tools.DataPivot.DataPivotDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
+        <!-- 浏览要素停靠窗格 -->
+        <dockPane id="XIAOFUTools_BrowseFeaturesDockPane" caption="浏览要素" className="XIAOFUTools.Tools.BrowseFeatures.BrowseFeaturesDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 批量定义投影停靠窗格 -->
         <dockPane id="XIAOFUTools_BatchProjectionDefinitionDockPane" caption="批量定义投影" className="XIAOFUTools.Tools.BatchProjectionDefinition.BatchProjectionDefinitionDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 批量修复几何停靠窗格 -->
         <dockPane id="XIAOFUTools_BatchGeometryRepairDockPane" caption="批量修复几何" className="XIAOFUTools.Tools.BatchGeometryRepair.BatchGeometryRepairDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 查看面积停靠窗格 -->
         <dockPane id="XIAOFUTools_ViewAreaDockPane" caption="查看面积" className="XIAOFUTools.Tools.ViewArea.ViewAreaDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
-        <!-- 授权管理停靠窗格 -->
-        <dockPane id="XIAOFUTools_AuthorizationDockPane" caption="授权管理" className="XIAOFUTools.Tools.Authorization.AuthorizationDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 设置停靠窗格 -->
         <dockPane id="XIAOFUTools_SettingsDockPane" caption="设置" className="XIAOFUTools.Tools.Settings.SettingsDockPane" dock="group" dockWith="esri_core_projectDockPane"></dockPane>
         <!-- 要素类转TXT停靠窗格 -->
@@ -293,220 +293,220 @@
         <button id="XIAOFUTools_QuickAddDataButton" caption="快捷添加数据" className="XIAOFUTools.Tools.QuickAddData.QuickAddDataButton" loadOnClick="true" smallImage="Images\QuickAddData_16.png" largeImage="Images\QuickAddData_32.png">
           <tooltip heading="快捷添加数据">
             长期保存快捷数据，按分组管理并批量加载到地图
-            <disabledText>无权限使用快捷添加数据功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <button id="XIAOFUTools_BatchAddDataButton" caption="批量添加数据" className="XIAOFUTools.Tools.BatchAddData.BatchAddDataButton" loadOnClick="true" smallImage="Images\BatchAddData_16.png" largeImage="Images\BatchAddData_32.png">
           <tooltip heading="批量添加数据">
             扫描文件夹中的GIS数据并批量添加到地图
-            <disabledText>无权限使用批量添加数据工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 分组编号按钮 -->
         <button id="XIAOFUTools_GroupNumberingButton" caption="要素顺序编号" className="XIAOFUTools.Tools.GroupNumbering.GroupNumberingButton" loadOnClick="true" smallImage="Images\GroupNumbering_16.png" largeImage="Images\GroupNumbering_32.png">
           <tooltip heading="要素顺序编号">
             按指定分组字段对要素进行顺序编号
-            <disabledText>无权限使用要素顺序编号工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 地块中文编号按钮 -->
         <button id="XIAOFUTools_ChineseNumberingButton" caption="地块中文编号" className="XIAOFUTools.Tools.ChineseNumbering.ChineseNumberingButton" loadOnClick="true" smallImage="Images\ChineseNumbering_16.png" largeImage="Images\ChineseNumbering_32.png">
           <tooltip heading="地块中文编号">
             使用中文数字（一、二、三...）对要素进行编号
-            <disabledText>无权限使用地块中文编号工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 按字段批量裁剪按钮 -->
         <button id="XIAOFUTools_BatchLayerClipButton" caption="按字段批量裁剪要素" className="XIAOFUTools.Tools.BatchLayerClip.BatchLayerClipButton" loadOnClick="true" smallImage="Images\BatchLayerClip_16.png" largeImage="Images\BatchLayerClip_32.png">
           <tooltip heading="按字段批量裁剪">
             根据字段值批量裁剪要素并导出为Shapefile
-            <disabledText>无权限使用按字段批量裁剪工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 字段复制工具按钮 -->
         <button id="XIAOFUTools_FieldCopyToolButton" caption="字段复制工具" className="XIAOFUTools.Tools.FieldCopyTool.FieldCopyToolButton" loadOnClick="true" smallImage="Images\FieldCopyTool_16.png" largeImage="Images\FieldCopyTool_32.png">
           <tooltip heading="字段复制工具">
             将源数据的字段复制到目标图层
-            <disabledText>无权限使用字段复制工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 根据范围批量裁剪要素图层按钮 -->
         <button id="XIAOFUTools_RangeClipToolButton" caption="根据范围批量裁剪要素图层" className="XIAOFUTools.Tools.RangeClipTool.RangeClipToolButton" loadOnClick="true" smallImage="Images\RangeClipTool_16.png" largeImage="Images\RangeClipTool_32.png">
           <tooltip heading="根据范围批量裁剪要素图层">
             根据范围图层的字段值批量裁剪要素图层
-            <disabledText>无权限使用根据范围批量裁剪要素图层工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 生成四至坐标点按钮 -->
         <button id="XIAOFUTools_BoundaryPointGeneratorButton" caption="生成四至坐标点" className="XIAOFUTools.Tools.BoundaryPointGenerator.BoundaryPointGeneratorButton" loadOnClick="true" smallImage="Images\BoundaryPointGenerator_16.png" largeImage="Images\BoundaryPointGenerator_32.png">
           <tooltip heading="生成四至坐标点">
             根据输入面要素生成四至坐标点（最东、最西、最南、最北点）
-            <disabledText>无权限使用生成四至坐标点工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 计算面积按钮 -->
         <button id="XIAOFUTools_AreaCalculatorButton" caption="计算面积" className="XIAOFUTools.Tools.AreaCalculator.AreaCalculatorButton" loadOnClick="true" smallImage="Images\AreaCalculator_16.png" largeImage="Images\AreaCalculator_32.png">
           <tooltip heading="计算面积">
             计算面要素的面积并写入指定字段
-            <disabledText>无权限使用计算面积工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 提取面扣岛按钮 -->
         <button id="XIAOFUTools_ExtractPolygonHolesButton" caption="提取面扣岛" className="XIAOFUTools.Tools.ExtractPolygonHoles.ExtractPolygonHolesButton" loadOnClick="true" smallImage="Images\ExtractPolygonHoles_16.png" largeImage="Images\ExtractPolygonHoles_32.png">
           <tooltip heading="提取面扣岛">
             提取输入面要素中的所有扣洞，保留源图层属性，可选按源要素创建多部件输出
-            <disabledText>无权限使用提取面扣岛工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 交集汇总表按钮 -->
         <button id="XIAOFUTools_IntersectSummaryButton" caption="交集汇总表" className="XIAOFUTools.Tools.IntersectSummary.IntersectSummaryButton" loadOnClick="true" smallImage="Images\IntersectSummary_16.png" largeImage="Images\IntersectSummary_32.png">
           <tooltip heading="交集汇总表">
             计算项目红线与类要素图层的交集面积汇总统计
-            <disabledText>无权限使用交集汇总表工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 多图层压盖汇总按钮 -->
         <button id="XIAOFUTools_MultiOverlaySummaryButton" caption="多图层压盖汇总" className="XIAOFUTools.Tools.MultiOverlaySummary.MultiOverlaySummaryButton" loadOnClick="true" smallImage="Images\MultiOverlaySummary_16.png" largeImage="Images\MultiOverlaySummary_32.png">
           <tooltip heading="多图层压盖汇总">
             计算主图层与多个压盖图层的交集面积，以图层名称为列名输出汇总表
-            <disabledText>无权限使用多图层压盖汇总工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 数据透视按钮 -->
         <button id="XIAOFUTools_DataPivotButton" caption="数据透视" className="XIAOFUTools.Tools.DataPivot.DataPivotButton" loadOnClick="true" smallImage="Images\DataPivot_16.png" largeImage="Images\DataPivot_32.png">
           <tooltip heading="数据透视">
             将输入表按区域字段分组，按透视字段展开列并输出汇总透视表
-            <disabledText>无权限使用数据透视工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
+        </button>
+        <!-- 浏览要素按钮 -->
+        <button id="XIAOFUTools_BrowseFeaturesButton" caption="浏览要素" className="XIAOFUTools.Tools.BrowseFeatures.BrowseFeaturesButton" loadOnClick="true" smallImage="Images\DataPivot_16.png" largeImage="Images\DataPivot_32.png">
+          <tooltip heading="浏览要素">
+            参考 Data Reviewer 方式遍历要素并实时记录审阅结果
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 批量定义投影按钮 -->
         <button id="XIAOFUTools_BatchProjectionDefinitionButton" caption="批量定义投影" className="XIAOFUTools.Tools.BatchProjectionDefinition.BatchProjectionDefinitionButton" loadOnClick="true" smallImage="Images\BatchProjectionDefinition_16.png" largeImage="Images\BatchProjectionDefinition_32.png">
           <tooltip heading="批量定义投影">
             为多个图层批量定义投影坐标系
-            <disabledText>无权限使用批量定义投影工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 批量修复几何按钮 -->
         <button id="XIAOFUTools_BatchGeometryRepairButton" caption="批量修复几何" className="XIAOFUTools.Tools.BatchGeometryRepair.BatchGeometryRepairButton" loadOnClick="true" smallImage="Images\BatchGeometryRepair_16.png" largeImage="Images\BatchGeometryRepair_32.png">
           <tooltip heading="批量修复几何">
             批量修复选中图层的几何错误
-            <disabledText>无权限使用批量修复几何工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 查看面积按钮 -->
         <button id="XIAOFUTools_ViewAreaButton" caption="查看面积" className="XIAOFUTools.Tools.ViewArea.ViewAreaButton" loadOnClick="true" smallImage="Images\ViewArea_16.png" largeImage="Images\ViewArea_32.png">
           <tooltip heading="查看面积">
             查看当前选中要素的面积和长度信息
-            <disabledText>无权限使用查看面积工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 历史影像按钮 -->
         <button id="XIAOFUTools_HistoricalImageryButton" caption="历史影像" className="XIAOFUTools.Tools.HistoricalImagery.HistoricalImageryButton" loadOnClick="true" smallImage="Images\HistoricalImagery_16.png" largeImage="Images\HistoricalImagery_32.png">
           <tooltip heading="历史影像">
             浏览并添加 ArcGIS Wayback 历史影像到地图
-            <disabledText>无权限使用历史影像工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- AI助手按钮 -->
         <button id="XIAOFUTools_AIAssistantButton" caption="AI助手" className="XIAOFUTools.Tools.User.AIAssistant.AIAssistantButton" loadOnClick="true" smallImage="Images\AIAssistant_16.png" largeImage="Images\AIAssistant_32.png">
           <tooltip heading="AI助手">
             打开GIS AI助手，获取智能帮助和GIS操作建议
-            <disabledText>无权限使用AI助手功能</disabledText></tooltip>
-        </button>
-        <!-- 授权管理按钮 -->
-        <button id="XIAOFUTools_AuthorizationButton" caption="授权" className="XIAOFUTools.Tools.Authorization.AuthorizationButton" loadOnClick="true" smallImage="Images\Authorization_16.png" largeImage="Images\Authorization_32.png">
-          <tooltip heading="授权管理">
-            打开授权管理面板，管理软件授权状态
-            <disabledText>无权限使用授权管理功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 设置按钮 -->
         <button id="XIAOFUTools_SettingsButton" caption="设置" className="XIAOFUTools.Tools.Settings.SettingsButton" loadOnClick="true" smallImage="Images\Settings_16.png" largeImage="Images\Settings_32.png">
           <tooltip heading="设置">
             打开XIAOFU工具箱设置面板
-            <disabledText>无权限使用设置功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 关于按钮 -->
         <button id="XIAOFUTools_AboutButton" caption="关于" className="XIAOFUTools.Tools.About.AboutButton" loadOnClick="true" smallImage="Images\About_16.png" largeImage="Images\About_32.png">
           <tooltip heading="关于">
             查看XIAOFU工具箱版本信息和作者信息
-            <disabledText>无权限使用关于功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 要素类转TXT按钮 -->
         <button id="XIAOFUTools_FeatureToTxtButton" caption="要素类转TXT" className="XIAOFUTools.Tools.FeatureToTxt.FeatureToTxtButton" loadOnClick="true" smallImage="Images\FeatureToTxt_16.png" largeImage="Images\FeatureToTxt_32.png">
           <tooltip heading="要素类转TXT">
             根据输入的面要素获取折点坐标输出为txt
-            <disabledText>无权限使用要素类转TXT工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- TXT转SHP按钮 -->
         <button id="XIAOFUTools_TxtToFeatureButton" caption="TXT转SHP" className="XIAOFUTools.Tools.TxtToFeature.TxtToFeatureButton" loadOnClick="true" smallImage="Images\TxtToFeature_16.png" largeImage="Images\TxtToFeature_32.png">
           <tooltip heading="TXT转SHP">
             将包含坐标信息的TXT文件转换为Shapefile要素类
-            <disabledText>无权限使用TXT转SHP工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 下载在线影像按钮 -->
         <button id="XIAOFUTools_DownloadOnlineImageryButton" caption="下载在线影像" className="XIAOFUTools.Tools.DownloadOnlineImagery.DownloadOnlineImageryButton" loadOnClick="true" smallImage="Images\DownloadOnlineImagery_16.png" largeImage="Images\DownloadOnlineImagery_32.png">
           <tooltip heading="下载在线影像">
             根据要素图层范围下载在线影像并可选择合并
-            <disabledText>无权限使用下载在线影像工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <button id="XIAOFUTools_HistoricalImageryDownloadButton" caption="历史影像下载" className="XIAOFUTools.Tools.HistoricalImageryDownload.HistoricalImageryDownloadButton" loadOnClick="true" smallImage="Images\DownloadHistoricalImagery_16.png" largeImage="Images\DownloadHistoricalImagery_32.png">
           <tooltip heading="历史影像下载">
             查询当前位置 Google 历史影像或 Esri Wayback 版本，并按当前视图、框选或面图层范围导出 GeoTIFF
-            <disabledText>无权限使用历史影像下载工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <button id="XIAOFUTools_InternetTileDownloadButton" caption="互联网切片下载" className="XIAOFUTools.Tools.InternetTileDownload.InternetTileDownloadButton" loadOnClick="true" smallImage="Images\InternetTileDownload_16.png" largeImage="Images\InternetTileDownload_32.png">
           <tooltip heading="互联网切片下载">
             按用户提供的 WMTS 或 XYZ 切片链接，按当前视图、框选或面图层范围下载并拼接 GeoTIFF
-            <disabledText>无权限使用互联网切片下载工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 导出布局按钮 -->
         <button id="XIAOFUTools_ExportLayoutButton" caption="导出布局" className="XIAOFUTools.Tools.ExportLayout.ExportLayoutButton" loadOnClick="true" smallImage="Images\ExportLayout_16.png" largeImage="Images\ExportLayout_32.png">
           <tooltip heading="导出布局">
             批量导出布局为PDF、TIF、JPG、PNG等格式
-            <disabledText>无权限使用导出布局工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 布局元素查找替换按钮 -->
         <button id="XIAOFUTools_LayoutTextReplaceButton" caption="布局元素查找替换" className="XIAOFUTools.Tools.LayoutTools.LayoutTextReplace.LayoutTextReplaceButton" loadOnClick="true" smallImage="Images\LayoutTextReplace_16.png" largeImage="Images\LayoutTextReplace_32.png">
           <tooltip heading="布局元素查找替换">
             批量查找和替换布局中的文本元素内容，类似Excel的查找替换功能
-            <disabledText>无权限使用布局元素查找替换工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 面要素图层转dwg[带填充]按钮 -->
         <button id="XIAOFUTools_PolygonToDwgWithFillButton" caption="面转DWG[带填充]" className="XIAOFUTools.Tools.PolygonToDwgWithFill.PolygonToDwgWithFillButton" loadOnClick="true" smallImage="Images\PolygonToDwgWithFill_16.png" largeImage="Images\PolygonToDwgWithFill_32.png">
           <tooltip heading="面要素图层转DWG[带填充]">
             将面要素图层导出为DWG，并根据图层填充色生成实体填充
-            <disabledText>无权限使用该工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 面要素图层转dxf[带填充]按钮 -->
         <button id="XIAOFUTools_PolygonToDxfWithFillButton" caption="面转DXF[带填充]" className="XIAOFUTools.Tools.PolygonToDxfWithFill.PolygonToDxfWithFillButton" loadOnClick="true" smallImage="Images\PolygonToDxfWithFill_16.png" largeImage="Images\PolygonToDxfWithFill_32.png">
           <tooltip heading="面要素图层转DXF[带填充]">
             将面要素图层导出为DXF，并根据图层填充色生成实体填充
-            <disabledText>无权限使用该工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 特殊坐标转换按钮 -->
         <button id="XIAOFUTools_SpecialCoordinateTransformButton" caption="特殊坐标转换" className="XIAOFUTools.Tools.SpecialCoordinateTransform.SpecialCoordinateTransformButton" loadOnClick="true" smallImage="Images\SpecialCoordinateTransform_16.png" largeImage="Images\SpecialCoordinateTransform_32.png">
           <tooltip heading="特殊坐标转换">
             支持WGS84、GCJ02、BD09坐标系之间的相互转换
-            <disabledText>无权限使用特殊坐标转换工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 要素图层分组导出KML/KMZ按钮 -->
         <button id="XIAOFUTools_ExportToKmlButton" caption="要素图层分组导出KML/KMZ" className="XIAOFUTools.Tools.ExportToKml.ExportToKmlButton" loadOnClick="true" smallImage="Images\ExportToKml_16.png" largeImage="Images\ExportToKml_32.png">
           <tooltip heading="要素图层分组导出KML/KMZ">
             将要素图层按分组字段导出为KML或KMZ格式文件
-            <disabledText>无权限使用要素图层分组导出KML/KMZ工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- PDF批量转图片按钮 -->
         <button id="XIAOFUTools_PdfToImagesButton" caption="PDF批量转图片" className="XIAOFUTools.Tools.PdfToImages.PdfToImagesButton" loadOnClick="true" smallImage="Images\PdfToImages_16.png" largeImage="Images\PdfToImages_32.png">
           <tooltip heading="PDF批量转图片">
             批量将PDF文件转换为图片格式（JPG/TIF/PNG/JPEG）
-            <disabledText>无权限使用PDF批量转图片工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 图片批量转PDF按钮 -->
         <button id="XIAOFUTools_ImagesToPdfButton" caption="图片批量转PDF" className="XIAOFUTools.Tools.ImagesToPdf.ImagesToPdfButton" loadOnClick="true" smallImage="Images\ImagesToPdf_16.png" largeImage="Images\ImagesToPdf_32.png">
           <tooltip heading="图片批量转PDF">
             批量将图片文件转换为PDF格式，支持合并和单独模式
-            <disabledText>无权限使用图片批量转PDF工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- Excel批量转PDF按钮 -->
         <button id="XIAOFUTools_ExcelToPdfButton" caption="Excel批量转PDF" className="XIAOFUTools.Tools.ExcelToPdf.ExcelToPdfButton" loadOnClick="true" smallImage="Images\ExcelToPdf_16.png" largeImage="Images\ExcelToPdf_32.png">
           <tooltip heading="Excel批量转PDF">
             批量将Excel文件转换为PDF格式，支持工作表分开和整个工作簿模式
-            <disabledText>无权限使用Excel批量转PDF工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- Word批量转PDF按钮 -->
         <button id="XIAOFUTools_WordToPdfButton" caption="Word批量转PDF" className="XIAOFUTools.Tools.WordToPdf.WordToPdfButton" loadOnClick="true" smallImage="Images\WordToPdf_16.png" largeImage="Images\WordToPdf_32.png">
           <tooltip heading="Word批量转PDF">
             批量将Word文件转换为PDF格式，支持docx、doc、docm格式
-            <disabledText>无权限使用Word批量转PDF工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 文档批量替换按钮 -->
         <button id="XIAOFUTools_DocumentBatchReplaceButton" caption="文档批量替换" className="XIAOFUTools.Tools.DocumentBatchReplace.DocumentBatchReplaceButton" loadOnClick="true" smallImage="Images\DocumentBatchReplace_16.png" largeImage="Images\DocumentBatchReplace_32.png">
           <tooltip heading="文档批量替换">
             对多个Word文档执行批量查找与替换，支持另存副本或覆盖原文件
-            <disabledText>无权限使用文档批量替换工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 启动Overture按钮 -->
         <button id="XIAOFUTools_OvertureLoaderButton" caption="启动Overture" className="XIAOFUTools.Tools.OvertureLoader.Views.WizardDockpaneShowButton" loadOnClick="true" smallImage="Images\Overture16.png" largeImage="Images\Overture32.png" condition="esri_mapping_mapPane">
@@ -518,49 +518,49 @@
         <button id="XIAOFUTools_GenerateSmallMapSheetsButton" caption="生成小比例尺图幅" className="XIAOFUTools.Tools.MapSheetsSmall.GenerateSmallMapSheetsButton" loadOnClick="true" smallImage="Images\MapSheetsSmall_16.png" largeImage="Images\MapSheetsSmall_32.png">
           <tooltip heading="生成小比例尺图幅">
             根据输入范围生成标准小比例尺图幅并输出要素
-            <disabledText>无权限使用生成小比例尺图幅功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 小比例图幅赋值按钮 -->
         <button id="XIAOFUTools_SmallMapSheetAssignButton" caption="小比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsSmallAssign.SmallMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsSmallAssign_16.png" largeImage="Images\MapSheetsSmallAssign_32.png">
           <tooltip heading="小比例图幅赋值">
             计算小比例图幅并直接写入图斑字段，支持地图点选查询图幅
-            <disabledText>无权限使用小比例图幅赋值功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 生成大比例尺图幅按钮 -->
         <button id="XIAOFUTools_GenerateLargeMapSheetsButton" caption="生成大比例尺图幅" className="XIAOFUTools.Tools.MapSheetsLarge.GenerateLargeMapSheetsButton" loadOnClick="true" smallImage="Images\MapSheetsLarge_16.png" largeImage="Images\MapSheetsLarge_32.png">
           <tooltip heading="生成大比例尺图幅">
             按投影坐标网格生成大比例尺图幅并输出要素
-            <disabledText>无权限使用生成大比例尺图幅功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 大比例图幅赋值按钮 -->
         <button id="XIAOFUTools_LargeMapSheetAssignButton" caption="大比例图幅赋值" className="XIAOFUTools.Tools.MapSheetsLargeAssign.LargeMapSheetAssignButton" loadOnClick="true" smallImage="Images\MapSheetsLargeAssign_16.png" largeImage="Images\MapSheetsLargeAssign_32.png">
           <tooltip heading="大比例图幅赋值">
             计算大比例图幅并直接写入图斑字段，支持地图点选查询图幅
-            <disabledText>无权限使用大比例图幅赋值功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 属性传递[字段]按钮 -->
         <button id="XIAOFUTools_AttributeTransferFieldsButton" caption="属性传递[字段]" className="XIAOFUTools.Tools.AttributeTransferFields.AttributeTransferFieldsButton" loadOnClick="true" smallImage="Images\AttributeTransferFields_16.png" largeImage="Images\AttributeTransferFields_32.png">
           <tooltip heading="属性传递[字段]">
             在主/副数据间基于连接字段进行字段级属性传递，支持要素图层与独立表（含Excel）
-            <disabledText>无权限使用属性传递工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 旋转图形[线/面]按钮 -->
         <button id="XIAOFUTools_RotateGeometryButton" caption="旋转图形[线/面]" className="XIAOFUTools.Tools.RotateGeometry.RotateGeometryButton" loadOnClick="true" smallImage="Images\RotateGeometry_16.png" largeImage="Images\RotateGeometry_32.png">
           <tooltip heading="旋转图形[线/面]">
             按统一角度或字段角度旋转线/面要素，支持线起点/中点/终点与面质心/起点锚点
-            <disabledText>无权限使用旋转图形工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 提取协议线按钮 -->
         <button id="XIAOFUTools_ProtocolLineExtractButton" caption="提取协议线" className="XIAOFUTools.Tools.ProtocolLineExtract.ProtocolLineExtractButton" loadOnClick="true" smallImage="Images\ProtocolLineExtract_16.png" largeImage="Images\ProtocolLineExtract_32.png">
           <tooltip heading="提取协议线">
             根据输入面要素图层提取共享边线（协议线），可选择合并相连线段
-            <disabledText>无权限使用提取协议线工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 地图生成界址点线按钮 -->
         <button id="XIAOFUTools_MapBoundaryPointLineGeneratorButton" caption="地图生成界址点线" className="XIAOFUTools.Tools.Edit.Boundary.MapBoundaryPointLineGenerator.MapBoundaryPointLineGeneratorButton" loadOnClick="true" smallImage="Images\MapBoundaryPointLineGenerator_16.png" largeImage="Images\MapBoundaryPointLineGenerator_32.png">
           <tooltip heading="地图生成界址点线">
             在布局的图形图层上生成界址点、界址线、点号、边长标注
-            <disabledText>无权限使用地图生成界址点线工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 自定义范围工具 -->
         <tool id="XIAOFUTools_CustomExtentTool" className="XIAOFUTools.Tools.OvertureLoader.Views.CustomExtentTool" caption="绘制自定义范围" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/SelectTool32.png" condition="esri_mapping_mapPane" keytip="E">
@@ -588,19 +588,19 @@
         <button id="XIAOFUTools_NodeDistanceCheckButton" caption="节点距离检查工具" className="XIAOFUTools.Tools.NodeDistanceCheck.NodeDistanceCheckButton" loadOnClick="true" smallImage="Images\NodeDistanceChecker_16.png" largeImage="Images\NodeDistanceChecker_32.png">
           <tooltip heading="节点距离检查工具">
             检查面要素图层中节点之间的距离，输出符合条件的线要素
-            <disabledText>无权限使用节点距离检查工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 图形重叠检查工具按钮 -->
         <button id="XIAOFUTools_OverlapCheckButton" caption="图形重叠检查工具" className="XIAOFUTools.Tools.OverlapCheck.OverlapCheckButton" loadOnClick="true" smallImage="Images\OverlapCheck_16.png" largeImage="Images\OverlapCheck_32.png">
           <tooltip heading="图形重叠检查工具">
             检查面要素图层中的重叠区域，输出重叠的面要素
-            <disabledText>无权限使用图形重叠检查工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 缝隙检查工具按钮 -->
         <button id="XIAOFUTools_GapCheckButton" caption="缝隙检查工具" className="XIAOFUTools.Tools.GapCheck.GapCheckButton" loadOnClick="true" smallImage="Images\GapCheck_16.png" largeImage="Images\GapCheck_32.png">
           <tooltip heading="缝隙检查工具">
             检查面要素图层中的缝隙，输出缝隙面要素
-            <disabledText>无权限使用缝隙检查工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 查看起始点工具 -->
         <tool id="XIAOFUTools_ViewStartPointTool" className="XIAOFUTools.Tools.Edit.Boundary.ViewStartPoint.ViewStartPointTool" caption="查看起始点" loadOnClick="true" smallImage="Images\ViewStartPoint_16.png" largeImage="Images\ViewStartPoint_32.png" condition="esri_mapping_mapPane" keytip="V">
@@ -624,146 +624,146 @@
         <button id="XIAOFUTools_ModifyStartPointButton" caption="修改起始点" className="XIAOFUTools.Tools.Edit.Boundary.ModifyStartPoint.ModifyStartPointButton" loadOnClick="true" smallImage="Images\ModifyStartPoint_16.png" largeImage="Images\ModifyStartPoint_32.png" keytip="M">
           <tooltip heading="修改起始点">
             批量修改面要素的起始点，可选择起始角（西北角、东北角、东南角、西南角）和角度阈值
-            <disabledText>无权限使用修改起始点功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 布局生成坐标表按钮 -->
         <button id="XIAOFUTools_LayoutCoordinateTableButton" caption="布局生成坐标表[要素图层版]" className="XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable.LayoutCoordinateTableButton" loadOnClick="true" smallImage="Images\LayoutCoordinateTable_16.png" largeImage="Images\LayoutCoordinateTable_32.png" keytip="L">
           <tooltip heading="布局生成坐标表[要素图层版]">
             遍历面要素图层生成坐标表，支持自定义表格样式、边长计算和面积显示
-            <disabledText>无权限使用布局生成坐标表功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 界址点线生成按钮 -->
         <button id="XIAOFUTools_BoundaryPointLineGeneratorButton" caption="界址点线生成" className="XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator.BoundaryPointLineGeneratorButton" loadOnClick="true" smallImage="Images\BoundaryPointLineGenerator_16.png" largeImage="Images\BoundaryPointLineGenerator_32.png">
           <tooltip heading="界址点线生成">
             根据输入面生成界址点或界址线，输出到默认数据库（名称_JZD/JZX）
-            <disabledText>无权限使用界址点线生成工具</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 粘贴符号按钮 -->
         <button id="XIAOFUTools_PasteSymbologyButton" caption="粘贴符号" className="XIAOFUTools.Tools.Analysis.PasteSymbology.PasteSymbologyButton" loadOnClick="true" smallImage="Images\PasteSymbology_16.png" largeImage="Images\PasteSymbology_32.png">
           <tooltip heading="粘贴符号">
             将第一个选中图层的符号应用到其他选中的图层
-            <disabledText>无权限使用粘贴符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 导出CAD按钮 -->
         <button id="XIAOFUTools_ExportCADButton" caption="导出CAD" className="XIAOFUTools.Tools.Analysis.ExportCAD.ExportCADButton" loadOnClick="true" smallImage="Images\ExportCAD_16.png" largeImage="Images\ExportCAD_32.png">
           <tooltip heading="导出CAD">
             将选中的要素图层快速导出为CAD格式（DWG_R2007）
-            <disabledText>无权限使用导出CAD功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 导出Excel按钮 -->
         <button id="XIAOFUTools_ExportExcelButton" caption="导出Excel" className="XIAOFUTools.Tools.Analysis.ExportExcel.ExportExcelButton" loadOnClick="true" smallImage="Images\ExportExcel_16.png" largeImage="Images\ExportExcel_32.png">
           <tooltip heading="导出Excel">
             将选中的要素图层或独立表快速导出为Excel格式
-            <disabledText>无权限使用导出Excel功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- ============================== 匹配符号按钮组 ============================== -->
         <!-- 匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyButton" caption="匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="匹配符号">
             打开符号匹配工具界面
-            <disabledText>无权限使用匹配符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- DLMC匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyDLMCButton" caption="DLMC匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyDLMCButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="DLMC匹配符号">
             根据DLMC字段匹配地类符号
-            <disabledText>无权限使用DLMC匹配符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- DLBM匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyDLBMButton" caption="DLBM匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyDLBMButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="DLBM匹配符号">
             根据DLBM字段匹配地类符号
-            <disabledText>无权限使用DLBM匹配符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- FXDLMC匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyFXDLMCButton" caption="FXDLMC匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyFXDLMCButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="FXDLMC匹配符号">
             根据FXDLMC字段匹配地类符号
-            <disabledText>无权限使用FXDLMC匹配符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- FXDLBM匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyFXDLBMButton" caption="FXDLBM匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyFXDLBMButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="FXDLBM匹配符号">
             根据FXDLBM字段匹配地类符号
-            <disabledText>无权限使用FXDLBM匹配符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- BZKJDLMC匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyBZKJDLMCButton" caption="BZKJDLMC匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyBZKJDLMCButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="BZKJDLMC匹配符号">
             根据BZKJDLMC字段匹配地类符号
-            <disabledText>无权限使用BZKJDLMC匹配符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- BZKJDLBM匹配符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyBZKJDLBMButton" caption="BZKJDLBM匹配符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyBZKJDLBMButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="BZKJDLBM匹配符号">
             根据BZKJDLBM字段匹配地类符号
-            <disabledText>无权限使用BZKJDLBM匹配符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- YDYHFLDM匹配国空符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyYDYHFLDMButton" caption="YDYHFLDM匹配国空符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyYDYHFLDMButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="YDYHFLDM匹配国空符号">
             根据YDYHFLDM字段匹配国空符号
-            <disabledText>无权限使用YDYHFLDM匹配国空符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- YDYHFLMC匹配国空符号按钮 -->
         <button id="XIAOFUTools_MatchSymbologyYDYHFLMCButton" caption="YDYHFLMC匹配国空符号" className="XIAOFUTools.Tools.Analysis.MatchSymbology.MatchSymbologyYDYHFLMCButton" loadOnClick="true" smallImage="Images\MatchSymbology_16.png" largeImage="Images\MatchSymbology_32.png">
           <tooltip heading="YDYHFLMC匹配国空符号">
             根据YDYHFLMC字段匹配国空符号
-            <disabledText>无权限使用YDYHFLMC匹配国空符号功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 属性表建库按钮 -->
         <button id="XIAOFUTools_DatabaseBuilderButton" caption="属性表建库" className="XIAOFUTools.Tools.DataProcessing.DatabaseBuilder.DatabaseBuilderButton" loadOnClick="true" smallImage="Images\DatabaseBuilder_16.png" largeImage="Images\DatabaseBuilder_32.png">
           <tooltip heading="属性表建库">
             根据Excel属性结构表自动创建文件地理数据库及要素类
-            <disabledText>无权限使用属性表建库功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 属性表建SHP按钮 -->
         <button id="XIAOFUTools_ShapefileBuilderButton" caption="属性表建SHP" className="XIAOFUTools.Tools.DataProcessing.ShapefileBuilder.ShapefileBuilderButton" loadOnClick="true" smallImage="Images\ShapefileBuilder_16.png" largeImage="Images\ShapefileBuilder_32.png">
           <tooltip heading="属性表建SHP">
             根据Excel属性结构表批量创建Shapefile
-            <disabledText>无权限使用属性表建SHP功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- SHP输字段表按钮 -->
         <button id="XIAOFUTools_ExportShpFieldTableButton" caption="SHP输字段表" className="XIAOFUTools.Tools.DataProcessing.ExportShpFieldTable.ExportShpFieldTableButton" loadOnClick="true" smallImage="Images\ExportShpFieldTable_16.png" largeImage="Images\ExportShpFieldTable_32.png">
           <tooltip heading="SHP输字段表">
             将输入目录中的SHP字段结构导出为Excel表
-            <disabledText>无权限使用SHP输字段表功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 批量合并SHP按钮 -->
         <button id="XIAOFUTools_BatchMergeShpButton" caption="批量合并SHP" className="XIAOFUTools.Tools.DataProcessing.BatchMergeShp.BatchMergeShpButton" loadOnClick="true" smallImage="Images\BatchMergeShp_16.png" largeImage="Images\BatchMergeShp_32.png">
           <tooltip heading="批量合并SHP">
             选择文件夹后自动遍历SHP并批量合并，支持子文件夹扫描与源文件名字段写入
-            <disabledText>无权限使用批量合并SHP功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- MDB批量转GDB按钮 -->
         <button id="XIAOFUTools_MdbBatchToGdbButton" caption="MDB批量转GDB" className="XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb.MdbBatchToGdbButton" loadOnClick="true" smallImage="Images\MdbBatchToGdb_16.png" largeImage="Images\MdbBatchToGdb_32.png">
           <tooltip heading="MDB批量转GDB">
             扫描文件夹中的MDB并按勾选项批量转换为GDB，支持输出到源路径或指定目录
-            <disabledText>无权限使用MDB批量转GDB功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 镜像数据库按钮 -->
         <button id="XIAOFUTools_MirrorDatabaseButton" caption="镜像数据库" className="XIAOFUTools.Tools.DataProcessing.MirrorDatabase.MirrorDatabaseButton" loadOnClick="true" smallImage="Images\MirrorDatabase_16.png" largeImage="Images\MirrorDatabase_32.png">
           <tooltip heading="镜像数据库">
             将源数据库的结构（要素集、要素类、表）镜像到新数据库，只复制结构不复制数据
-            <disabledText>无权限使用镜像数据库功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 输出数据库属性结构表按钮 -->
         <button id="XIAOFUTools_ExportDatabaseSchemaButton" caption="输出数据库属性结构表" className="XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema.ExportDatabaseSchemaButton" loadOnClick="true" smallImage="Images\ExportDatabaseSchema_16.png" largeImage="Images\ExportDatabaseSchema_32.png">
           <tooltip heading="输出数据库属性结构表">
             将文件地理数据库的属性结构导出为Excel文件
-            <disabledText>无权限使用输出数据库属性结构表功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 驱动制图按钮 -->
         <button id="XIAOFUTools_MapSeriesExportButton" caption="驱动制图" className="XIAOFUTools.Tools.Output.MapSeriesExport.MapSeriesExportButton" loadOnClick="true" smallImage="Images\MapSeriesExport_16.png" largeImage="Images\MapSeriesExport_32.png">
           <tooltip heading="驱动制图">
             基于地图系列批量导出布局页面，支持PDF、JPG、PNG、TIF格式
-            <disabledText>无权限使用驱动制图功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 开发区整合优化核查按钮 -->
         <button id="XIAOFUTools_DevZoneCheckButton" caption="开发区整合优化核查(定制)" className="XIAOFUTools.Tools.User.Custom.DevZoneCheck.DevZoneCheckButton" loadOnClick="true" smallImage="Images\DevZoneCheck_16.png" largeImage="Images\DevZoneCheck_32.png">
           <tooltip heading="开发区整合优化核查(定制)">
             基于园区红线进行底线类、节约集约类、发展空间类核查分析，所有面积基于椭球面计算
-            <disabledText>无权限使用开发区整合优化核查功能</disabledText></tooltip>
+            <disabledText>当前状态不可用</disabledText></tooltip>
         </button>
         <!-- 此处可添加其他工具按钮 -->
       </controls>

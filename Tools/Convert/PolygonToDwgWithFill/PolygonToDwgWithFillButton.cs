@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.PolygonToDwgWithFill
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.PolygonToDwgWithFill
         {
             try
             {
-                // 授权检查
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("面要素图层转DWG[带色块填充]工具"))
-                {
-                    return;
-                }
-
                 // 打开停靠窗格
                 PolygonToDwgWithFillDockPane.Show();
             }

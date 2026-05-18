@@ -5,7 +5,6 @@ using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Core.Geoprocessing;
 using System.Collections.Generic;
 using System.Linq;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.Analysis.ExportExcel
 {
@@ -18,12 +17,6 @@ namespace XIAOFUTools.Tools.Analysis.ExportExcel
         {
             try
             {
-                // 检查授权状态
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("导出Excel功能"))
-                {
-                    return; // 授权无效时，退出操作
-                }
-
                 // 获取当前活动视图
                 var mapView = MapView.Active;
                 if (mapView == null)

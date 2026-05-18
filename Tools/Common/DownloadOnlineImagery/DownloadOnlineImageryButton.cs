@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DownloadOnlineImagery
 {
@@ -16,12 +15,6 @@ namespace XIAOFUTools.Tools.DownloadOnlineImagery
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("下载在线影像工具"))
-                {
-                    return;
-                }
-
                 // 打开下载在线影像停靠窗格
                 DownloadOnlineImageryDockPane.Show();
             }

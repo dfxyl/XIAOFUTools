@@ -1,7 +1,6 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.AttributeTransferFields
 {
@@ -11,10 +10,6 @@ namespace XIAOFUTools.Tools.AttributeTransferFields
         {
             try
             {
-                // 授权检查
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("属性传递[字段]"))
-                    return;
-
                 // 打开窗口
                 AttributeTransferFieldsView.ShowDialog();
             }

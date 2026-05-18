@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.MapSheetsLarge
 {
@@ -13,10 +12,6 @@ namespace XIAOFUTools.Tools.MapSheetsLarge
         {
             try
             {
-                // 授权检查
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("生成大比例尺图幅"))
-                    return;
-
                 // 打开停靠窗格
                 GenerateLargeMapSheetsDockPane.Show();
             }

@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
 using System.Windows.Media;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.PresetLayers
 {
@@ -97,12 +96,6 @@ namespace XIAOFUTools.Tools.PresetLayers
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("添加预设图层工具"))
-                {
-                    return;
-                }
-
                 string selectedLayer = item.Text; // 获取没有扩展名的层名称
                 string assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location;
                 string installPath = Path.GetDirectoryName(assemblyLocation);

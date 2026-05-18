@@ -17,7 +17,6 @@ using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.KnowledgeGraph;
 using ArcGIS.Desktop.Layouts;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.OvertureLoader.Views
 {
@@ -31,8 +30,6 @@ namespace XIAOFUTools.Tools.OvertureLoader.Views
         /// </summary>
         protected override void OnClick()
         {
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("Overture Maps数据加载器"))
-                return;
             try
             {
                 // Log that button was clicked

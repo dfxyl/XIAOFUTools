@@ -15,7 +15,6 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.BoundaryPointGenerator
 {
@@ -25,12 +24,6 @@ namespace XIAOFUTools.Tools.BoundaryPointGenerator
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("生成四至坐标点工具"))
-                {
-                    return;
-                }
-
                 // 打开生成四至坐标点停靠窗格
                 BoundaryPointGeneratorDockPane.Show();
             }

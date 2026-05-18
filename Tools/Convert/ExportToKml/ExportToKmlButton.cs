@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.ExportToKml
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.ExportToKml
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("要素图层分组导出KML/KMZ"))
-                {
-                    return;
-                }
-
                 // 打开停靠窗格
                 ExportToKmlDockPane.Show();
             }

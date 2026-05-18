@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.QuickAddData
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.QuickAddData
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("快捷添加数据"))
-                {
-                    return;
-                }
 
                 QuickAddDataDockPane.Show();
             }

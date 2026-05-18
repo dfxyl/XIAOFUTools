@@ -391,6 +391,105 @@
                                 </ComboBox>
                             </StackPanel>
                         </Grid>
+
+                        <Separator Margin="0,8,0,10" Background="#D4E5C9"/>
+
+                        <!-- 交集表格部分 -->
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="▦ 交集表格设置" Style="{StaticResource CategoryHeader}" Foreground="#2D6B72"/>
+                            <Button Grid.Column="1" Content="刷新图层" Height="24" Width="72"
+                                    Style="{StaticResource DefaultButtonStyle}" FontSize="11"
+                                    Click="RefreshIntersectLayers_Click" ToolTip="刷新可相交面图层列表"/>
+                        </Grid>
+
+                        <CheckBox x:Name="EnableIntersectTableCheckBox"
+                                  Content="显示当前红线交集表格"
+                                  Style="{StaticResource CheckBoxStyle}"
+                                  Margin="0,0,0,6"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="相交图层:" FontSize="10" Margin="0,0,0,2"/>
+                                <ComboBox x:Name="IntersectLayerComboBox" Style="{StaticResource ComboBoxStyle}" Height="24" FontSize="11"
+                                          SelectionChanged="IntersectLayerComboBox_SelectionChanged"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="分类字段:" FontSize="10" Margin="0,0,0,2"/>
+                                <ComboBox x:Name="IntersectFieldComboBox" Style="{StaticResource ComboBoxStyle}" Height="24" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <TextBlock Text="表格标题:" FontSize="10" Margin="0,0,0,2"/>
+                        <TextBox x:Name="IntersectTableTitleTextBox" Text="交集汇总表"
+                                 Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11" Margin="0,0,0,6"/>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="面积单位:" FontSize="10" Margin="0,0,0,2"/>
+                                <ComboBox x:Name="IntersectAreaUnitComboBox" Style="{StaticResource ComboBoxStyle}" Height="24" FontSize="11">
+                                    <ComboBoxItem Content="平方米" IsSelected="True"/>
+                                    <ComboBoxItem Content="公顷"/>
+                                    <ComboBoxItem Content="亩"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="小数位:" FontSize="10" Margin="0,0,0,2"/>
+                                <TextBox x:Name="IntersectDecimalTextBox" Text="2" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="行高:" FontSize="10" Margin="0,0,0,2"/>
+                                <TextBox x:Name="IntersectRowHeightTextBox" Text="5.5" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="6"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="类别宽:" FontSize="10" Margin="0,0,0,2"/>
+                                <TextBox x:Name="IntersectCategoryColWidthTextBox" Text="22" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="面积宽:" FontSize="10" Margin="0,0,0,2"/>
+                                <TextBox x:Name="IntersectAreaColWidthTextBox" Text="18" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="位置:" FontSize="10" Margin="0,0,0,2"/>
+                                <ComboBox x:Name="IntersectPlacementCornerComboBox" Style="{StaticResource ComboBoxStyle}" Height="24" FontSize="11">
+                                    <ComboBoxItem Content="左下角"/>
+                                    <ComboBoxItem Content="右下角" IsSelected="True"/>
+                                    <ComboBoxItem Content="左上角"/>
+                                    <ComboBoxItem Content="右上角"/>
+                                </ComboBox>
+                            </StackPanel>
+                            <StackPanel Grid.Column="6">
+                                <TextBlock Text="偏移:" FontSize="10" Margin="0,0,0,2"/>
+                                <TextBox x:Name="IntersectCornerOffsetTextBox" Text="2" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"/>
+                            </StackPanel>
+                        </Grid>
                         
                         <Separator Margin="0,8,0,10" Background="#D4E5C9"/>
                         
@@ -398,7 +497,8 @@
                         <TextBlock Text="• 界址点/点号/边长在图形图层生成" FontSize="10" Foreground="#888888" Margin="0,0,0,2" TextWrapping="Wrap"/>
                         <TextBlock Text="• 点号沿角平分线外侧（8方向避让）" FontSize="10" Foreground="#888888" Margin="0,0,0,2" TextWrapping="Wrap"/>
                         <TextBlock Text="• 边长在边的中点外侧生成" FontSize="10" Foreground="#888888" Margin="0,0,0,2" TextWrapping="Wrap"/>
-                        <TextBlock Text="• 点号与边长参与联合压盖检测" FontSize="10" Foreground="#888888" TextWrapping="Wrap"/>
+                        <TextBlock Text="• 点号与边长参与联合压盖检测" FontSize="10" Foreground="#888888" Margin="0,0,0,2" TextWrapping="Wrap"/>
+                        <TextBlock Text="• 交集表按当前驱动红线与相交图层实时生成" FontSize="10" Foreground="#888888" TextWrapping="Wrap"/>
                     </StackPanel>
                 </ScrollViewer>
             </Border>

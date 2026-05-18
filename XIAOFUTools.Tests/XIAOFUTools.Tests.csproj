@@ -76,6 +76,9 @@
     <Compile Include="..\Tools\Common\QuickAddData\QuickDataDragPathCollector.cs" Link="Shared\QuickAddData\QuickDataDragPathCollector.cs" />
     <Compile Include="..\Tools\Common\QuickAddData\QuickDataTreeSelectionHelper.cs" Link="Shared\QuickAddData\QuickDataTreeSelectionHelper.cs" />
     <Compile Include="..\Tools\Common\QuickAddData\QuickDataTreeStateKeyBuilder.cs" Link="Shared\QuickAddData\QuickDataTreeStateKeyBuilder.cs" />
+    <Compile Include="..\Tools\Analysis\BrowseFeatures\BrowseFeaturesCore.cs" Link="Shared\BrowseFeatures\BrowseFeaturesCore.cs" />
+    <Compile Include="..\Tools\Convert\ExportToKml\ExportToKmlFieldSelection.cs" Link="Shared\ExportToKml\ExportToKmlFieldSelection.cs" />
+    <Compile Include="..\Tools\Convert\MapSeriesExport\MapSeriesIntersectTableBuilder.cs" Link="Shared\MapSeriesExport\MapSeriesIntersectTableBuilder.cs" />
   </ItemGroup>
 
   <ItemGroup>

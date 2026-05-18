@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.PdfToImages
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.PdfToImages
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("PDF批量转图片工具"))
-                {
-                    return;
-                }
-
                 // 打开PDF批量转图片停靠窗格
                 PdfToImagesDockPane.Show();
             }

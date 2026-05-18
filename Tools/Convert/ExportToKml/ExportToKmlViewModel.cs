@@ -283,6 +283,9 @@ namespace XIAOFUTools.Tools.ExportToKml
         {
             try
             {
+                var previousGroupField = SelectedGroupField;
+                var previousLabelField = SelectedLabelField;
+
                 System.Windows.Application.Current?.Dispatcher?.Invoke(() =>
                 {
                     GroupFields.Clear();
@@ -339,14 +342,13 @@ namespace XIAOFUTools.Tools.ExportToKml
                             LabelFields.Add(fieldName);
                         }
                         
-                        // 默认选择"不分组"
-                        SelectedGroupField = NoGroupFieldOption;
-                        
-                        // 默认选择第一个标注字段
-                        if (LabelFields.Count > 0)
-                        {
-                            SelectedLabelField = LabelFields[0];
-                        }
+                        SelectedGroupField = ExportToKmlFieldSelection.ResolveSelectedGroupField(
+                            previousGroupField,
+                            GroupFields,
+                            NoGroupFieldOption);
+                        SelectedLabelField = ExportToKmlFieldSelection.ResolveSelectedLabelField(
+                            previousLabelField,
+                            LabelFields);
                         
                         // 通知属性更新
                         NotifyPropertyChanged(nameof(GroupFields));

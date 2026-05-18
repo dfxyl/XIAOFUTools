@@ -15,7 +15,6 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.RangeClipTool
 {
@@ -25,12 +24,6 @@ namespace XIAOFUTools.Tools.RangeClipTool
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("根据范围批量裁剪要素图层工具"))
-                {
-                    return;
-                }
-
                 // 打开根据范围批量裁剪要素图层停靠窗格
                 RangeClipToolDockPane.Show();
             }

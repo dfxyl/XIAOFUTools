@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.ProtocolLineExtract
 {
@@ -13,10 +12,6 @@ namespace XIAOFUTools.Tools.ProtocolLineExtract
         {
             try
             {
-                // 授权检查
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("提取协议线工具"))
-                    return;
-
                 // 打开停靠窗格
                 ProtocolLineExtractDockPane.Show();
             }

@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
 {
@@ -16,12 +15,6 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportDatabaseSchema
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("输出数据库属性结构表"))
-                {
-                    return;
-                }
-
                 // 打开停靠窗格
                 ExportDatabaseSchemaDockPane.Show();
             }

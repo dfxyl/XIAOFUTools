@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.BatchAddData
 {
@@ -16,12 +15,6 @@ namespace XIAOFUTools.Tools.BatchAddData
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("批量添加数据工具"))
-                {
-                    return;
-                }
-
                 // 打开批量添加数据停靠窗格
                 BatchAddDataDockPane.Show();
             }

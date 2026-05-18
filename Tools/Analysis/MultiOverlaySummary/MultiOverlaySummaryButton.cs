@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.MultiOverlaySummary
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.MultiOverlaySummary
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("多图层压盖汇总工具"))
-                {
-                    return;
-                }
-
                 // 打开多图层压盖汇总停靠窗格
                 MultiOverlaySummaryDockPane.Show();
             }

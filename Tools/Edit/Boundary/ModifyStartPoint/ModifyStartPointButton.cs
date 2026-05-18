@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.Edit.Boundary.ModifyStartPoint
 {
@@ -8,8 +7,6 @@ namespace XIAOFUTools.Tools.Edit.Boundary.ModifyStartPoint
     {
         protected override void OnClick()
         {
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("修改起始点功能"))
-                return;
             try
             {
                 ModifyStartPointDockPane.Show();

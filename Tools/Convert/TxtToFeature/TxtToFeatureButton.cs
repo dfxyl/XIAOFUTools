@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.TxtToFeature
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.TxtToFeature
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("TXT转SHP工具"))
-                {
-                    return;
-                }
-
                 // 打开TXT转SHP停靠窗格
                 TxtToFeatureDockPane.Show();
             }

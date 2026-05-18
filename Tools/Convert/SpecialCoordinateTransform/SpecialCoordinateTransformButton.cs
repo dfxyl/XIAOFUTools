@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.SpecialCoordinateTransform
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.SpecialCoordinateTransform
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("特殊坐标转换工具"))
-                {
-                    return;
-                }
-
                 // 打开特殊坐标转换停靠窗格
                 SpecialCoordinateTransformDockPane.Show();
             }

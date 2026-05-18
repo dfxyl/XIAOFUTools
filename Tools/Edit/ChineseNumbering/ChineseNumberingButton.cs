@@ -15,7 +15,6 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.ChineseNumbering
 {
@@ -25,12 +24,6 @@ namespace XIAOFUTools.Tools.ChineseNumbering
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("地块中文编号工具"))
-                {
-                    return;
-                }
-
                 // 打开地块中文编号停靠窗格
                 ChineseNumberingDockPane.Show();
             }

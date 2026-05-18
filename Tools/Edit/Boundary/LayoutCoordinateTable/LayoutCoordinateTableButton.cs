@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
 {
@@ -8,8 +7,6 @@ namespace XIAOFUTools.Tools.Edit.Boundary.LayoutCoordinateTable
     {
         protected override void OnClick()
         {
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("布局生成坐标表功能"))
-                return;
             try
             {
                 LayoutCoordinateTableDockPane.Show();

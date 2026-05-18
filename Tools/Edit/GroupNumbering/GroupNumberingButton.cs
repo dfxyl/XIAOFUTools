@@ -15,7 +15,6 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.GroupNumbering
 {
@@ -25,12 +24,6 @@ namespace XIAOFUTools.Tools.GroupNumbering
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("要素顺序编号工具"))
-                {
-                    return;
-                }
-
                 // 打开要素顺序编号停靠窗格
                 GroupNumberingDockPane.Show();
             }

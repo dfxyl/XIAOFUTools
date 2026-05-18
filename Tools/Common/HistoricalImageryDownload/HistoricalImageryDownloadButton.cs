@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.HistoricalImageryDownload
 {
@@ -8,10 +7,6 @@ namespace XIAOFUTools.Tools.HistoricalImageryDownload
     {
         protected override void OnClick()
         {
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("历史影像下载工具"))
-            {
-                return;
-            }
 
             if (MapView.Active == null)
             {

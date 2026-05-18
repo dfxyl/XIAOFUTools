@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.ExtractPolygonHoles
 {
@@ -10,9 +9,6 @@ namespace XIAOFUTools.Tools.ExtractPolygonHoles
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("提取面扣岛"))
-                    return;
-
                 ExtractPolygonHolesDockPane.Show();
             }
             catch (Exception ex)

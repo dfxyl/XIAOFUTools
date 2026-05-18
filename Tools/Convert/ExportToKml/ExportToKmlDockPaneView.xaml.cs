@@ -1,4 +1,5 @@
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace XIAOFUTools.Tools.ExportToKml
 {
@@ -19,6 +20,18 @@ namespace XIAOFUTools.Tools.ExportToKml
             {
                 viewModel.RefreshLayers();
             }
+        }
+
+        private void LabelFieldComboBox_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not ComboBox comboBox || comboBox.IsDropDownOpen)
+            {
+                return;
+            }
+
+            comboBox.Focus();
+            comboBox.IsDropDownOpen = true;
+            e.Handled = true;
         }
     }
 }

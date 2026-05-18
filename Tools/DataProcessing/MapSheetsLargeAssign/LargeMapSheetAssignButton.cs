@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.MapSheetsLargeAssign
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.MapSheetsLargeAssign
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("大比例图幅赋值"))
-                {
-                    return;
-                }
 
                 LargeMapSheetAssignDockPane.Show();
             }

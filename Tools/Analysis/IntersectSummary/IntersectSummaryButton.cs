@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.IntersectSummary
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.IntersectSummary
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("交集汇总表工具"))
-                {
-                    return;
-                }
-
                 // 打开交集汇总表停靠窗格
                 IntersectSummaryDockPane.Show();
             }

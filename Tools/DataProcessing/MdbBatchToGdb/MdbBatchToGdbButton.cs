@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.DataProcessing.MdbBatchToGdb
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("MDB批量转GDB"))
-                {
-                    return;
-                }
 
                 MdbBatchToGdbDockPane.Show();
             }

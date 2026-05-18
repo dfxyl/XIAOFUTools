@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataProcessing.ShapefileBuilder
 {
@@ -16,10 +15,6 @@ namespace XIAOFUTools.Tools.DataProcessing.ShapefileBuilder
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("属性表建SHP"))
-                {
-                    return;
-                }
 
                 ShapefileBuilderDockPane.Show();
             }

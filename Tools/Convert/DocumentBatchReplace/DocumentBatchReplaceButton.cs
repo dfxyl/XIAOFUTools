@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DocumentBatchReplace
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.DocumentBatchReplace
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("文档批量替换工具"))
-                {
-                    return;
-                }
 
                 DocumentBatchReplaceDockPane.Show();
             }

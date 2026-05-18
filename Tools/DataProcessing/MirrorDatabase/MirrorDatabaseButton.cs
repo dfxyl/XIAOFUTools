@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataProcessing.MirrorDatabase
 {
@@ -16,12 +15,6 @@ namespace XIAOFUTools.Tools.DataProcessing.MirrorDatabase
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("镜像数据库"))
-                {
-                    return;
-                }
-
                 // 打开镜像数据库停靠窗格
                 MirrorDatabaseDockPane.Show();
             }

@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.RotateGeometry
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.RotateGeometry
         {
             try
             {
-                // 授权检查
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("旋转图形[线/面]"))
-                    return;
-
                 // 打开停靠窗格
                 RotateGeometryDockPane.Show();
             }

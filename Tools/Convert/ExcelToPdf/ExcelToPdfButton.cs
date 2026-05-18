@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.ExcelToPdf
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.ExcelToPdf
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("Excel批量转PDF工具"))
-                {
-                    return;
-                }
 
                 ExcelToPdfDockPane.Show();
             }

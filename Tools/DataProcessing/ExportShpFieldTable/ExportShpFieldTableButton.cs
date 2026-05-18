@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataProcessing.ExportShpFieldTable
 {
@@ -13,10 +12,6 @@ namespace XIAOFUTools.Tools.DataProcessing.ExportShpFieldTable
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("SHP输字段表"))
-                {
-                    return;
-                }
 
                 ExportShpFieldTableDockPane.Show();
             }

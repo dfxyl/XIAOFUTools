@@ -4,7 +4,6 @@ using System.Linq;
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.AreaCalculator
 {
@@ -17,10 +16,6 @@ namespace XIAOFUTools.Tools.AreaCalculator
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("计算面积工具"))
-                {
-                    return;
-                }
 
                 var contextOptions = ResolveContextOptions();
                 AreaCalculatorDockPane.Show(contextOptions);

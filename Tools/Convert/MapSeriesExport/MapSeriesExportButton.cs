@@ -1,7 +1,6 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.Output.MapSeriesExport
 {
@@ -14,12 +13,6 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("驱动制图工具"))
-                {
-                    return;
-                }
-
                 // 打开驱动制图停靠窗格
                 MapSeriesExportDockPane.Show();
             }

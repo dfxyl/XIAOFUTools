@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataPivot
 {
@@ -10,9 +9,6 @@ namespace XIAOFUTools.Tools.DataPivot
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("数据透视"))
-                    return;
-
                 DataPivotDockPane.Show();
             }
             catch (Exception ex)

@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
 {
@@ -32,8 +31,6 @@ namespace XIAOFUTools.Tools.Edit.Boundary.BoundaryPointLineGenerator
     {
         protected override void OnClick()
         {
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("界址点线生成功能"))
-                return;
             BoundaryPointLineGeneratorDockPane.Show();
         }
     }

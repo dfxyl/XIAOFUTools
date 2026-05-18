@@ -15,7 +15,6 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.FieldCopyTool
 {
@@ -25,12 +24,6 @@ namespace XIAOFUTools.Tools.FieldCopyTool
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("字段复制工具"))
-                {
-                    return;
-                }
-
                 // 打开字段复制工具对话框
                 FieldCopyToolView.ShowDialog();
             }

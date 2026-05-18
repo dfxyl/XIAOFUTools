@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.BatchGeometryRepair
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.BatchGeometryRepair
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("批量修复几何工具"))
-                {
-                    return;
-                }
-
                 // 打开批量修复几何停靠窗格
                 BatchGeometryRepairDockPane.Show();
             }

@@ -1,7 +1,6 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Dialogs;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.LayoutTools.LayoutTextReplace
 {
@@ -14,12 +13,6 @@ namespace XIAOFUTools.Tools.LayoutTools.LayoutTextReplace
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("布局元素查找替换工具"))
-                {
-                    return;
-                }
-
                 // 打开布局元素查找替换停靠窗格
                 LayoutTextReplaceDockPane.Show();
             }

@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.MapSheetsSmallAssign
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.MapSheetsSmallAssign
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("小比例图幅赋值"))
-                {
-                    return;
-                }
 
                 SmallMapSheetAssignDockPane.Show();
             }

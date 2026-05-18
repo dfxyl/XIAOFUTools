@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
 {
@@ -16,12 +15,6 @@ namespace XIAOFUTools.Tools.DataProcessing.DatabaseBuilder
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("属性表建库"))
-                {
-                    return;
-                }
-
                 // 打开属性表建库停靠窗格
                 DatabaseBuilderDockPane.Show();
             }

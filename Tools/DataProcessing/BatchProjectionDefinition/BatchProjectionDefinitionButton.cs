@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.BatchProjectionDefinition
 {
@@ -16,12 +15,6 @@ namespace XIAOFUTools.Tools.BatchProjectionDefinition
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("批量定义投影工具"))
-                {
-                    return;
-                }
-
                 // 打开停靠窗格
                 BatchProjectionDefinitionDockPane.Show();
             }

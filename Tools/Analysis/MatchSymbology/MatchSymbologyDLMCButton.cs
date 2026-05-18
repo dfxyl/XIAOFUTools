@@ -6,7 +6,6 @@ using ArcGIS.Desktop.Framework.Dialogs;
 using System.IO;
 using System.Linq;
 using System;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.Analysis.MatchSymbology
 {
@@ -17,9 +16,6 @@ namespace XIAOFUTools.Tools.Analysis.MatchSymbology
 
         protected override async void OnClick()
         {
-            // 检查是否有足够的授权执行此操作
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("DLMC匹配符号功能")) return;
-
             // 确认当前有活动的地图视图
             if (MapView.Active == null) return;
 

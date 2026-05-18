@@ -4,7 +4,6 @@ using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Core.Geoprocessing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using XIAOFUTools.Tools.Authorization;
 using System.Linq;
 
 namespace XIAOFUTools.Tools.Analysis.PasteSymbology
@@ -18,12 +17,6 @@ namespace XIAOFUTools.Tools.Analysis.PasteSymbology
         {
             try
             {
-                // 检查授权状态
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("粘贴符号功能"))
-                {
-                    return; // 授权无效时，退出操作
-                }
-
                 // 获取当前活动视图
                 var mapView = MapView.Active;
                 if (mapView == null)

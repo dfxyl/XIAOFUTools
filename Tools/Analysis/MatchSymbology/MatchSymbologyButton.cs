@@ -1,7 +1,6 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
 using ArcGIS.Desktop.Core.Geoprocessing;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.Analysis.MatchSymbology
 {
@@ -9,12 +8,6 @@ namespace XIAOFUTools.Tools.Analysis.MatchSymbology
     {
         protected override void OnClick()
         {
-            // 检查授权状态
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("匹配符号功能"))
-            {
-                return; // 授权无效时，退出操作
-            }
-
             // 检查活动地图视图
             if (MapView.Active == null) return;
 

@@ -4,7 +4,6 @@ using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
 using ArcGIS.Desktop.Mapping;
 using XIAOFUTools.Tools.Settings;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.ViewArea
 {
@@ -17,12 +16,6 @@ namespace XIAOFUTools.Tools.ViewArea
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("查看面积工具"))
-                {
-                    return;
-                }
-
                 // 检查设置是否要求选择要素才能打开
                 if (SettingsManager.Settings.ViewArea.RequireSelectionToOpen)
                 {

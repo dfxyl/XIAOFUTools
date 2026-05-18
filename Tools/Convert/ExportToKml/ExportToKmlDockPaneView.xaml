@@ -94,10 +94,12 @@
         <TextBlock Grid.Row="5" Grid.Column="0" Text="标注字段:" VerticalAlignment="Center" Margin="0,0,10,10"
                    Visibility="{Binding ShowLabelField, Converter={StaticResource BooleanToVisibilityConverter}}"/>
         <ComboBox Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,0,0,10"
+                Style="{StaticResource ComboBoxStyle}"
                 Height="24"
                 ItemsSource="{Binding LabelFields}"
-                SelectedItem="{Binding SelectedLabelField}"
+                SelectedItem="{Binding SelectedLabelField, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                 Visibility="{Binding ShowLabelField, Converter={StaticResource BooleanToVisibilityConverter}}"
+                PreviewMouseLeftButtonDown="LabelFieldComboBox_PreviewMouseLeftButtonDown"
                 ToolTip="选择用于标注显示的字段"/>
 
         <!-- 进度条 -->

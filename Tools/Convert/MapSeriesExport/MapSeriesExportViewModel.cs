@@ -219,7 +219,21 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         /// </summary>
         public string CoordinateTableStatusText
         {
-            get => _coordinateTableSettings?.EnableCoordinateTable == true ? "已启用" : "未启用";
+            get
+            {
+                if (_coordinateTableSettings?.EnableCoordinateTable == true &&
+                    _coordinateTableSettings?.EnableIntersectTable == true)
+                {
+                    return "坐标表+交集表";
+                }
+
+                if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                {
+                    return "坐标表已启用";
+                }
+
+                return _coordinateTableSettings?.EnableIntersectTable == true ? "交集表已启用" : "未启用";
+            }
         }
 
         #endregion
@@ -529,7 +543,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                         if (mapSeries != null && mapSeries.Enabled && page.PageIndex >= 1 && page.PageIndex <= mapSeries.PageCount)
                         {
                             // 切换页面前先清除之前的坐标表
-                            if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                            if (HasPageGeneratedContent())
                             {
                                 ClearCoordinateTableElements(layout);
                             }
@@ -538,7 +552,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                             mapSeries.SetCurrentPageNumber(page.PageIndex.ToString());
                             
                             // 如果启用了坐标表生成，则生成新的坐标表
-                            if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                            if (HasPageGeneratedContent())
                             {
                                 GenerateCoordinateTableForCurrentPage(layout, mapSeries);
                             }
@@ -602,6 +616,11 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                 "• 压盖处理：\n" +
                 "  - 压盖隐藏：重叠时隐藏后面的\n" +
                 "  - 压盖避让：自动调整位置避开重叠\n\n" +
+                "━━━━━━ 交集表格 ━━━━━━\n" +
+                "• 显示交集表格：按当前驱动红线与指定面图层相交计算\n" +
+                "• 分类字段：作为交集结果的表格行类别\n" +
+                "• 未覆盖部分自动归为“其他”，面积按当前红线总面积调平\n" +
+                "• 交集表使用地图框/锚点定位方式，可设置角点、偏移、列宽和行高\n\n" +
                 "━━━━━━ 注意事项 ━━━━━━\n" +
                 "• 布局必须已启用空间地图系列\n" +
                 "• 坐标表定位需要正确设置地图框或锚点\n" +
@@ -623,6 +642,16 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         {
             return !IsRunning && SelectedLayout != null && MapSeriesPages.Count > 0 &&
                    !string.IsNullOrWhiteSpace(OutputFolder) && int.TryParse(Resolution, out int res) && res > 0;
+        }
+
+        private bool HasPageGeneratedContent()
+        {
+            var settings = _coordinateTableSettings;
+            return settings?.EnableCoordinateTable == true ||
+                   settings?.EnableBoundaryPoints == true ||
+                   settings?.EnablePointLabels == true ||
+                   settings?.EnableEdgeLabels == true ||
+                   settings?.EnableIntersectTable == true;
         }
 
         /// <summary>
@@ -683,7 +712,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                             if (pageIndex >= 1 && pageIndex <= mapSeries.PageCount)
                             {
                                 // 切换页面前清除坐标表
-                                if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                                if (HasPageGeneratedContent())
                                 {
                                     ClearCoordinateTableElements(layout);
                                 }
@@ -692,7 +721,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                                 mapSeries.SetCurrentPageNumber(pageIndex.ToString());
                                 
                                 // 如果启用了坐标表生成，则生成坐标表
-                                if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                                if (HasPageGeneratedContent())
                                 {
                                     GenerateCoordinateTableForCurrentPage(layout, mapSeries);
                                 }
@@ -707,7 +736,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                     }
                     
                     // 导出完成后清除最后一个坐标表
-                    if (_coordinateTableSettings?.EnableCoordinateTable == true)
+                    if (HasPageGeneratedContent())
                     {
                         ClearCoordinateTableElements(layout);
                     }
@@ -815,7 +844,12 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                         e.Name.StartsWith("Data_") ||
                         e.Name.StartsWith("Edge_") ||
                         e.Name.StartsWith("Area_") ||
-                        e.Name.StartsWith("EdgePad")))
+                        e.Name.StartsWith("EdgePad") ||
+                        e.Name.StartsWith("MapSeries_IntersectTable_") ||
+                        e.Name.StartsWith("IntersectTitle_") ||
+                        e.Name.StartsWith("IntersectHeader_") ||
+                        e.Name.StartsWith("IntersectData_") ||
+                        e.Name.StartsWith("IntersectTotal_")))
                     .ToList();
                 
                 System.Diagnostics.Debug.WriteLine($"[驱动制图] 需要删除 {elementsToDelete.Count} 个元素");
@@ -890,7 +924,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             try
             {
                 var settings = _coordinateTableSettings;
-                if (settings == null || !settings.EnableCoordinateTable) return;
+                if (settings == null || !HasPageGeneratedContent()) return;
 
                 // 从地图系列获取索引图层
                 var spatialMapSeries = mapSeries as SpatialMapSeries;
@@ -948,12 +982,20 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
 
                                 if (geometry != null && !string.IsNullOrEmpty(uniqueValue))
                                 {
-                                    ProcessPolygonAndCreateTable(layout, geometry, uniqueValue, settings, fieldValues);
+                                    if (settings.EnableCoordinateTable)
+                                    {
+                                        ProcessPolygonAndCreateTable(layout, geometry, uniqueValue, settings, fieldValues);
+                                    }
                                     
                                     // 如果启用了界址点、点号或边长生成，则创建相应标注
                                     if (settings.EnableBoundaryPoints || settings.EnablePointLabels || settings.EnableEdgeLabels)
                                     {
                                         CreateBoundaryPointsOnMap(layout, geometry, settings);
+                                    }
+
+                                    if (settings.EnableIntersectTable)
+                                    {
+                                        CreateIntersectTableForCurrentPage(layout, geometry, settings);
                                     }
                                 }
                             }
@@ -1664,6 +1706,353 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             {
                 System.Diagnostics.Debug.WriteLine($"创建表格元素时发生错误: {ex.Message}");
             }
+        }
+
+        private void CreateIntersectTableForCurrentPage(Layout layout, Polygon redlineGeometry, CoordinateTableSettings settings)
+        {
+            try
+            {
+                if (redlineGeometry == null ||
+                    string.IsNullOrWhiteSpace(settings.IntersectLayerName) ||
+                    string.IsNullOrWhiteSpace(settings.IntersectClassField))
+                {
+                    return;
+                }
+
+                var classLayer = FindIntersectFeatureLayer(layout, settings.IntersectLayerName);
+                if (classLayer == null)
+                {
+                    System.Diagnostics.Debug.WriteLine($"未找到交集图层: {settings.IntersectLayerName}");
+                    return;
+                }
+
+                var areas = CalculateCurrentRedlineIntersectAreas(redlineGeometry, classLayer, settings.IntersectClassField);
+                var rows = MapSeriesIntersectTableBuilder.BuildRows(
+                    areas,
+                    redlineGeometry.Area,
+                    settings.IntersectAreaUnit,
+                    settings.IntersectDecimalPlaces);
+
+                if (rows.Count == 0)
+                {
+                    return;
+                }
+
+                CreateIntersectTableElements(layout, rows, settings);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"生成交集表格失败: {ex.Message}");
+            }
+        }
+
+        private FeatureLayer FindIntersectFeatureLayer(Layout layout, string layerName)
+        {
+            if (string.IsNullOrWhiteSpace(layerName))
+            {
+                return null;
+            }
+
+            var maps = new List<Map>();
+            var mapFrame = ResolveMapFrame(layout, _coordinateTableSettings);
+            if (mapFrame?.Map != null)
+            {
+                maps.Add(mapFrame.Map);
+            }
+
+            var activeMap = MapView.Active?.Map;
+            if (activeMap != null && !maps.Contains(activeMap))
+            {
+                maps.Add(activeMap);
+            }
+
+            foreach (var map in maps)
+            {
+                var layer = map.GetLayersAsFlattenedList()
+                    .OfType<FeatureLayer>()
+                    .FirstOrDefault(item => string.Equals(item.Name, layerName, StringComparison.OrdinalIgnoreCase));
+                if (layer != null)
+                {
+                    return layer;
+                }
+            }
+
+            return null;
+        }
+
+        private List<MapSeriesIntersectArea> CalculateCurrentRedlineIntersectAreas(
+            Polygon redlineGeometry,
+            FeatureLayer classLayer,
+            string classField)
+        {
+            var areas = new List<MapSeriesIntersectArea>();
+            var classFeatureClass = classLayer.GetFeatureClass();
+            if (classFeatureClass == null)
+            {
+                return areas;
+            }
+
+            var classDefinition = classFeatureClass.GetDefinition();
+            var classSpatialReference = classDefinition.GetSpatialReference();
+            var redlineSpatialReference = redlineGeometry.SpatialReference;
+
+            Polygon queryGeometry = redlineGeometry;
+            if (redlineSpatialReference != null &&
+                classSpatialReference != null &&
+                !SpatialReference.AreEqual(redlineSpatialReference, classSpatialReference, false))
+            {
+                queryGeometry = GeometryEngine.Instance.Project(redlineGeometry, classSpatialReference) as Polygon;
+            }
+
+            if (queryGeometry == null)
+            {
+                return areas;
+            }
+
+            var spatialFilter = new SpatialQueryFilter
+            {
+                FilterGeometry = queryGeometry,
+                SpatialRelationship = SpatialRelationship.Intersects
+            };
+
+            using (var cursor = classFeatureClass.Search(spatialFilter))
+            {
+                while (cursor.MoveNext())
+                {
+                    using (var classFeature = cursor.Current as Feature)
+                    {
+                        if (classFeature?.GetShape() is not Polygon classPolygon)
+                        {
+                            continue;
+                        }
+
+                        Polygon projectedClassPolygon = classPolygon;
+                        if (redlineSpatialReference != null &&
+                            classSpatialReference != null &&
+                            !SpatialReference.AreEqual(redlineSpatialReference, classSpatialReference, false))
+                        {
+                            projectedClassPolygon = GeometryEngine.Instance.Project(classPolygon, redlineSpatialReference) as Polygon;
+                        }
+
+                        if (projectedClassPolygon == null)
+                        {
+                            continue;
+                        }
+
+                        var intersection = GeometryEngine.Instance.Intersection(redlineGeometry, projectedClassPolygon);
+                        if (intersection is not Polygon intersectPolygon || intersectPolygon.IsEmpty)
+                        {
+                            continue;
+                        }
+
+                        double area = intersectPolygon.Area;
+                        if (area <= 0.0001)
+                        {
+                            continue;
+                        }
+
+                        string category = "未分类";
+                        try
+                        {
+                            category = classFeature[classField]?.ToString();
+                        }
+                        catch
+                        {
+                            category = "未分类";
+                        }
+
+                        areas.Add(new MapSeriesIntersectArea(category, area));
+                    }
+                }
+            }
+
+            return areas;
+        }
+
+        private void CreateIntersectTableElements(
+            Layout layout,
+            List<MapSeriesIntersectTableRow> rows,
+            CoordinateTableSettings settings)
+        {
+            string timestamp = Guid.NewGuid().ToString("N");
+
+            try
+            {
+                CIMPolygonSymbol rectSymbol = null;
+                CIMTextSymbol textSymbol = null;
+
+                var txTemplate = layout.FindElement("XF_TX") as GraphicElement;
+                if (txTemplate?.GetGraphic() is CIMPolygonGraphic polyGraphic)
+                {
+                    rectSymbol = polyGraphic.Symbol?.Symbol as CIMPolygonSymbol;
+                }
+
+                var wbTemplate = layout.FindElement("XF_WB") as GraphicElement;
+                if (wbTemplate?.GetGraphic() is CIMTextGraphic textGraphic)
+                {
+                    textSymbol = textGraphic.Symbol?.Symbol as CIMTextSymbol;
+                }
+
+                double categoryColWidth = settings.IntersectCategoryColWidth;
+                double areaColWidth = settings.IntersectAreaColWidth;
+                double tableWidth = categoryColWidth + areaColWidth;
+                double rowHeight = settings.IntersectRowHeight;
+                int lineCount = rows.Count + 2;
+                double tableHeight = lineCount * rowHeight;
+                var (startX, startY) = ResolveTableStartPosition(
+                    layout,
+                    settings,
+                    settings.IntersectPlacementCorner,
+                    settings.IntersectCornerOffset,
+                    tableWidth,
+                    tableHeight);
+
+                var createdElements = new List<Element>();
+                double currentY = startY;
+
+                createdElements.AddRange(LayoutElementHelper.CreateTableCellSync(
+                    layout,
+                    $"IntersectTitle_{timestamp}",
+                    (startX, currentY),
+                    (tableWidth, rowHeight),
+                    settings.IntersectTableTitle,
+                    true,
+                    rectSymbol,
+                    textSymbol));
+                currentY -= rowHeight;
+
+                createdElements.AddRange(LayoutElementHelper.CreateTableCellSync(
+                    layout,
+                    $"IntersectHeader_Category_{timestamp}",
+                    (startX, currentY),
+                    (categoryColWidth, rowHeight),
+                    "类别",
+                    true,
+                    rectSymbol,
+                    textSymbol));
+                createdElements.AddRange(LayoutElementHelper.CreateTableCellSync(
+                    layout,
+                    $"IntersectHeader_Area_{timestamp}",
+                    (startX + categoryColWidth, currentY),
+                    (areaColWidth, rowHeight),
+                    $"面积({settings.IntersectAreaUnit})",
+                    true,
+                    rectSymbol,
+                    textSymbol));
+                currentY -= rowHeight;
+
+                for (int i = 0; i < rows.Count; i++)
+                {
+                    var row = rows[i];
+                    string prefix = row.IsTotal ? "IntersectTotal" : "IntersectData";
+                    bool isHeader = row.IsTotal;
+                    string areaText = row.Area.ToString($"F{settings.IntersectDecimalPlaces}");
+
+                    createdElements.AddRange(LayoutElementHelper.CreateTableCellSync(
+                        layout,
+                        $"{prefix}_Category_{i}_{timestamp}",
+                        (startX, currentY),
+                        (categoryColWidth, rowHeight),
+                        row.Category,
+                        isHeader,
+                        rectSymbol,
+                        textSymbol));
+                    createdElements.AddRange(LayoutElementHelper.CreateTableCellSync(
+                        layout,
+                        $"{prefix}_Area_{i}_{timestamp}",
+                        (startX + categoryColWidth, currentY),
+                        (areaColWidth, rowHeight),
+                        areaText,
+                        isHeader,
+                        rectSymbol,
+                        textSymbol));
+                    currentY -= rowHeight;
+                }
+
+                _currentCoordinateTableGroupName = $"MapSeries_IntersectTable_{timestamp}";
+                createdElements.Clear();
+
+                var _ = layout.GetElements().ToList();
+                var layoutView = LayoutView.Active;
+                if (layoutView != null && layoutView.Layout == layout)
+                {
+                    layoutView.Refresh();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"创建交集表格元素失败: {ex.Message}");
+            }
+        }
+
+        private (double X, double Y) ResolveTableStartPosition(
+            Layout layout,
+            CoordinateTableSettings settings,
+            string placementCorner,
+            double cornerOffset,
+            double tableWidth,
+            double tableHeight)
+        {
+            if (settings.UseAnchorPosition)
+            {
+                var anchorElement = layout.FindElement(settings.AnchorElementName) as GraphicElement;
+                if (anchorElement != null)
+                {
+                    var anchorBounds = anchorElement.GetBounds();
+                    double anchorX = (anchorBounds.XMin + anchorBounds.XMax) / 2;
+                    double anchorY = (anchorBounds.YMin + anchorBounds.YMax) / 2;
+                    return ResolveCornerPosition(anchorX, anchorY, anchorX, anchorY, placementCorner, cornerOffset, tableWidth, tableHeight);
+                }
+
+                return (10, 300);
+            }
+
+            var mapFrame = ResolveMapFrame(layout, settings);
+            if (mapFrame != null)
+            {
+                var mapBounds = mapFrame.GetBounds();
+                return ResolveCornerPosition(
+                    mapBounds.XMin,
+                    mapBounds.YMin,
+                    mapBounds.XMax,
+                    mapBounds.YMax,
+                    placementCorner,
+                    cornerOffset,
+                    tableWidth,
+                    tableHeight);
+            }
+
+            return (10, 300);
+        }
+
+        private static (double X, double Y) ResolveCornerPosition(
+            double xMin,
+            double yMin,
+            double xMax,
+            double yMax,
+            string placementCorner,
+            double cornerOffset,
+            double tableWidth,
+            double tableHeight)
+        {
+            return placementCorner switch
+            {
+                "右下角" => (xMax - tableWidth - cornerOffset, yMin + cornerOffset + tableHeight),
+                "左上角" => (xMin + cornerOffset, yMax - cornerOffset),
+                "右上角" => (xMax - tableWidth - cornerOffset, yMax - cornerOffset),
+                _ => (xMin + cornerOffset, yMin + cornerOffset + tableHeight)
+            };
+        }
+
+        private MapFrame ResolveMapFrame(Layout layout, CoordinateTableSettings settings)
+        {
+            MapFrame mapFrame = null;
+            if (!string.IsNullOrEmpty(settings?.MapFrameName))
+            {
+                mapFrame = layout.FindElement(settings.MapFrameName) as MapFrame;
+            }
+
+            return mapFrame ?? layout.Elements.OfType<MapFrame>().FirstOrDefault();
         }
 
         /// <summary>

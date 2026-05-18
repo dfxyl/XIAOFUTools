@@ -1,6 +1,5 @@
 using ArcGIS.Desktop.Framework.Contracts;
 using ArcGIS.Desktop.Mapping;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.InternetTileDownload
 {
@@ -8,10 +7,6 @@ namespace XIAOFUTools.Tools.InternetTileDownload
     {
         protected override void OnClick()
         {
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("互联网切片下载工具"))
-            {
-                return;
-            }
 
             if (MapView.Active == null)
             {

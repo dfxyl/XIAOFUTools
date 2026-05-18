@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using ArcGIS.Core.CIM;
+using ArcGIS.Core.Data;
 using ArcGIS.Core.Geometry;
 using ArcGIS.Desktop.Core;
 using ArcGIS.Desktop.Framework.Threading.Tasks;
@@ -28,6 +29,9 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         public event Action<CoordinateTableSettings> SettingsSaved;
         
         private Layout _currentLayout;
+        private readonly Dictionary<string, FeatureLayer> _intersectLayersByName = new Dictionary<string, FeatureLayer>(StringComparer.OrdinalIgnoreCase);
+        private string _pendingIntersectLayerName;
+        private string _pendingIntersectFieldName;
 
         private static readonly string SettingsFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -38,6 +42,7 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             InitializeComponent();
             InitializeAreaUnits();
             LoadMapFramesAsync();
+            LoadIntersectLayersAsync();
             
             if (existingSettings != null)
             {
@@ -52,6 +57,8 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                     LoadSettings(savedSettings);
                 }
             }
+
+            LoadIntersectLayersAsync();
         }
 
         private void InitializeAreaUnits()
@@ -99,6 +106,150 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         private void RefreshMapFrames_Click(object sender, RoutedEventArgs e)
         {
             LoadMapFramesAsync();
+        }
+
+        private void RefreshIntersectLayers_Click(object sender, RoutedEventArgs e)
+        {
+            LoadIntersectLayersAsync();
+        }
+
+        private async void LoadIntersectLayersAsync()
+        {
+            try
+            {
+                var layerNames = new List<string>();
+                var layerMap = new Dictionary<string, FeatureLayer>(StringComparer.OrdinalIgnoreCase);
+
+                await QueuedTask.Run(() =>
+                {
+                    var maps = new List<Map>();
+                    var activeMap = MapView.Active?.Map;
+                    if (activeMap != null)
+                    {
+                        maps.Add(activeMap);
+                    }
+
+                    var layoutView = LayoutView.Active;
+                    var layout = layoutView?.Layout ?? _currentLayout;
+                    if (layout != null)
+                    {
+                        foreach (var mapFrame in layout.Elements.OfType<MapFrame>())
+                        {
+                            if (mapFrame.Map != null && !maps.Contains(mapFrame.Map))
+                            {
+                                maps.Add(mapFrame.Map);
+                            }
+                        }
+                    }
+
+                    foreach (var map in maps)
+                    {
+                        foreach (var layer in map.GetLayersAsFlattenedList().OfType<FeatureLayer>())
+                        {
+                            var featureClass = layer.GetFeatureClass();
+                            if (featureClass?.GetDefinition()?.GetShapeType() != GeometryType.Polygon)
+                            {
+                                continue;
+                            }
+
+                            if (!layerMap.ContainsKey(layer.Name))
+                            {
+                                layerMap[layer.Name] = layer;
+                                layerNames.Add(layer.Name);
+                            }
+                        }
+                    }
+                });
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    _intersectLayersByName.Clear();
+                    foreach (var pair in layerMap)
+                    {
+                        _intersectLayersByName[pair.Key] = pair.Value;
+                    }
+
+                    IntersectLayerComboBox.Items.Clear();
+                    foreach (var name in layerNames.OrderBy(name => name))
+                    {
+                        IntersectLayerComboBox.Items.Add(name);
+                    }
+
+                    var targetLayerName = !string.IsNullOrWhiteSpace(_pendingIntersectLayerName)
+                        ? _pendingIntersectLayerName
+                        : IntersectLayerComboBox.SelectedItem?.ToString();
+                    if (!string.IsNullOrWhiteSpace(targetLayerName) && IntersectLayerComboBox.Items.Contains(targetLayerName))
+                    {
+                        IntersectLayerComboBox.SelectedItem = targetLayerName;
+                    }
+                    else if (IntersectLayerComboBox.Items.Count > 0 && IntersectLayerComboBox.SelectedIndex < 0)
+                    {
+                        IntersectLayerComboBox.SelectedIndex = 0;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"加载交集图层失败: {ex.Message}");
+            }
+        }
+
+        private void IntersectLayerComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LoadIntersectFieldsAsync(IntersectLayerComboBox.SelectedItem?.ToString());
+        }
+
+        private async void LoadIntersectFieldsAsync(string layerName)
+        {
+            try
+            {
+                var fieldNames = new List<string>();
+                if (!string.IsNullOrWhiteSpace(layerName) && _intersectLayersByName.TryGetValue(layerName, out var layer))
+                {
+                    await QueuedTask.Run(() =>
+                    {
+                        var featureClass = layer.GetFeatureClass();
+                        var fields = featureClass?.GetDefinition()?.GetFields();
+                        if (fields == null) return;
+
+                        foreach (var field in fields)
+                        {
+                            if (field.FieldType == FieldType.Geometry ||
+                                field.FieldType == FieldType.OID ||
+                                field.FieldType == FieldType.GlobalID ||
+                                field.FieldType == FieldType.Blob ||
+                                field.FieldType == FieldType.Raster)
+                            {
+                                continue;
+                            }
+
+                            fieldNames.Add(field.Name);
+                        }
+                    });
+                }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IntersectFieldComboBox.Items.Clear();
+                    foreach (var fieldName in fieldNames)
+                    {
+                        IntersectFieldComboBox.Items.Add(fieldName);
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(_pendingIntersectFieldName) && IntersectFieldComboBox.Items.Contains(_pendingIntersectFieldName))
+                    {
+                        IntersectFieldComboBox.SelectedItem = _pendingIntersectFieldName;
+                    }
+                    else if (IntersectFieldComboBox.Items.Count > 0)
+                    {
+                        IntersectFieldComboBox.SelectedIndex = 0;
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"加载交集字段失败: {ex.Message}");
+            }
         }
         
         private void PositionModeChanged(object sender, RoutedEventArgs e)
@@ -365,6 +516,19 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                     break;
                 }
             }
+
+            // 交集表格设置
+            EnableIntersectTableCheckBox.IsChecked = settings.EnableIntersectTable;
+            _pendingIntersectLayerName = settings.IntersectLayerName;
+            _pendingIntersectFieldName = settings.IntersectClassField;
+            IntersectTableTitleTextBox.Text = settings.IntersectTableTitle ?? "交集汇总表";
+            SelectComboBoxItemByContent(IntersectAreaUnitComboBox, settings.IntersectAreaUnit);
+            IntersectDecimalTextBox.Text = settings.IntersectDecimalPlaces.ToString();
+            IntersectRowHeightTextBox.Text = settings.IntersectRowHeight.ToString(CultureInfo.InvariantCulture);
+            IntersectCategoryColWidthTextBox.Text = settings.IntersectCategoryColWidth.ToString(CultureInfo.InvariantCulture);
+            IntersectAreaColWidthTextBox.Text = settings.IntersectAreaColWidth.ToString(CultureInfo.InvariantCulture);
+            SelectComboBoxItemByContent(IntersectPlacementCornerComboBox, settings.IntersectPlacementCorner);
+            IntersectCornerOffsetTextBox.Text = settings.IntersectCornerOffset.ToString(CultureInfo.InvariantCulture);
             
             // 设置面积单位
             for (int i = 0; i < AreaUnitComboBox.Items.Count; i++)
@@ -372,6 +536,20 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                 if (AreaUnitComboBox.Items[i].ToString() == settings.AreaUnit)
                 {
                     AreaUnitComboBox.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        private static void SelectComboBoxItemByContent(ComboBox comboBox, string content)
+        {
+            if (comboBox == null || string.IsNullOrWhiteSpace(content)) return;
+
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                if (item.Content?.ToString() == content)
+                {
+                    comboBox.SelectedItem = item;
                     break;
                 }
             }
@@ -429,7 +607,19 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
                 EdgeLabelPadZeros = EdgeLabelPadZerosCheckBox.IsChecked == true,
                 EdgeLabelDistance = double.Parse(EdgeLabelDistanceTextBox.Text, CultureInfo.InvariantCulture),
                 EdgeLabelSize = double.Parse(EdgeLabelSizeTextBox.Text, CultureInfo.InvariantCulture),
-                EdgeLabelOverlapMode = (EdgeLabelOverlapComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "压盖隐藏"
+                EdgeLabelOverlapMode = (EdgeLabelOverlapComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "压盖隐藏",
+                // 交集表格设置
+                EnableIntersectTable = EnableIntersectTableCheckBox.IsChecked == true,
+                IntersectLayerName = IntersectLayerComboBox.SelectedItem?.ToString() ?? "",
+                IntersectClassField = IntersectFieldComboBox.SelectedItem?.ToString() ?? "",
+                IntersectTableTitle = IntersectTableTitleTextBox.Text ?? "交集汇总表",
+                IntersectAreaUnit = (IntersectAreaUnitComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "平方米",
+                IntersectDecimalPlaces = int.Parse(IntersectDecimalTextBox.Text),
+                IntersectCategoryColWidth = double.Parse(IntersectCategoryColWidthTextBox.Text, CultureInfo.InvariantCulture),
+                IntersectAreaColWidth = double.Parse(IntersectAreaColWidthTextBox.Text, CultureInfo.InvariantCulture),
+                IntersectRowHeight = double.Parse(IntersectRowHeightTextBox.Text, CultureInfo.InvariantCulture),
+                IntersectPlacementCorner = (IntersectPlacementCornerComboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? "右下角",
+                IntersectCornerOffset = double.Parse(IntersectCornerOffsetTextBox.Text, CultureInfo.InvariantCulture)
             };
 
             // 保存设置到文件
@@ -589,6 +779,51 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
             if (!double.TryParse(EdgeLabelSizeTextBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double els) || els <= 0)
             {
                 MessageBox.Show("边长字体大小必须是正数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (EnableIntersectTableCheckBox.IsChecked == true)
+            {
+                if (IntersectLayerComboBox.SelectedItem == null)
+                {
+                    MessageBox.Show("请选择交集表格相交图层", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+
+                if (IntersectFieldComboBox.SelectedItem == null)
+                {
+                    MessageBox.Show("请选择交集表格分类字段", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
+                }
+            }
+
+            if (!int.TryParse(IntersectDecimalTextBox.Text, out int itd) || itd < 0 || itd > 10)
+            {
+                MessageBox.Show("交集表小数位数必须是0-10之间的整数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!double.TryParse(IntersectCategoryColWidthTextBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double itcw) || itcw <= 0)
+            {
+                MessageBox.Show("交集表类别列宽必须是正数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!double.TryParse(IntersectAreaColWidthTextBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double itaw) || itaw <= 0)
+            {
+                MessageBox.Show("交集表面积列宽必须是正数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!double.TryParse(IntersectRowHeightTextBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double itrh) || itrh <= 0)
+            {
+                MessageBox.Show("交集表行高必须是正数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return false;
+            }
+
+            if (!double.TryParse(IntersectCornerOffsetTextBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double itco) || itco < 0)
+            {
+                MessageBox.Show("交集表偏移量必须是非负数", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
 
@@ -816,6 +1051,19 @@ namespace XIAOFUTools.Tools.Output.MapSeriesExport
         public double EdgeLabelDistance { get; set; } = 2.0;     // 边长离边距离（毫米）
         public double EdgeLabelSize { get; set; } = 10.0;        // 边长字体大小（点）
         public string EdgeLabelOverlapMode { get; set; } = "压盖隐藏"; // 边长压盖模式
+
+        // 交集表格设置
+        public bool EnableIntersectTable { get; set; } = false;
+        public string IntersectLayerName { get; set; } = "";
+        public string IntersectClassField { get; set; } = "";
+        public string IntersectTableTitle { get; set; } = "交集汇总表";
+        public string IntersectAreaUnit { get; set; } = "平方米";
+        public int IntersectDecimalPlaces { get; set; } = 2;
+        public double IntersectCategoryColWidth { get; set; } = 22;
+        public double IntersectAreaColWidth { get; set; } = 18;
+        public double IntersectRowHeight { get; set; } = 5.5;
+        public string IntersectPlacementCorner { get; set; } = "右下角";
+        public double IntersectCornerOffset { get; set; } = 2;
         
         // 别名属性（用于设置窗口兼容）
         public string Title { get => TitleText; set => TitleText = value; }

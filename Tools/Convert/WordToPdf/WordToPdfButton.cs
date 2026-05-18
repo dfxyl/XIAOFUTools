@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.WordToPdf
 {
@@ -10,10 +9,6 @@ namespace XIAOFUTools.Tools.WordToPdf
         {
             try
             {
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("Word批量转PDF工具"))
-                {
-                    return;
-                }
 
                 WordToPdfDockPane.Show();
             }

@@ -116,6 +116,11 @@ namespace XIAOFUTools.Tools.Settings
         /// 插件更新设置
         /// </summary>
         public PluginUpdateSettings PluginUpdate { get; set; } = new PluginUpdateSettings();
+
+        /// <summary>
+        /// 浏览要素工具设置
+        /// </summary>
+        public BrowseFeaturesSettings BrowseFeatures { get; set; } = new BrowseFeaturesSettings();
     }
 
     /// <summary>
@@ -205,5 +210,41 @@ namespace XIAOFUTools.Tools.Settings
         /// 启动时检查更新
         /// </summary>
         public bool CheckForUpdatesOnStartup { get; set; } = true;
+    }
+
+    /// <summary>
+    /// 浏览要素工具设置
+    /// </summary>
+    public class BrowseFeaturesSettings
+    {
+        /// <summary>
+        /// 默认审阅人
+        /// </summary>
+        public string ReviewerName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 输出GDB路径
+        /// </summary>
+        public string OutputGdbPath { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 输出表名
+        /// </summary>
+        public string OutputTableName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 默认批次ID
+        /// </summary>
+        public string BatchId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 是否将备注写回要素字段
+        /// </summary>
+        public bool WriteNotesToFeatureField { get; set; } = false;
+
+        /// <summary>
+        /// 备注回写字段名
+        /// </summary>
+        public string NotesFieldName { get; set; } = string.Empty;
     }
 }

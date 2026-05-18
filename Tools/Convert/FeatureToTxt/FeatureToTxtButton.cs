@@ -1,6 +1,5 @@
 using System;
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.FeatureToTxt
 {
@@ -13,12 +12,6 @@ namespace XIAOFUTools.Tools.FeatureToTxt
         {
             try
             {
-                // 检查授权
-                if (!AuthorizationChecker.CheckAuthorizationWithPrompt("要素类转TXT工具"))
-                {
-                    return;
-                }
-
                 // 打开要素类转TXT停靠窗格
                 FeatureToTxtDockPane.Show();
             }

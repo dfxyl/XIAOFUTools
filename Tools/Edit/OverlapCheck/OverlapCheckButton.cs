@@ -1,5 +1,4 @@
 using ArcGIS.Desktop.Framework.Contracts;
-using XIAOFUTools.Tools.Authorization;
 
 namespace XIAOFUTools.Tools.OverlapCheck
 {
@@ -10,8 +9,6 @@ namespace XIAOFUTools.Tools.OverlapCheck
     {
         protected override void OnClick()
         {
-            if (!AuthorizationChecker.CheckAuthorizationWithPrompt("图形重叠检查工具"))
-                return;
             // 打开停靠窗格
             OverlapCheckDockPane.Show();
         }
