@@ -1,0 +1,144 @@
+<Window x:Class="XIAOFUTools.Features.Custom.GisToolPocket.Presentation.ToolboxHelpWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="GIS 工具口袋使用帮助"
+        Width="640"
+        Height="560"
+        MinWidth="560"
+        MinHeight="460"
+        Background="#ECEFF2"
+        FontFamily="Segoe UI, Microsoft YaHei UI"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize">
+    <Window.Resources>
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="SurfaceSubtleBrush" Color="#F5F7F9" />
+        <SolidColorBrush x:Key="LineBrush" Color="#C9D1D9" />
+        <SolidColorBrush x:Key="TextBrush" Color="#22272E" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#68717D" />
+        <SolidColorBrush x:Key="AccentBrush" Color="#0079C1" />
+
+        <Style x:Key="TitleTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+        </Style>
+
+        <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="Margin" Value="0,14,0,6" />
+        </Style>
+
+        <Style x:Key="BodyTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12.5" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="LineHeight" Value="20" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <Style x:Key="MutedTextStyle" TargetType="TextBlock" BasedOn="{StaticResource BodyTextStyle}">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+        </Style>
+
+        <Style x:Key="ButtonBaseStyle" TargetType="Button">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="MinWidth" Value="72" />
+            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+            <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+            <Setter Property="BorderBrush" Value="{StaticResource LineBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+        </Style>
+    </Window.Resources>
+
+    <DockPanel Margin="10" LastChildFill="True">
+        <Border DockPanel.Dock="Top"
+                Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource LineBrush}"
+                BorderThickness="1"
+                Padding="12"
+                Margin="0,0,0,8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock Text="GIS 工具口袋使用帮助" Style="{StaticResource TitleTextStyle}" />
+                    <TextBlock Text="管理已添加的工具箱、自定义工具组、ArcGIS Pro 内置工具和加载项命令。"
+                               Style="{StaticResource MutedTextStyle}"
+                               Margin="0,5,0,0" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="关闭"
+                        Style="{StaticResource ButtonBaseStyle}"
+                        IsCancel="True"
+                        VerticalAlignment="Center"
+                        Click="CloseButton_Click" />
+            </Grid>
+        </Border>
+
+        <Border Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource LineBrush}"
+                BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="14,12,16,16">
+                    <TextBlock Text="1. 添加和管理来源" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="左侧“来源”列表保存当前已加入 GIS 工具口袋的工具来源。点击“+”添加 .atbx、.tbx 或 .pyt 工具箱；点击“组”创建自定义组。" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="在来源上右键可以重命名、显示/隐藏、刷新、上移、下移或移除。显示/隐藏只影响功能区菜单，不会删除配置。" />
+
+                    <TextBlock Text="2. 自定义组和加载工具" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="自定义组用于把 ArcGIS Pro 内置地理处理工具、地图工具、命令和已安装加载项命令集中到一个自己的分组中。" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="选中自定义组或工具集后，在结构树中右键选择“加载工具...”可以打开 ArcGIS 工具目录并添加工具。" />
+
+                    <TextBlock Text="3. 结构树" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="右侧结构树展示工具箱、工具集和工具的层级。徽标“箱”“集”“工”“命”“绘”分别表示工具箱、工具集、地理处理工具、命令和地图工具。" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="在节点上右键可以重命名、显示/隐藏、展开/折叠。自定义组中的工具和工具集还支持删除。" />
+
+                    <TextBlock Text="4. 拖拽排序" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="自定义组内的工具和工具集可以在结构树中拖拽排序。拖到节点上方或下方表示前后排序，拖到工具箱或工具集内部表示移动到该层级中。" />
+                    <TextBlock Style="{StaticResource MutedTextStyle}"
+                               Text="外部工具箱导入的结构用于展示和运行，不能直接在结构树里删除或重排内部工具。" />
+
+                    <TextBlock Text="5. 菜单模式" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="顶部“菜单”控制全局功能区展开方式：自动、按工具箱、按工具集。每个来源卡片里的菜单模式可以覆盖全局设置。" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="“完整目录”会尽量保留工具箱层级；“平铺工具”会把工具直接列出；“继承全局”表示使用顶部菜单设置。" />
+
+                    <TextBlock Text="6. 功能区搜索和打开工具" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="加载项功能区中的搜索框会搜索当前已添加且可见的工具。输入关键词后选择结果或按回车，会打开匹配工具。" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="普通地理处理工具会打开工具对话框；地图工具会切换当前地图工具；命令会直接执行对应 ArcGIS Pro 命令。" />
+
+                    <TextBlock Text="7. 保存、同步和导入导出" Style="{StaticResource SectionTitleStyle}" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="点击“保存并同步”会保存当前配置并刷新功能区按钮。点击“取消”会关闭窗口，不主动写入本次未保存的调整。" />
+                    <TextBlock Style="{StaticResource BodyTextStyle}"
+                               Text="来源列表空白处右键可以导入或导出完整工具包，便于在不同机器或不同项目之间迁移配置。" />
+
+                    <Border Background="{StaticResource SurfaceSubtleBrush}"
+                            BorderBrush="{StaticResource LineBrush}"
+                            BorderThickness="1"
+                            Padding="10"
+                            Margin="0,14,0,0">
+                        <TextBlock Style="{StaticResource MutedTextStyle}"
+                                   Text="提示：如果功能区没有马上显示最新结构，请先点击“保存并同步”；如果 ArcGIS Pro 仍显示旧资源，重启 ArcGIS Pro 后会重新加载已注册的 Add-in。" />
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+    </DockPanel>
+</Window>
+

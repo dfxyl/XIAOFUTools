@@ -1,0 +1,62 @@
+{
+  "endpoint": "/v1/responses",
+  "tool": "image_generation",
+  "command": "generate",
+  "model": "gpt-5.6-terra",
+  "requested_model": "gpt-5.6-terra",
+  "used_models": [
+    "gpt-5.6-terra"
+  ],
+  "fallback_models": [
+    "gpt-5.6-sol",
+    "gpt-5.6-luna"
+  ],
+  "image_model": "gpt-image-2",
+  "prompt": "Primary request: Use case: infographic-diagram\nAsset type: WeChat public-account article cover\nPrimary request: premium Chinese GIS software release cover for XIAOFU工具箱 version 1.3.0; show two separate GIS toolbox panels merging into one unified ArcGIS Pro add-in.\nScene/background: clean dark blue to cyan geographic grid, subtle contour lines and map layers.\nSubject: two compact toolbox panels flow into one central glowing toolbox icon.\nStyle/medium: polished modern 3D plus flat infographic, professional enterprise GIS visual language.\nComposition/framing: wide 1536x1024 landscape, strong centered focal point, generous clean spacing.\nLighting/mood: clear, confident, technological.\nColor palette: deep navy, teal, cyan, restrained warm gold accent.\nText (verbatim): \"XIAOFU工具箱 v1.3.0\" and \"两个工具箱 合并为一个\"\nConstraints: Chinese text must be large, clear and correct; no extra text; no logo imitation; no watermark.\nAvoid: cluttered UI screenshots, tiny unreadable labels, garbled Chinese, people, stock-photo look.",
+  "revised_prompts": [
+    "Create a premium WeChat public-account article cover, wide landscape 1536×1024. Professional Chinese enterprise GIS software release infographic in a polished hybrid 3D + flat vector style. Background: clean deep navy-to-teal/cyan gradient geographic grid, subtle glowing contour lines, faint transparent map-layer geometry, elegant and spacious. Center composition: at left and right, two separate compact abstract GIS toolbox panels (simple icon blocks and layer/grid symbols, NOT detailed UI screenshots, no small labels) stream inward along luminous cyan paths and merge into one central unified glowing toolbox/add-in icon, suggesting ArcGIS Pro add-in integration without using or imitating any logo. Central icon strong, dimensional, dark navy casing with cyan glow and a restrained warm gold merge/accent detail. Clear confident technological lighting, centered focal point, abundant breathing room, no people, no watermark, no stock-photo aesthetic, no extra text.\n\nTypography must be EXACTLY these two Chinese text strings, large, crisp, correct, and the only text in the image:\nTop-center headline: “XIAOFU工具箱 v1.3.0”\nBottom-center subheadline: “两个工具箱 合并为一个”\nUse clean bold modern Chinese sans-serif, high contrast white with subtle cyan glow; headline prominent and readable, subheadline slightly smaller. Ensure absolutely no other characters, labels, UI text, logos, or watermarks."
+  ],
+  "response_ids": [
+    "resp_01682e8170d1b3a9016a5b576976148197a957d55c89aff656"
+  ],
+  "size": "1536x1024",
+  "quality": "medium",
+  "background": null,
+  "output_format": "png",
+  "output_compression": null,
+  "moderation": null,
+  "user": null,
+  "action": null,
+  "partial_images": null,
+  "saved_partial_images": [],
+  "session": null,
+  "history_turns": null,
+  "local_session_context_used": false,
+  "legacy_images_api_fallback_used": false,
+  "output_file": "docs\\archive\\release-posts\\XIAOFU工具箱_v1.3.0_公众号封面.png",
+  "output_index": 1,
+  "output_details": {
+    "output_file": "docs\\archive\\release-posts\\XIAOFU工具箱_v1.3.0_公众号封面.png",
+    "requested_size": "1536x1024",
+    "requested_output_format": "png",
+    "source_image": {
+      "format": "png",
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    "written_image": {
+      "format": "png",
+      "size": [
+        1536,
+        1024
+      ],
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    "normalization_actions": []
+  }
+}

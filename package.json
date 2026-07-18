@@ -1,7 +1,0 @@
-{
-  "name": "xiaofutools",
-  "license": "MIT",
-  "dependencies": {
-    "docx": "^9.5.1"
-  }
-}

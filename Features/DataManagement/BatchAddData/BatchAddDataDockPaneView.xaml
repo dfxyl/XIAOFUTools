@@ -1,0 +1,187 @@
+<UserControl x:Class="XIAOFUTools.Features.DataManagement.BatchAddData.BatchAddDataDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             xmlns:local="clr-namespace:XIAOFUTools.Features.DataManagement.BatchAddData"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="400"
+             d:DataContext="{Binding Path=BatchAddDataViewModel}"
+             Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Shared/Presentation/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <!-- 搜索参数区域 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 数据类型过滤 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 搜索选项和按钮 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 数据列表 -->
+            <RowDefinition Height="*"/>
+            <!-- 图层组设置和添加按钮 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 进度条和帮助 -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 搜索路径 -->
+        <Grid Grid.Row="0" Margin="0,0,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="路径:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox Grid.Column="1" Text="{Binding SearchPath}"
+                     Style="{StaticResource TextBoxStyle}" Height="24"
+                     ToolTip="输入文件夹路径，支持驱动器根目录（如 E:\）"/>
+            <Button Grid.Column="2" Content="浏览" Height="26" Margin="3,0,0,0" Width="45"
+                    Command="{Binding BrowseFolderCommand}"
+                    Style="{StaticResource DefaultButtonStyle}"
+                    ToolTip="浏览选择文件夹，支持选择驱动器根目录"/>
+        </Grid>
+
+        <!-- 数据类型过滤 -->
+        <Grid Grid.Row="1" Margin="0,0,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="类型:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <CheckBox Content="要素" IsChecked="{Binding IsFeatureClass}"
+                          Style="{StaticResource CheckBoxStyle}" Margin="0,0,10,0"/>
+                <CheckBox Content="表" IsChecked="{Binding IsTable}"
+                          Style="{StaticResource CheckBoxStyle}" Margin="0,0,10,0"/>
+                <CheckBox Content="栅格" IsChecked="{Binding IsRaster}"
+                          Style="{StaticResource CheckBoxStyle}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- 搜索选项和按钮 -->
+        <Grid Grid.Row="2" Margin="0,0,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <CheckBox Grid.Column="0" Content="含子文件夹" IsChecked="{Binding SearchSubfolders}"
+                      Style="{StaticResource CheckBoxStyle}" Margin="0,0,10,0"/>
+
+            <TextBox Grid.Column="1" Text="{Binding Keyword}"
+                     Style="{StaticResource TextBoxStyle}" Height="24"
+                     ToolTip="关键字过滤，空白表示全部"/>
+
+            <Button Grid.Column="2" Content="搜索" Command="{Binding SearchCommand}"
+                    Style="{StaticResource ExecuteButtonStyle}" Height="26" Width="50" Margin="3,0,0,0"
+                    IsEnabled="{Binding CanProcess}"/>
+        </Grid>
+
+        <!-- 数据列表 -->
+        <Grid Grid.Row="3" Margin="0,0,0,5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- 全选/反选按钮和状态显示 -->
+            <Grid Grid.Row="0" Margin="0,0,0,3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="全选" Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding SelectAllCommand}" Width="40" Height="26" Margin="0,0,3,0"/>
+                <Button Grid.Column="1" Content="反选" Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding InvertSelectionCommand}" Width="40" Height="26" Margin="0,0,10,0"/>
+                <TextBlock Grid.Column="2" Text="{Binding StatusMessage}"
+                           VerticalAlignment="Center" FontSize="11" Foreground="#666666"
+                           TextTrimming="CharacterEllipsis"/>
+            </Grid>
+
+            <!-- 数据网格 -->
+            <Border Grid.Row="1" BorderBrush="#CDCDCD" BorderThickness="1">
+                <DataGrid x:Name="DataItemsGrid"
+                          ItemsSource="{Binding DataItems}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          CanUserReorderColumns="False"
+                          CanUserResizeRows="False"
+                          GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column"
+                          SelectionMode="Extended"
+                          Background="White"
+                          BorderThickness="0"
+                          SelectionChanged="DataItemsGrid_SelectionChanged">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="序号" Binding="{Binding Index}"
+                                            Width="35" IsReadOnly="True"/>
+                        <DataGridCheckBoxColumn Header="选择" Binding="{Binding IsSelected}"
+                                                Width="35"/>
+                        <DataGridTextColumn Header="名称" Binding="{Binding Name}"
+                                            Width="*" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="类型" Binding="{Binding DataType}"
+                                            Width="50" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="坐标系" Binding="{Binding CoordinateSystem}"
+                                            Width="70" IsReadOnly="True"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </Grid>
+
+        <!-- 图层组设置和添加按钮 -->
+        <Grid Grid.Row="4" Margin="0,0,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0" Text="图层组:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox Grid.Column="1" Text="{Binding GroupName}"
+                     Style="{StaticResource TextBoxStyle}" Height="24"
+                     ToolTip="输入名称将创建图层组，空白则直接添加到地图"/>
+            <Button Grid.Column="2" Content="添加数据" Command="{Binding AddDataCommand}"
+                    Style="{StaticResource ExecuteButtonStyle}" Height="26" Width="60" Margin="3,0,0,0"
+                    IsEnabled="{Binding CanProcess}"/>
+        </Grid>
+
+        <!-- 进度条和帮助 -->
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 帮助按钮 -->
+            <Button Grid.Column="0" Content="?"
+                    Style="{StaticResource HelpButtonStyle}"
+                    Command="{Binding ShowHelpCommand}"
+                    ToolTip="显示帮助信息" Width="22" Height="22"/>
+
+            <!-- 进度条 -->
+            <ProgressBar Grid.Column="1"
+                        Style="{StaticResource ProgressBarStyle}"
+                        Height="6" Margin="5,8,0,8"
+                        Value="{Binding Progress}"
+                        Minimum="0" Maximum="100"
+                        IsIndeterminate="{Binding IsProgressIndeterminate}"/>
+        </Grid>
+    </Grid>
+</UserControl>

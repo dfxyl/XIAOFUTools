@@ -1,0 +1,147 @@
+<UserControl x:Class="XIAOFUTools.Features.DataManagement.RotateGeometry.RotateGeometryDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             xmlns:local="clr-namespace:XIAOFUTools.Features.DataManagement.RotateGeometry"
+             mc:Ignorable="d"
+             d:DesignHeight="520" d:DesignWidth="430"
+             d:DataContext="{Binding Path=RotateGeometryDockPaneViewModel}"
+             Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Shared/Presentation/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 图层选择 -->
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="图层:" VerticalAlignment="Center" Margin="0,0,10,10"/>
+        <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0"
+                      Style="{StaticResource ComboBoxStyle}"
+                      ItemsSource="{Binding FeatureLayers}"
+                      SelectedItem="{Binding SelectedLayer}"
+                      DisplayMemberPath="Name"/>
+            <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0"
+                    Style="{StaticResource DefaultButtonStyle}"
+                    Command="{Binding RefreshLayersCommand}"
+                    ToolTip="刷新图层列表"
+                    VerticalAlignment="Center">
+                <TextBlock Text="⟲" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Button>
+        </Grid>
+
+        <!-- 留空行（原选择信息移至底部） -->
+        <Grid Grid.Row="1" Grid.ColumnSpan="2"/>
+
+        <!-- 角度设置 -->
+        <GroupBox Grid.Row="2" Grid.ColumnSpan="2" Header="角度与锚点" Margin="0,0,0,10">
+            <StackPanel Margin="10,8,10,10" >
+                <!-- 统一方向设置（全局，仅此一处） -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="方向:" VerticalAlignment="Center"/>
+                    <ComboBox Width="110" Margin="6,0,0,0" SelectedValue="{Binding AngleDirection}" SelectedValuePath="Content" VerticalAlignment="Center">
+                        <ComboBoxItem Content="逆时针"/>
+                        <ComboBoxItem Content="顺时针"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <!-- 角度来源：统一角度 -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <RadioButton Content="统一角度(度)" GroupName="AngleMode" IsChecked="{Binding UseConstantAngle}" VerticalAlignment="Center"/>
+                    <TextBox Width="90" Margin="8,0,0,0" Text="{Binding ConstantAngleDegrees}" Style="{StaticResource TextBoxStyle}" IsEnabled="{Binding UseConstantAngle}"/>
+                </StackPanel>
+
+                <!-- 角度来源：按字段角度 -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <RadioButton Content="按字段角度(度)" GroupName="AngleMode" IsChecked="{Binding UseFieldAngle}" VerticalAlignment="Center"/>
+                    <ComboBox Width="200" Margin="8,0,0,0" ItemsSource="{Binding NumericFields}" SelectedItem="{Binding SelectedAngleField}" IsEnabled="{Binding UseFieldAngle}"/>
+                </StackPanel>
+
+                <!-- 锚点设置 -->
+                <StackPanel Orientation="Vertical" Margin="0,8,0,0">
+                    <!-- 线锚点（仅线图层显示） -->
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsLineLayer, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="0,0,0,6">
+                        <TextBlock Text="线锚点:" VerticalAlignment="Center"/>
+                        <ComboBox Width="140" Margin="6,0,0,0" SelectedValue="{Binding LineAnchor}" SelectedValuePath="Content">
+                            <ComboBoxItem Content="起点"/>
+                            <ComboBoxItem Content="中点"/>
+                            <ComboBoxItem Content="终点"/>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <!-- 面锚点（仅面图层显示） -->
+                    <StackPanel Orientation="Horizontal" Visibility="{Binding IsPolygonLayer, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="面锚点:" VerticalAlignment="Center"/>
+                        <ComboBox Width="160" Margin="6,0,0,0" SelectedValue="{Binding PolygonAnchor}" SelectedValuePath="Content">
+                            <ComboBoxItem Content="质心"/>
+                            <ComboBoxItem Content="标签点"/>
+                            <ComboBoxItem Content="包络中心"/>
+                            <ComboBoxItem Content="左下角"/>
+                            <ComboBoxItem Content="左上角"/>
+                            <ComboBoxItem Content="右下角"/>
+                            <ComboBoxItem Content="右上角"/>
+                            <ComboBoxItem Content="起点"/>
+                        </ComboBox>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </GroupBox>
+
+        <!-- 日志输出 -->
+        <Border Grid.Row="3" Grid.ColumnSpan="2" BorderBrush="#CDCDCD" BorderThickness="1" Margin="0,0,0,10">
+            <TextBox Style="{StaticResource LogTextBoxStyle}"
+                     Text="{Binding LogContent, Mode=OneWay}"
+                     BorderThickness="0"
+                     VerticalAlignment="Stretch"
+                     HorizontalAlignment="Stretch"/>
+        </Border>
+
+        <!-- 按钮区 -->
+        <Grid Grid.Row="4" Grid.ColumnSpan="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <Button Content="?" Width="22" Height="22"
+                        Style="{StaticResource HelpButtonStyle}"
+                        Command="{Binding ShowHelpCommand}"
+                        ToolTip="查看工具使用说明"
+                        HorizontalAlignment="Left"/>
+                <TextBlock Text="{Binding SelectionInfo}" Style="{StaticResource InfoTextBlockStyle}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Right">
+                <Button Content="停止" Width="80" Command="{Binding CancelCommand}" Margin="0,0,10,0"
+                        Style="{StaticResource CancelButtonStyle}"
+                        Visibility="{Binding IsProcessing, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        IsEnabled="{Binding IsProcessing}"/>
+                <Button Content="开始" Width="80" Command="{Binding RunCommand}"
+                        Style="{StaticResource ExecuteButtonStyle}"
+                        IsEnabled="{Binding CanProcess}"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

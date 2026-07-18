@@ -1,7 +1,7 @@
 # XIAOFUTools
 
 <p align="center">
-  <img src="Images/Toolbox_32.png" alt="XIAOFUTools Logo" width="64" height="64">
+  <img src="Assets/Images/Toolbox_32.png" alt="XIAOFUTools Logo" width="64" height="64">
 </p>
 
 <p align="center">
@@ -22,11 +22,17 @@
 
 ## 概述
 
-XIAOFUTools 是一款基于 ArcGIS Pro SDK 开发的专业 GIS 扩展工具箱，采用 .NET 8.0 框架和 WPF/MVVM 架构，为 GIS 从业者提供高效、便捷的数据处理和分析解决方案。
+XIAOFUTools 是一款基于 ArcGIS Pro SDK 开发的专业 GIS 扩展工具箱，采用 .NET 10.0 框架和 WPF/MVVM 架构，为 GIS 从业者提供高效、便捷的数据处理和分析解决方案。
 
 ## 功能特性
 
-当前 Ribbon 按 `通用 / 编辑 / 数据 / 制图 / 系统` 5 组组织。
+当前 Ribbon 按 通用 / 编辑 / 数据 / 制图 / 系统 5 组组织；另提供可选的独立 GIS 工具口袋 标签页。
+
+### GIS 工具口袋
+- **工具箱合并** - 原 GIS Toolbox 已整合进 XIAOFU工具箱，无需再安装第二个插件。
+- **多来源收纳** - 支持添加 .atbx、.tbx、.pyt 工具箱，以及 ArcGIS Pro 内置命令、地图工具和自定义工具组。
+- **快速调用** - 支持工具搜索、工具箱层级浏览、显示/隐藏、拖拽排序和最多 32 个动态入口。
+- **配置迁移** - 支持完整工具包导入导出，并兼容读取原 GIS Toolbox 配置。
 
 ### 通用
 - **查看面积** - 快速查看当前要素面积
@@ -45,7 +51,7 @@ XIAOFUTools 是一款基于 ArcGIS Pro SDK 开发的专业 GIS 扩展工具箱�
 - **计算面积** - 当前数据组的顶级入口
 - **分析检查** - 包含 `提取面扣岛`、`交集汇总表`、`多图层压盖汇总`、`数据透视`、`节点距离检查工具`、`图形重叠检查工具`、`缝隙检查工具`
 - **格式转换** - 包含 `要素类转TXT`、`TXT转SHP`、`特殊坐标转换`、`要素图层分组导出KML/KMZ`、`面转DWG[带填充]`、`面转DXF[带填充]`
-- **数据整备** - 包含 `批量合并SHP`、`MDB批量转GDB`、`镜像数据库`、`属性表建库`、`属性表建SHP`、`SHP输字段表`、`输出数据库属性结构表`
+- **数据整备** - 包含 `批量合并SHP`、`MDB批量格式转换`、`镜像数据库`、`属性表建库`、`属性表建SHP`、`SHP输字段表`、`输出数据库属性结构表`
 
 ### 制图
 - **布局图幅** - 包含 `驱动制图`、`导出布局`、`布局元素查找替换`、`生成小比例尺图幅`、`生成大比例尺图幅`
@@ -66,8 +72,8 @@ XIAOFUTools 是一款基于 ArcGIS Pro SDK 开发的专业 GIS 扩展工具箱�
 
 | 组件 | 版本要求 |
 |------|----------|
-| ArcGIS Pro | 3.6+ |
-| .NET | 8.0 |
+| ArcGIS Pro | 3.7 |
+| .NET | 10.0 |
 | Windows | 10/11 (64-bit) |
 
 ## 安装说明
@@ -82,46 +88,42 @@ XIAOFUTools 是一款基于 ArcGIS Pro SDK 开发的专业 GIS 扩展工具箱�
 # 克隆仓库
 git clone https://github.com/xiaofuX1/XIAOFUTools.git
 
-# 使用 Visual Studio 2022 打开解决方案
-# 编译 Release 版本
-dotnet build -c Release
+# 使用 Visual Studio 2022 打开解决方案，选择 Release / x64
+# 非标准安装目录通过 ArcGISProInstallDir 指定
+dotnet build XIAOFUTools.sln -c Release -p:Platform=x64 -p:ArcGISProInstallDir="D:\ArcGIS\Pro"
 ```
 
 ## 快速开始
 
 1. 启动 ArcGIS Pro
-2. 在功能区找到 **XIAOFU工具箱** 选项卡
-3. 选择需要的工具开始使用
+2. 在功能区找到 **XIAOFU工具箱** 或 **GIS 工具口袋** 选项卡
+3. 首次使用 GIS 工具口袋时，点击“管理”添加工具箱或常用命令
+4. 如需隐藏该标签页，可在 **XIAOFU工具箱 > 系统 > 设置** 中关闭“显示 GIS 工具口袋标签页”
 
 ## 文档
 
 | 文档 | 说明 |
 |------|------|
-| [Docs/USER_GUIDE.md](Docs/USER_GUIDE.md) | 用户使用手册 |
-| [Docs/FAQ.md](Docs/FAQ.md) | 常见问题解答 |
-| [AGENTS.md](AGENTS.md) | 开发规范与架构指南 |
-| [RELEASE.md](RELEASE.md) | 版本发布指南（GitHub） |
+| [docs/user-guide.md](docs/user-guide.md) | 用户使用手册 |
+| [docs/faq.md](docs/faq.md) | 常见问题解答 |
+| [docs/architecture.md](docs/architecture.md) | 架构与依赖边界 |
+| [docs/development.md](docs/development.md) | 开发规范与新增功能流程 |
+| [docs/verification.md](docs/verification.md) | 架构治理与 ArcGIS Pro 宿主验收 |
+| [docs/releasing.md](docs/releasing.md) | 版本发布指南 |
 | [CHANGELOG.md](CHANGELOG.md) | 版本更新日志 |
 
 ## 项目结构
 
 ```
 XIAOFUTools/
-├── Common/              # 公共组件
-├── Data/                # 数据文件（模板、图层）
-├── Docs/                # 项目文档
-├── Images/              # 图标资源
-├── Styles/              # WPF 样式
-├── Tools/               # 工具模块
-│   ├── Analysis/        # 分析统计与右键扩展
-│   ├── Common/          # 通用与地图加载工具
-│   ├── Convert/         # 格式转换与导出工具
-│   ├── DataProcessing/  # 数据整备、建库与图幅工具
-│   ├── Edit/            # 编辑、界址与质检工具
-│   ├── LayoutTools/     # 布局制图辅助工具
-│   └── User/            # 用户与系统工具
+├── App/                 # Add-in 生命周期与组合入口
+├── Shared/              # ArcGIS、MVVM、诊断、IO 与公共界面基础设施
+├── Features/            # 按业务域组织的功能模块
+├── Assets/              # 图标、模板、图层和符号库
+├── docs/                # 架构、开发、用户和发布文档
+├── tools/               # 图标与维护脚本
+├── tests/               # 自动化测试工程
 ├── Config.daml          # ArcGIS Pro 插件配置
-├── Module1.cs           # 主模块入口
 └── XIAOFUTools.csproj   # 项目文件
 ```
 

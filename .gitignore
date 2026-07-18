@@ -371,3 +371,7 @@ Extensions/spatial.duckdb*
 tmp/
 .tmp_test/
 .continue/
+.ruff_cache/
+Downloads/
+.worktrees/
+XIAOFUTools.local.props

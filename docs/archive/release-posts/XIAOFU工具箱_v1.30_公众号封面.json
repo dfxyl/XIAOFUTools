@@ -1,0 +1,62 @@
+{
+  "endpoint": "/v1/responses",
+  "tool": "image_generation",
+  "command": "generate",
+  "model": "gpt-5.6-terra",
+  "requested_model": "gpt-5.6-terra",
+  "used_models": [
+    "gpt-5.6-terra"
+  ],
+  "fallback_models": [
+    "gpt-5.6-sol",
+    "gpt-5.6-luna"
+  ],
+  "image_model": "gpt-image-2",
+  "prompt": "Primary request: Use case: stylized-concept. Asset type: WeChat article cover. Primary request: a premium visual cover for a Chinese ArcGIS Pro utility update centered on a GIS tool pocket. Scene/background: a clean modern dark navy geographic workspace with subtle contour lines, grid coordinates and layered map panels. Subject: a compact floating toolbox organizer containing map layers, geoprocessing symbols and a location pin. Style/medium: refined isometric 3D editorial illustration. Composition/framing: landscape, toolbox placed slightly left of center with generous clean negative space on the right for later editorial title overlay. Lighting/mood: calm professional blue glow. Color palette: navy, cyan, white, restrained gold accents. Constraints: no words, no letters, no logos, no watermark, no interface screenshots, no brand marks. Avoid: clutter, neon overload, generic stock style.",
+  "revised_prompts": [
+    "Premium WeChat article cover, landscape 16:9. Refined isometric 3D editorial illustration for a Chinese GIS utility update centered on a compact “GIS tool pocket.” Clean modern dark navy geographic workspace background with subtle topographic contour lines, faint coordinate grid marks without any readable characters, and elegant layered abstract map panels. Place a compact floating toolbox organizer slightly left of center, with orderly compartments holding abstract map-layer tiles, simplified geoprocessing glyphs (purely symbolic, no text), tiny terrain/grid elements, and one polished location pin. Leave generous clean negative space on the right for later editorial title overlay. Calm professional blue/cyan ambient glow, navy/cyan/white palette with restrained premium gold metal accents. Sophisticated depth, soft shadows, meticulous materials, uncluttered composition, high-end technology editorial artwork. Strictly no words, no letters, no numbers, no logos, no brand marks, no watermark, no UI/interface screenshot, no clutter, no neon overload, no generic stock illustration look."
+  ],
+  "response_ids": [
+    "resp_0e55eefec7c23c08016a5b06d511f08197b2c6f97fb07828fc"
+  ],
+  "size": "1536x1024",
+  "quality": "high",
+  "background": null,
+  "output_format": "png",
+  "output_compression": null,
+  "moderation": null,
+  "user": null,
+  "action": null,
+  "partial_images": null,
+  "saved_partial_images": [],
+  "session": "xiaofutools-v130",
+  "history_turns": 3,
+  "local_session_context_used": false,
+  "legacy_images_api_fallback_used": false,
+  "output_file": "docs\\archive\\release-posts\\XIAOFU工具箱_v1.30_公众号封面.png",
+  "output_index": 1,
+  "output_details": {
+    "output_file": "docs\\archive\\release-posts\\XIAOFU工具箱_v1.30_公众号封面.png",
+    "requested_size": "1536x1024",
+    "requested_output_format": "png",
+    "source_image": {
+      "format": "png",
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    "written_image": {
+      "format": "png",
+      "size": [
+        1672,
+        941
+      ],
+      "mode": "RGB",
+      "has_alpha": false
+    },
+    "normalization_actions": []
+  }
+}

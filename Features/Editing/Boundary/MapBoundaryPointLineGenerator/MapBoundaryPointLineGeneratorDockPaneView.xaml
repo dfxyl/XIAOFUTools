@@ -1,0 +1,289 @@
+<UserControl x:Class="XIAOFUTools.Features.Editing.Boundary.MapBoundaryPointLineGenerator.MapBoundaryPointLineGeneratorDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Shared/Presentation/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ======== 顶部固定：输入设置 ======== -->
+        <Grid Grid.Row="0" Margin="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 面要素图层 -->
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="面要素图层:" VerticalAlignment="Center" Margin="0,0,10,8"/>
+            <Grid Grid.Row="0" Grid.Column="1" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" Style="{StaticResource ComboBoxStyle}"
+                          ItemsSource="{Binding PolygonLayers}"
+                          SelectedItem="{Binding SelectedPolygonLayer}"
+                          DisplayMemberPath="Name"/>
+                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0" Style="{StaticResource DefaultButtonStyle}" 
+                        Command="{Binding RefreshCommand}" ToolTip="刷新图层和布局列表">
+                    <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"/>
+                </Button>
+            </Grid>
+
+            <!-- 使用所选记录 -->
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8"
+                        Visibility="{Binding HasSelection, Converter={StaticResource BoolToVis}}">
+                <ToggleButton Style="{StaticResource ToggleSwitchStyle}"
+                              IsChecked="{Binding UseSelection, Mode=TwoWay}"
+                              VerticalAlignment="Center"/>
+                <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontSize="11">
+                    <Run Text="使用所选记录："/>
+                    <Run Text="{Binding SelectedCount}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- 唯一字段 -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="唯一字段:" VerticalAlignment="Center" Margin="0,0,10,8"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" Style="{StaticResource ComboBoxStyle}" Margin="0,0,0,8"
+                      ItemsSource="{Binding AvailableFields}"
+                      SelectedItem="{Binding SelectedUniqueField}"/>
+
+            <!-- 布局选择 -->
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="模板所在布局:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <ComboBox Grid.Row="3" Grid.Column="1" Style="{StaticResource ComboBoxStyle}"
+                      ItemsSource="{Binding LayoutNames}"
+                      SelectedItem="{Binding SelectedLayoutName}"/>
+        </Grid>
+
+        <!-- ======== 中间可滚动：设置分组（可折叠） + 日志 ======== -->
+        <Grid Grid.Row="1" Margin="12,0,12,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- 设置分组（可滚动+可折叠） -->
+            <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" MaxHeight="350">
+                <StackPanel>
+                    <!-- 界址点设置 -->
+                    <Expander IsExpanded="False" Margin="0,0,0,8">
+                        <Expander.Header>
+                            <CheckBox IsChecked="{Binding EnableBoundaryPoints}" 
+                                      Content="界址点设置" FontWeight="SemiBold" FontSize="11" Foreground="#4A7C3F"/>
+                        </Expander.Header>
+                        <Grid IsEnabled="{Binding EnableBoundaryPoints}" Margin="5,8,5,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="点符号大小:" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox Grid.Column="1" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                     Text="{Binding BoundaryPointSize}" ToolTip="界址点符号大小（点）"/>
+                        </Grid>
+                    </Expander>
+
+                    <!-- 界址线设置 -->
+                    <Expander IsExpanded="False" Margin="0,0,0,8">
+                        <Expander.Header>
+                            <CheckBox IsChecked="{Binding EnableBoundaryLines}" 
+                                      Content="界址线设置" FontWeight="SemiBold" FontSize="11" Foreground="#2E7D32"/>
+                        </Expander.Header>
+                        <Grid IsEnabled="{Binding EnableBoundaryLines}" Margin="5,8,5,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="线宽:" FontSize="10" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                            <TextBox Grid.Column="1" Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                     Text="{Binding BoundaryLineWidth}" ToolTip="界址线宽度（点）"/>
+                        </Grid>
+                    </Expander>
+
+                    <!-- 点号设置 -->
+                    <Expander IsExpanded="False" Margin="0,0,0,8">
+                        <Expander.Header>
+                            <CheckBox IsChecked="{Binding EnablePointLabels}" 
+                                      Content="点号设置" FontWeight="SemiBold" FontSize="11" Foreground="#C25A3C"/>
+                        </Expander.Header>
+                        <StackPanel IsEnabled="{Binding EnablePointLabels}" Margin="5,8,5,0">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="前缀:" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding PointLabelPrefix}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="后缀:" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding PointLabelSuffix}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="距离(mm):" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding PointLabelDistance}" ToolTip="点号距离界址点的距离"/>
+                                </StackPanel>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="字体大小:" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding PointLabelSize}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="压盖处理:" FontSize="10" Margin="0,0,0,2"/>
+                                    <ComboBox Style="{StaticResource ComboBoxStyle}" Height="24" FontSize="11"
+                                              ItemsSource="{Binding OverlapModes}"
+                                              SelectedItem="{Binding PointLabelOverlapMode}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Expander>
+
+                    <!-- 边长标注设置 -->
+                    <Expander IsExpanded="False" Margin="0,0,0,8">
+                        <Expander.Header>
+                            <CheckBox IsChecked="{Binding EnableEdgeLabels}" 
+                                      Content="边长标注设置" FontWeight="SemiBold" FontSize="11" Foreground="#6B4E9B"/>
+                        </Expander.Header>
+                        <StackPanel IsEnabled="{Binding EnableEdgeLabels}" Margin="5,8,5,0">
+                            <Grid Margin="0,0,0,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="前缀:" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding EdgeLabelPrefix}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="后缀:" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding EdgeLabelSuffix}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="小数位:" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding EdgeLabelDecimal}"/>
+                                </StackPanel>
+                                <CheckBox Grid.Column="6" IsChecked="{Binding EdgeLabelPadZeros}" 
+                                          Content="补零" VerticalAlignment="Bottom" Margin="0,0,0,4"
+                                          FontSize="10" ToolTip="勾选后小数补零到指定位数（如2.3变2.30）"/>
+                            </Grid>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="6"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="距离(mm):" FontSize="10" Margin="0,0,0,2" ToolTip="边长距离边的距离"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding EdgeLabelDistance}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="2">
+                                    <TextBlock Text="字体大小:" FontSize="10" Margin="0,0,0,2"/>
+                                    <TextBox Style="{StaticResource TextBoxStyle}" Height="24" FontSize="11"
+                                             Text="{Binding EdgeLabelSize}"/>
+                                </StackPanel>
+                                <StackPanel Grid.Column="4">
+                                    <TextBlock Text="压盖处理:" FontSize="10" Margin="0,0,0,2"/>
+                                    <ComboBox Style="{StaticResource ComboBoxStyle}" Height="24" FontSize="11"
+                                              ItemsSource="{Binding OverlapModes}"
+                                              SelectedItem="{Binding EdgeLabelOverlapMode}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Expander>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- 日志区域（自适应高度） -->
+            <Border Grid.Row="1" BorderBrush="#CDCDCD" BorderThickness="1" Margin="0,8,0,10">
+                <TextBox Style="{StaticResource LogTextBoxStyle}"
+                         Text="{Binding LogContent, Mode=OneWay}"
+                         BorderThickness="0"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalAlignment="Stretch"
+                         VerticalScrollBarVisibility="Auto"/>
+            </Border>
+        </Grid>
+
+        <!-- ======== 底部固定：进度与操作按钮 ======== -->
+        <Grid Grid.Row="2" Margin="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- 进度条 -->
+            <ProgressBar Grid.Row="0" Height="6" Margin="0,0,0,6"
+                         Style="{StaticResource ProgressBarStyle}"
+                         Value="{Binding Progress}" Minimum="0" Maximum="100"
+                         IsIndeterminate="{Binding IsProgressIndeterminate}"/>
+
+            <!-- 按钮区域 -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="?" Width="22" Height="22" Style="{StaticResource HelpButtonStyle}"
+                        Command="{Binding ShowHelpCommand}"/>
+
+                <TextBlock Grid.Column="1" Text="{Binding StatusMessage}" VerticalAlignment="Center" Margin="8,0" 
+                           TextTrimming="CharacterEllipsis"/>
+
+                <Button Grid.Column="2" Content="生成模板" Width="70" Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding CreateAllTemplatesCommand}" Margin="0,0,8,0" ToolTip="在所选布局生成所有模板"/>
+
+                <Button Grid.Column="3" Content="开始" Width="80" Style="{StaticResource ExecuteButtonStyle}"
+                        Command="{Binding RunCommand}" IsEnabled="{Binding CanProcess}"/>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

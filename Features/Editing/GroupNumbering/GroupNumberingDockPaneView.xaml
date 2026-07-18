@@ -1,0 +1,228 @@
+<UserControl x:Class="XIAOFUTools.Features.Editing.GroupNumbering.GroupNumberingDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:extensions="clr-namespace:ArcGIS.Desktop.Extensions;assembly=ArcGIS.Desktop.Extensions"
+             xmlns:local="clr-namespace:XIAOFUTools.Features.Editing.GroupNumbering"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="400"
+             d:DataContext="{Binding Path=GroupNumberingViewModel}"
+             Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- 引用自定义样式 -->
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Shared/Presentation/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+            
+            <!-- 局部样式重写 -->
+            <Style x:Key="FormLabelStyle" TargetType="TextBlock" BasedOn="{StaticResource LabelTextBlockStyle}">
+                <Setter Property="Margin" Value="0,3,10,0"/>
+                <Setter Property="HorizontalAlignment" Value="Right"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="MinWidth" Value="60"/>
+            </Style>
+            
+            <Style x:Key="CompactComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource ComboBoxStyle}">
+                <Setter Property="Margin" Value="0,2,0,5"/>
+            </Style>
+            
+            <Style x:Key="CompactTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}">
+                <Setter Property="Margin" Value="0,2,0,5"/>
+            </Style>
+            
+            <Style x:Key="CompactCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource CheckBoxStyle}">
+                <Setter Property="Margin" Value="0,2,0,5"/>
+            </Style>
+        </ResourceDictionary>
+    </UserControl.Resources>
+    
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 编号图层 -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="编号图层"
+                    Style="{StaticResource FormLabelStyle}"/>
+            <Grid Grid.Row="0" Grid.Column="1" Margin="0,4,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0"
+                        Style="{StaticResource CompactComboBoxStyle}"
+                        ItemsSource="{Binding LayerList}"
+                        SelectedItem="{Binding SelectedLayer, Mode=TwoWay}"
+                        DisplayMemberPath="Name"
+                        IsEditable="False"
+                        IsReadOnly="True"
+                        StaysOpenOnEdit="False"
+                        IsSynchronizedWithCurrentItem="True"
+                        IsEnabled="True"
+                        Margin="0,0,0,0"/>
+                <Button Grid.Column="1" Width="26" Height="26" Margin="5,0,0,0"
+                        Style="{StaticResource DefaultButtonStyle}"
+                        Command="{Binding RefreshLayersCommand}"
+                        ToolTip="刷新图层列表"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="⟲" FontSize="14" FontWeight="Bold"
+                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Button>
+            </Grid>
+
+            <!-- 使用所选记录 滑动开关（有选择时显示，无选择时隐藏） -->
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,4,0,8">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Setter Property="Opacity" Value="1"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasSelection}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding UseSelection}" Value="False">
+                                <Setter Property="Opacity" Value="0.6"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <ToggleButton x:Name="UseSelectionSwitch"
+                              Style="{StaticResource ToggleSwitchStyle}"
+                              IsChecked="{Binding UseSelection, Mode=TwoWay}"
+                              VerticalAlignment="Center"/>
+                <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" Style="{StaticResource InfoTextBlockStyle}">
+                    <Run Text="使用所选记录："/>
+                    <Run Text="{Binding SelectedCount}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- 分组字段 -->
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="分组字段" 
+                    Style="{StaticResource FormLabelStyle}"/>
+            <ComboBox Grid.Row="2" Grid.Column="1" 
+                    Style="{StaticResource CompactComboBoxStyle}"
+                    ItemsSource="{Binding GroupFieldList}"
+                    SelectedItem="{Binding SelectedGroupField, Mode=TwoWay}"
+                    IsEditable="False"
+                    IsReadOnly="True"
+                    StaysOpenOnEdit="False"
+                    IsSynchronizedWithCurrentItem="True"
+                    IsEnabled="True"
+                    Margin="0,4,0,8"/>
+
+            <!-- 编号字段 -->
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="编号字段" 
+                    Style="{StaticResource FormLabelStyle}"/>
+            <ComboBox Grid.Row="3" Grid.Column="1" 
+                    Style="{StaticResource CompactComboBoxStyle}"
+                    ItemsSource="{Binding NumberFieldList}"
+                    SelectedItem="{Binding SelectedNumberField, Mode=TwoWay}"
+                    IsEditable="False"
+                    IsReadOnly="True"
+                    StaysOpenOnEdit="False"
+                    IsSynchronizedWithCurrentItem="True"
+                    IsEnabled="True"
+                    Margin="0,4,0,8"/>
+
+            <!-- 有效位数 -->
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="有效位数" 
+                    Style="{StaticResource FormLabelStyle}"/>
+            <ComboBox Grid.Row="4" Grid.Column="1" 
+                    Style="{StaticResource CompactComboBoxStyle}"
+                    ItemsSource="{Binding DigitsList}"
+                    SelectedItem="{Binding SelectedDigit, Mode=TwoWay}"
+                    IsEditable="False"
+                    IsReadOnly="True"
+                    StaysOpenOnEdit="False"
+                    IsSynchronizedWithCurrentItem="True"
+                    IsEnabled="True"
+                    Margin="0,4,0,8"/>
+
+            <!-- 起始号码 -->
+            <TextBlock Grid.Row="5" Grid.Column="0" Text="起始号码" 
+                    Style="{StaticResource FormLabelStyle}"/>
+            <TextBox Grid.Row="5" Grid.Column="1" 
+                    Style="{StaticResource CompactTextBoxStyle}"
+                    Text="{Binding StartNumber, Mode=TwoWay}"
+                    Margin="0,4,0,8"/>
+
+            <!-- 前缀 -->
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="前缀" 
+                    Style="{StaticResource FormLabelStyle}"/>
+            <TextBox Grid.Row="6" Grid.Column="1" 
+                    Style="{StaticResource CompactTextBoxStyle}"
+                    Text="{Binding Prefix, Mode=TwoWay}"
+                    Margin="0,4,0,8"/>
+
+            <!-- 后缀 -->
+            <TextBlock Grid.Row="7" Grid.Column="0" Text="后缀" 
+                    Style="{StaticResource FormLabelStyle}"/>
+            <TextBox Grid.Row="7" Grid.Column="1" 
+                    Style="{StaticResource CompactTextBoxStyle}"
+                    Text="{Binding Suffix, Mode=TwoWay}"
+                    Margin="0,4,0,8"/>
+
+            <!-- 是否只编空记录 -->
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="" 
+                    Style="{StaticResource FormLabelStyle}"/>
+            <CheckBox Grid.Row="8" Grid.Column="1" 
+                    Style="{StaticResource CompactCheckBoxStyle}"
+                    Content="只编辑空记录"
+                    IsChecked="{Binding OnlyEmptyRecords, Mode=TwoWay}"
+                    Margin="0,4,0,8"/>
+
+        </Grid>
+
+        <!-- 底部按钮 -->
+        <Grid Grid.Row="2">
+            <Border BorderBrush="{StaticResource DividerBrush}" 
+                   BorderThickness="0,1,0,0" 
+                   Margin="0,8,0,10" 
+                   Padding="0,10,0,0">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- 左侧：帮助 -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Button x:Name="HelpButton" Content="?" 
+                                Style="{StaticResource HelpButtonStyle}"
+                                Command="{Binding ShowHelpCommand}"
+                                ToolTip="查看工具使用说明"/>
+                    </StackPanel>
+
+                    <!-- 右侧：执行按钮 -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <Button Content="执行" 
+                                Style="{StaticResource ExecuteButtonStyle}"
+                                Command="{Binding ExecuteCommand}"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

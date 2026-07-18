@@ -1,10 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(MSBuildProjectDirectory)\XIAOFUTools.local.props"
+          Condition="Exists('$(MSBuildProjectDirectory)\XIAOFUTools.local.props')" />
+
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>annotations</Nullable>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-
+    <Platforms>x64</Platforms>
+    <PlatformTarget>x64</PlatformTarget>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
@@ -14,305 +20,35 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/xiaofuX1/XIAOFUTools</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <ArcGISProInstallDir Condition="'$(ArcGISProInstallDir)' == '' and Exists('$(ProgramW6432)\ArcGIS\Pro\bin\ArcGIS.Core.dll')">$(ProgramW6432)\ArcGIS\Pro</ArcGISProInstallDir>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="XIAOFUTools.Tests\**" />
-    <EmbeddedResource Remove="XIAOFUTools.Tests\**" />
-    <None Remove="XIAOFUTools.Tests\**" />
-    <Page Remove="XIAOFUTools.Tests\**" />
+    <Compile Remove="tests\**" />
+    <Compile Remove="tmp\**" />
+    <EmbeddedResource Remove="tests\**" />
+    <EmbeddedResource Remove="tmp\**" />
+    <None Remove="tests\**" />
+    <None Remove="tmp\**" />
+    <Page Remove="tests\**" />
+    <Page Remove="tmp\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="Config.daml" />
-
-    <None Remove="Images\AreaCalculator_16.png" />
-    <None Remove="Images\AreaCalculator_32.png" />
-    <None Remove="Images\AreaSplit_16.png" />
-    <None Remove="Images\AreaSplit_32.png" />
-    <None Remove="Images\BatchAddData_16.png" />
-    <None Remove="Images\BatchAddData_32.png" />
-    <None Remove="Images\QuickAddData_16.png" />
-    <None Remove="Images\QuickAddData_32.png" />
-    <None Remove="Images\BatchLayerClip_16.png" />
-    <None Remove="Images\BatchLayerClip_32.png" />
-    <None Remove="Images\BatchProjectionDefinition_16.png" />
-    <None Remove="Images\BatchProjectionDefinition_32.png" />
-    <None Remove="Images\BatchGeometryRepair_16.png" />
-    <None Remove="Images\BatchGeometryRepair_32.png" />
-    <None Remove="Images\BoundaryPointGenerator_16.png" />
-    <None Remove="Images\BoundaryPointGenerator_32.png" />
-    <None Remove="Images\BoundaryPointLineGenerator_16.png" />
-    <None Remove="Images\BoundaryPointLineGenerator_32.png" />
-    <None Remove="Images\ChineseNumbering_16.png" />
-    <None Remove="Images\ChineseNumbering_32.png" />
-    <None Remove="Images\DevZoneCheck_16.png" />
-    <None Remove="Images\DevZoneCheck_32.png" />
-    <None Remove="Images\DownloadHistoricalImagery_16.png" />
-    <None Remove="Images\DownloadHistoricalImagery_32.png" />
-    <None Remove="Images\ExportCAD_16.png" />
-    <None Remove="Images\ExportCAD_32.png" />
-    <None Remove="Images\ExportExcel_16.png" />
-    <None Remove="Images\ExportExcel_32.png" />
-    <None Remove="Images\DataPivot_16.png" />
-    <None Remove="Images\DataPivot_32.png" />
-    <None Remove="Images\FieldCopyTool_16.png" />
-    <None Remove="Images\FieldCopyTool_32.png" />
-    <None Remove="Images\Globe16.png" />
-    <None Remove="Images\GroupNumbering_16.png" />
-    <None Remove="Images\GroupNumbering_32.png" />
-    <None Remove="Images\HistoricalImagery_16.png" />
-    <None Remove="Images\HistoricalImagery_32.png" />
-    <None Remove="Images\IntersectSummary_16.png" />
-    <None Remove="Images\IntersectSummary_32.png" />
-    <None Remove="Images\LayoutCoordinateTable_16.png" />
-    <None Remove="Images\LayoutCoordinateTable_32.png" />
-    <None Remove="Images\LayoutTextReplace_16.png" />
-    <None Remove="Images\LayoutTextReplace_32.png" />
-    <None Remove="Images\MapBoundaryPointLineGenerator_16.png" />
-    <None Remove="Images\MapBoundaryPointLineGenerator_32.png" />
-    <None Remove="Images\MapSeriesExport_16.png" />
-    <None Remove="Images\MapSeriesExport_32.png" />
-    <None Remove="Images\MatchSymbology_16.png" />
-    <None Remove="Images\MatchSymbology_32.png" />
-    <None Remove="Images\MirrorDatabase_16.png" />
-    <None Remove="Images\MirrorDatabase_32.png" />
-    <None Remove="Images\MultiOverlaySummary_16.png" />
-    <None Remove="Images\MultiOverlaySummary_32.png" />
-    <None Remove="Images\PasteSymbology_16.png" />
-    <None Remove="Images\PasteSymbology_32.png" />
-    <None Remove="Images\PolygonToDxfWithFill_16.png" />
-    <None Remove="Images\PolygonToDxfWithFill_32.png" />
-    <None Remove="Images\PresetLayers_16.png" />
-    <None Remove="Images\PresetLayers_32.png" />
-    <None Remove="Images\ProtocolLineExtract_16.png" />
-    <None Remove="Images\ProtocolLineExtract_32.png" />
-    <None Remove="Images\RangeClipTool_16.png" />
-    <None Remove="Images\RangeClipTool_32.png" />
-    <None Remove="Images\RotateGeometry_16.png" />
-    <None Remove="Images\RotateGeometry_32.png" />
-    <None Remove="Images\SpecialCoordinateTransform_16.png" />
-    <None Remove="Images\SpecialCoordinateTransform_32.png" />
-    <None Remove="Images\Toolbox.png" />
-    <None Remove="Images\Toolbox_32.png" />
-    <None Remove="Images\TxtToFeature_16.png" />
-    <None Remove="Images\TxtToFeature_32.png" />
-    <None Remove="Images\ViewArea_16.png" />
-    <None Remove="Images\ViewArea_32.png" />
-    <None Remove="Images\ExtractPolygonHoles_16.png" />
-    <None Remove="Images\ExtractPolygonHoles_32.png" />
-    <None Remove="Images\BatchMergeShp_16.png" />
-    <None Remove="Images\BatchMergeShp_32.png" />
-    <None Remove="Images\MdbBatchToGdb_16.png" />
-    <None Remove="Images\MdbBatchToGdb_32.png" />
-    <None Remove="Images\FeatureToTxt_16.png" />
-    <None Remove="Images\FeatureToTxt_32.png" />
-    <None Remove="Images\DownloadOnlineImagery_16.png" />
-    <None Remove="Images\DownloadOnlineImagery_32.png" />
-    <None Remove="Images\InternetTileDownload_16.png" />
-    <None Remove="Images\InternetTileDownload_32.png" />
-    <None Remove="Images\ExportLayout_16.png" />
-    <None Remove="Images\ExportLayout_32.png" />
-    <None Remove="Images\Overture16.png" />
-    <None Remove="Images\Overture32.png" />
-    <None Remove="Images\About_16.png" />
-    <None Remove="Images\About_32.png" />
-    <None Remove="Images\OverlapCheck_16.png" />
-    <None Remove="Images\OverlapCheck_32.png" />
-    <None Remove="Images\PdfToImages_16.png" />
-    <None Remove="Images\PdfToImages_32.png" />
-    <None Remove="Images\ImagesToPdf_16.png" />
-    <None Remove="Images\ImagesToPdf_32.png" />
-    <None Remove="Images\ExcelToPdf_16.png" />
-    <None Remove="Images\ExcelToPdf_32.png" />
-    <None Remove="Images\ExportToKml_16.png" />
-    <None Remove="Images\ExportToKml_32.png" />
-    <None Remove="Images\WordToPdf_16.png" />
-    <None Remove="Images\WordToPdf_32.png" />
-    <None Remove="Images\DocumentBatchReplace_16.png" />
-    <None Remove="Images\DocumentBatchReplace_32.png" />
-    <None Remove="Images\AIAssistant_16.png" />
-    <None Remove="Images\AIAssistant_32.png" />
-    <None Remove="Images\MapSheetsSmallAssign_16.png" />
-    <None Remove="Images\MapSheetsSmallAssign_32.png" />
-    <None Remove="Images\MapSheetsLargeAssign_16.png" />
-    <None Remove="Images\MapSheetsLargeAssign_32.png" />
-    <None Remove="Images\反馈表二维码.png" />
-    <None Remove="Images\新增工具收集清单二维码.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Config.daml" />
-    <Content Include="Images\AreaCalculator_16.png" />
-    <Content Include="Images\AreaCalculator_32.png" />
-    <Content Include="Images\AreaSplit_16.png" />
-    <Content Include="Images\AreaSplit_32.png" />
-    <Content Include="Images\BatchAddData_16.png" />
-    <Content Include="Images\BatchAddData_32.png" />
-    <Content Include="Images\QuickAddData_16.png" />
-    <Content Include="Images\QuickAddData_32.png" />
-    <Content Include="Images\BatchLayerClip_16.png" />
-    <Content Include="Images\BatchLayerClip_32.png" />
-    <Content Include="Images\BatchProjectionDefinition_16.png" />
-    <Content Include="Images\BatchProjectionDefinition_32.png" />
-    <Content Include="Images\BatchGeometryRepair_16.png" />
-    <Content Include="Images\BatchGeometryRepair_32.png" />
-    <Content Include="Images\BoundaryPointGenerator_16.png" />
-    <Content Include="Images\BoundaryPointGenerator_32.png" />
-    <Content Include="Images\BoundaryPointLineGenerator_16.png" />
-    <Content Include="Images\BoundaryPointLineGenerator_32.png" />
-    <Content Include="Images\ChineseNumbering_16.png" />
-    <Content Include="Images\ChineseNumbering_32.png" />
-    <Content Include="Images\DevZoneCheck_16.png" />
-    <Content Include="Images\DevZoneCheck_32.png" />
-    <Content Include="Images\DownloadHistoricalImagery_16.png" />
-    <Content Include="Images\DownloadHistoricalImagery_32.png" />
-    <Content Include="Images\ExportCAD_16.png" />
-    <Content Include="Images\ExportCAD_32.png" />
-    <Content Include="Images\ExportExcel_16.png" />
-    <Content Include="Images\ExportExcel_32.png" />
-    <Content Include="Images\DataPivot_16.png" />
-    <Content Include="Images\DataPivot_32.png" />
-    <Content Include="Images\ExportToKml_16.png" />
-    <Content Include="Images\ExportToKml_32.png" />
-    <Content Include="Images\FieldCopyTool_16.png" />
-    <Content Include="Images\FieldCopyTool_32.png" />
-    <Content Include="Images\Globe16.png" />
-    <Content Include="Images\GroupNumbering_16.png" />
-    <Content Include="Images\GroupNumbering_32.png" />
-    <Content Include="Images\HistoricalImagery_16.png" />
-    <Content Include="Images\HistoricalImagery_32.png" />
-    <Content Include="Images\IntersectSummary_16.png" />
-    <Content Include="Images\IntersectSummary_32.png" />
-    <Content Include="Images\LayoutCoordinateTable_16.png" />
-    <Content Include="Images\LayoutCoordinateTable_32.png" />
-    <Content Include="Images\LayoutTextReplace_16.png" />
-    <Content Include="Images\LayoutTextReplace_32.png" />
-    <Content Include="Images\MapBoundaryPointLineGenerator_16.png" />
-    <Content Include="Images\MapBoundaryPointLineGenerator_32.png" />
-    <Content Include="Images\MapSeriesExport_16.png" />
-    <Content Include="Images\MapSeriesExport_32.png" />
-    <Content Include="Images\MatchSymbology_16.png" />
-    <Content Include="Images\MatchSymbology_32.png" />
-    <Content Include="Images\MirrorDatabase_16.png" />
-    <Content Include="Images\MirrorDatabase_32.png" />
-    <Content Include="Images\MultiOverlaySummary_16.png" />
-    <Content Include="Images\MultiOverlaySummary_32.png" />
-    <Content Include="Images\PasteSymbology_16.png" />
-    <Content Include="Images\PasteSymbology_32.png" />
-    <Content Include="Images\PolygonToDxfWithFill_16.png" />
-    <Content Include="Images\PolygonToDxfWithFill_32.png" />
-    <Content Include="Images\PresetLayers_16.png" />
-    <Content Include="Images\PresetLayers_32.png" />
-    <Content Include="Images\ProtocolLineExtract_16.png" />
-    <Content Include="Images\ProtocolLineExtract_32.png" />
-    <Content Include="Images\RangeClipTool_16.png" />
-    <Content Include="Images\RangeClipTool_32.png" />
-    <Content Include="Images\RotateGeometry_16.png" />
-    <Content Include="Images\RotateGeometry_32.png" />
-    <Content Include="Images\SpecialCoordinateTransform_16.png" />
-    <Content Include="Images\SpecialCoordinateTransform_32.png" />
-    <Content Include="Images\Toolbox_32.png" />
-    <Content Include="Images\TxtToFeature_16.png" />
-    <Content Include="Images\TxtToFeature_32.png" />
-    <Content Include="Images\ViewArea_16.png" />
-    <Content Include="Images\ViewArea_32.png" />
-    <Content Include="Images\FeatureToTxt_16.png" />
-    <Content Include="Images\FeatureToTxt_32.png" />
-    <Content Include="Images\DownloadOnlineImagery_16.png" />
-    <Content Include="Images\DownloadOnlineImagery_32.png" />
-    <Content Include="Images\InternetTileDownload_16.png" />
-    <Content Include="Images\InternetTileDownload_32.png" />
-    <Content Include="Images\ExportLayout_16.png" />
-    <Content Include="Images\ExportLayout_32.png" />
-    <Content Include="Images\PolygonToDwgWithFill_16.png" />
-    <Content Include="Images\PolygonToDwgWithFill_32.png" />
-    <Content Include="Images\Overture16.png" />
-    <Content Include="Images\Overture32.png" />
-
-    <!-- 工具图标文件 - 明亮主题 -->
-
-    <!-- 工具图标文件 - 暗色主题 -->
-    <Content Include="Images\Settings_16.png" />
-    <Content Include="Images\Settings_32.png" />
-    <Content Include="Images\About_16.png" />
-    <Content Include="Images\About_32.png" />
-    <Content Include="Images\NodeDistanceChecker_16.png" />
-    <Content Include="Images\NodeDistanceChecker_32.png" />
-    <Content Include="Images\OverlapCheck_16.png" />
-    <Content Include="Images\OverlapCheck_32.png" />
-    <Content Include="Images\GapCheck_16.png" />
-    <Content Include="Images\GapCheck_32.png" />
-    <Content Include="Images\PdfToImages_16.png" />
-    <Content Include="Images\PdfToImages_32.png" />
-    <Content Include="Images\ImagesToPdf_16.png" />
-    <Content Include="Images\ImagesToPdf_32.png" />
-    <Content Include="Images\ExcelToPdf_16.png" />
-    <Content Include="Images\ExcelToPdf_32.png" />
-    <Content Include="Images\WordToPdf_16.png" />
-    <Content Include="Images\WordToPdf_32.png" />
-    <Content Include="Images\DocumentBatchReplace_16.png" />
-    <Content Include="Images\DocumentBatchReplace_32.png" />
-    <Content Include="Images\AIAssistant_16.png" />
-    <Content Include="Images\AIAssistant_32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Images\AttributeTransferFields_16.png" />
-    <Content Include="Images\AttributeTransferFields_32.png" />
-    <Content Include="Images\MapSheetsSmall_16.png" />
-    <Content Include="Images\MapSheetsSmall_32.png" />
-    <Content Include="Images\MapSheetsSmallAssign_16.png" />
-    <Content Include="Images\MapSheetsSmallAssign_32.png" />
-    <Content Include="Images\MapSheetsLarge_16.png" />
-    <Content Include="Images\MapSheetsLarge_32.png" />
-    <Content Include="Images\MapSheetsLargeAssign_16.png" />
-    <Content Include="Images\MapSheetsLargeAssign_32.png" />
-    <Content Include="Images\ViewStartPoint_16.png" />
-    <Content Include="Images\ViewStartPoint_32.png" />
-    <Content Include="Images\ModifyStartPoint_16.png" />
-    <Content Include="Images\ModifyStartPoint_32.png" />
-    <Content Include="Images\DatabaseBuilder_16.png" />
-    <Content Include="Images\DatabaseBuilder_32.png" />
-    <Content Include="Images\ExportDatabaseSchema_16.png" />
-    <Content Include="Images\ExportDatabaseSchema_32.png" />
-    <Content Include="Images\ShapefileBuilder_16.png" />
-    <Content Include="Images\ShapefileBuilder_32.png" />
-    <Content Include="Images\ExportShpFieldTable_16.png" />
-    <Content Include="Images\ExportShpFieldTable_32.png" />
-    <Content Include="Images\BatchMergeShp_16.png" />
-    <Content Include="Images\BatchMergeShp_32.png" />
-    <Content Include="Images\MdbBatchToGdb_16.png" />
-    <Content Include="Images\MdbBatchToGdb_32.png" />
-    <Content Include="Images\ExtractPolygonHoles_16.png" />
-    <Content Include="Images\ExtractPolygonHoles_32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Tools\Common\PresetLayers\PresetLayersGalleryTemplate.xaml" />
-    <None Update="scripts\mdb_to_gdb_arcgispro.py">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Tools\User\AIAssistant\UI\chat.html">
+    <None Remove="Assets\Images\*.png" />
+    <Content Include="Assets\Images\*.png" Exclude="Assets\Images\Toolbox.png;Assets\Images\反馈表二维码.png;Assets\Images\新增工具收集清单二维码.png" />
+    <Content Include="Assets\Images\GisToolPocket\*.png;Assets\Images\GisToolPocket\*.jpg" />
+    <Resource Include="Assets\Images\GisToolPocket\*.png;Assets\Images\GisToolPocket\*.jpg" />
+    <EmbeddedResource Include="Assets\Images\GisToolPocket\donation.jpg"
+                      LogicalName="XIAOFUTools.Features.Custom.GisToolPocket.Images.donation.jpg" />
+    <Resource Include="Assets\Images\Toolbox.png;Assets\Images\反馈表二维码.png;Assets\Images\新增工具收集清单二维码.png" />
+    <None Update="Assets\Data\**\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\User\AIAssistant\UI\style.css">
+    <None Update="Features\User\AIAssistant\UI\**\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Tools\User\AIAssistant\UI\script.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Tools\User\AIAssistant\UI\lib\marked.min.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Tools\User\AIAssistant\UI\lib\highlight.min.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Tools\User\AIAssistant\UI\lib\github.min.css">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Toolbox.png" />
-    <Resource Include="Images\反馈表二维码.png" />
-    <Resource Include="Images\新增工具收集清单二维码.png" />
-  </ItemGroup>
-  <ItemGroup>
+    <Content Include="Features\General\PresetLayers\PresetLayersGalleryTemplate.xaml" />
     <None Include="Properties\launchSettings.json" />
   </ItemGroup>
   <ItemGroup>
@@ -352,7 +88,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="ArcGIS.Desktop.GeoProcessing">
-      <HintPath>D:\RUANJIAN\ArcGIS\Pro\bin\Extensions\GeoProcessing\ArcGIS.Desktop.GeoProcessing.dll</HintPath>
+      <HintPath>D:\RUANJIAN\ArcGIS\Pro\bin\Extensions\Geoprocessing\ArcGIS.Desktop.GeoProcessing.dll</HintPath>
       <CopyLocal>False</CopyLocal>
       <Private>False</Private>
     </Reference>
@@ -361,15 +97,15 @@
       <CopyLocal>False</CopyLocal>
       <Private>False</Private>
     </Reference>
-	<Reference Include="ArcGIS.Desktop.KnowledgeGraph">
-		<HintPath>D:\RUANJIAN\ArcGIS\Pro\bin\Extensions\KnowledgeGraph\ArcGIS.Desktop.KnowledgeGraph.dll</HintPath>
-		<CopyLocal>False</CopyLocal>
-		<Private>False</Private>
-	</Reference>
-	<Reference Include="ArcGIS.Desktop.Shared.Wpf">
-        <HintPath>D:\RUANJIAN\ArcGIS\Pro\bin\ArcGIS.Desktop.Shared.Wpf.dll</HintPath>
-        <CopyLocal>False</CopyLocal>
-        <Private>False</Private>
+    <Reference Include="ArcGIS.Desktop.KnowledgeGraph">
+      <HintPath>D:\RUANJIAN\ArcGIS\Pro\bin\Extensions\KnowledgeGraph\ArcGIS.Desktop.KnowledgeGraph.dll</HintPath>
+      <CopyLocal>False</CopyLocal>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="ArcGIS.Desktop.Shared.Wpf">
+      <HintPath>D:\RUANJIAN\ArcGIS\Pro\bin\ArcGIS.Desktop.Shared.Wpf.dll</HintPath>
+      <CopyLocal>False</CopyLocal>
+      <Private>False</Private>
     </Reference>
     <Reference Include="ArcGIS.Desktop.Ribbon.Wpf">
       <HintPath>D:\RUANJIAN\ArcGIS\Pro\bin\ArcGIS.Desktop.Ribbon.Wpf.dll</HintPath>
@@ -391,119 +127,6 @@
       <CopyLocal>False</CopyLocal>
       <Private>False</Private>
     </Reference>
-    <COMReference Include="Microsoft.Office.Interop.Excel">
-      <Guid>{00020813-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>1</VersionMajor>
-      <VersionMinor>9</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-    <COMReference Include="Microsoft.Office.Interop.Word">
-      <Guid>{00020905-0000-0000-C000-000000000046}</Guid>
-      <VersionMajor>8</VersionMajor>
-      <VersionMinor>7</VersionMinor>
-      <Lcid>0</Lcid>
-      <WrapperTool>primary</WrapperTool>
-      <Isolated>False</Isolated>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </COMReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Data\影像图层\Google01.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\Google02.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\Google带注记01-CGJ02.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\Google带注记02-CGJ02.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\Mapbox.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\Mapbox卫星混合图英文.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\openstreetmap.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\World_Imagery（世界影像）.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\全球10m等高线地物地形图源a.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\全球10m等高线地物地形图源b.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\天地图-地形地图（球面墨卡托投影）.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\天地图-地形注记（球面墨卡托投影）.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\天地图-影像地图（球面墨卡托投影）.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\天地图-影像注记（球面墨卡托投影）.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\天地图-矢量地图（球面墨卡托投影）.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\天地图-矢量注记（球面墨卡托投影）.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\慎用国外图源！涉及国界请用天地图图层.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\星图-地形地图(注记).lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\星图-地形地图.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\星图-影像地图(注记).lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\星图-影像地图.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\星图-矢量地图.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\星球地球影像底图.lyr">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\星球地球电子底图.lyr">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\混合参考图层.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\影像图层\高德-CGJ02.lyrx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\符号库\地类符号.stylx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\符号库\用地用海.stylx">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Excel模板\建库模板.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Excel模板\建库模板-带要素集.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Data\Excel模板\建SHP模板.xls">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
@@ -513,13 +136,19 @@
     <PackageReference Include="ExcelDataReader" Version="3.7.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.7.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.0" />
+    <PackageReference Include="MicrosoftOfficeCore16" Version="16.0.16626.20000" />
+    <PackageReference Include="Microsoft.Office.Interop.Excel" Version="16.0.18925.20022" />
+    <PackageReference Include="Microsoft.Office.Interop.Word" Version="15.0.4797.1004" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3595.46" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="PDFsharp-GDI" Version="6.2.4" />
-    <PackageReference Include="System.Management" Version="8.0.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.5" />
     <PackageReference Include="netDxf" Version="2023.11.10" />
     <PackageReference Include="PDFtoImage" Version="5.2.0" />
   </ItemGroup>
-   <Import Project="D:\RUANJIAN\ArcGIS\Pro\bin\Esri.ProApp.SDK.Desktop.targets" Condition="Exists('D:\RUANJIAN\ArcGIS\Pro\bin\Esri.ProApp.SDK.Desktop.targets') AND !Exists('Esri.ArcGISPro.Extensions.targets')" />
+  <Target Name="ValidateArcGISProInstall" BeforeTargets="PrepareForBuild" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Error Condition="'$(ArcGISProInstallDir)' == ''" Text="未找到 ArcGIS Pro。请设置 ArcGISProInstallDir 环境变量或通过 /p:ArcGISProInstallDir=... 指定安装目录。" />
+    <Error Condition="'$(ArcGISProInstallDir)' != '' and !Exists('$(ArcGISProInstallDir)\bin\ArcGIS.Core.dll')" Text="ArcGISProInstallDir 指向无效目录：$(ArcGISProInstallDir)" />
+  </Target>
+  <Import Project="D:\RUANJIAN\ArcGIS\Pro\bin\Esri.ProApp.SDK.Desktop.targets" Condition="'$(ArcGISProInstallDir)' != '' and Exists('$(ArcGISProInstallDir)\bin\Esri.ProApp.SDK.Desktop.targets') and !Exists('Esri.ArcGISPro.Extensions.targets')" />
 </Project>

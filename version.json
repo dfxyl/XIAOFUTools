@@ -1,12 +1,13 @@
 {
-  "version": "1.2.7",
-  "releaseDate": "2026-03-19",
-  "minDesktopVersion": "3.6.0",
-  "downloadUrl": "https://gitee.com/XFTools/xiaofutools/releases/download/V1.2.7/XIAOFUTools.esriAddinX",
+  "version": "1.3.0",
+  "releaseDate": "2026-07-18",
+  "minDesktopVersion": "3.7.0",
+  "downloadUrl": "https://gitee.com/XFTools/xiaofutools/releases/download/V1.3.0/XIAOFUTools.esriAddinX",
   "changelog": [
-    "新增 历史影像下载、互联网切片下载、大/小比例图幅赋值与查询、快捷添加数据 等工具与面板",
-    "升级 特殊坐标转换、MDB批量转GDB、Wayback 历史判定与拖拽加载交互，增强批量处理与兼容性",
-    "修复 WMTS/天地图兼容、临时文件占用、框选工具状态恢复与图幅连续查询等问题"
+    "将原 GIS Toolbox 合并到 XIAOFU工具箱，安装一个插件即可使用两个工具箱的能力",
+    "GIS 工具口袋支持工具箱、内置命令、地图工具和自定义工具组的集中收纳与搜索调用",
+    "MDB批量格式转换改用 ArcGIS Pro 原生工具，支持 .gdb、.geodatabase 与 .xml 三种输出格式",
+    "优化后台处理与数据释放流程，运行更流畅、批量操作更稳定"
   ],
-  "notice": "欢迎使用XIAOFU工具箱，最新版本V1.2.7已发布，建议及时更新。该版本仅支持 ArcGIS Pro 3.6+。"
+  "notice": "欢迎使用XIAOFU工具箱，最新版本V1.3.0已发布。GIS Toolbox 已合并至 XIAOFU工具箱，MDB批量格式转换已升级，并仅支持 ArcGIS Pro 3.7。"
 }

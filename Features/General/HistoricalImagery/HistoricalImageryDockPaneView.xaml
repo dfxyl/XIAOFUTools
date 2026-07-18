@@ -1,0 +1,228 @@
+<UserControl x:Class="XIAOFUTools.Features.General.HistoricalImagery.HistoricalImageryDockPaneView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:XIAOFUTools.Features.General.HistoricalImagery"
+             xmlns:frameworkDragDrop="clr-namespace:ArcGIS.Desktop.Framework.DragDrop;assembly=ArcGIS.Desktop.Framework"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="400">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/XIAOFUTools;component/Shared/Presentation/Styles/ControlStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <local:InverseBooleanToVisibilityConverter x:Key="InverseBooleanToVisibilityConverter"/>
+
+            <!-- 年份转换器 -->
+            <local:YearDisplayConverter x:Key="YearDisplayConverter"/>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题和刷新按钮 -->
+        <Grid Grid.Row="0" Margin="0,0,0,5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0"
+                       Text="ArcGIS Wayback 历史影像"
+                       FontWeight="Bold"
+                       FontSize="13"
+                       VerticalAlignment="Center"/>
+
+            <Button Grid.Column="1"
+                    Command="{Binding RefreshCommand}"
+                    ToolTip="刷新列表"
+                    Width="24"
+                    Height="24"
+                    Padding="0"
+                    Background="Transparent"
+                    BorderThickness="0">
+                <TextBlock Text="🔄" FontSize="14"/>
+            </Button>
+        </Grid>
+
+        <!-- 搜索框和过滤选项 -->
+        <Grid Grid.Row="1" Margin="0,0,0,5">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            
+            <!-- 搜索框 -->
+            <Grid Grid.Row="0" Margin="0,0,0,3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBox Grid.Column="0"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Height="24"
+                         VerticalContentAlignment="Center"
+                         Padding="5,0"/>
+                
+                <Button Grid.Column="1"
+                        Command="{Binding ClearSearchCommand}"
+                        ToolTip="清除搜索"
+                        Width="24"
+                        Height="24"
+                        Margin="3,0,0,0"
+                        Padding="0"
+                        Background="Transparent"
+                        BorderThickness="0">
+                    <TextBlock Text="✖" FontSize="12" Foreground="Gray"/>
+                </Button>
+            </Grid>
+            
+            <!-- 过滤选项 -->
+            <CheckBox Grid.Row="1"
+                      IsChecked="{Binding ShowChangedOnly}"
+                      Content="仅显示影像改变版本"
+                      FontSize="11"
+                      Margin="2,0,0,0"
+                      ToolTip="勾选后自动查询当前位置各版本的影像采集日期，仅显示影像变化的版本"/>
+        </Grid>
+
+        <!-- 状态信息 -->
+        <TextBlock Grid.Row="2"
+                   Text="{Binding StatusMessage}"
+                   FontSize="9"
+                   Foreground="Gray"
+                   Margin="0,0,0,3"/>
+
+        <!-- 树形版本列表 -->
+        <Border Grid.Row="3"
+                BorderBrush="LightGray"
+                BorderThickness="1">
+            <Grid>
+                <!-- 树形控件 -->
+                <TreeView x:Name="HistoricalImageryTree"
+                          ItemsSource="{Binding TreeNodes}"
+                           AllowDrop="True"
+                           frameworkDragDrop:DragDrop.IsDragSource="True"
+                           frameworkDragDrop:DragDrop.DragHandler="{Binding TreeDragDropHandler}"
+                           PreviewMouseLeftButtonDown="HistoricalImageryTree_PreviewMouseLeftButtonDown"
+                           PreviewMouseMove="HistoricalImageryTree_PreviewMouseMove"
+                            Visibility="{Binding IsLoading, Converter={StaticResource InverseBooleanToVisibilityConverter}}">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="TreeViewItem">
+                            <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"/>
+                            <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                            <Setter Property="Padding" Value="2"/>
+                            <EventSetter Event="Selected" Handler="TreeViewItem_Selected"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                    <TreeView.Resources>
+                        <!-- 年份节点模板 -->
+                        <HierarchicalDataTemplate DataType="{x:Type local:TreeNode}" ItemsSource="{Binding Children}">
+                            <HierarchicalDataTemplate.ItemTemplate>
+                                <!-- 版本叶子节点模板 -->
+                                <DataTemplate DataType="{x:Type local:TreeNode}">
+                                    <StackPanel Orientation="Horizontal" Margin="2" Background="Transparent">
+                                        <StackPanel.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="添加到地图" Click="AddLayerMenuItem_Click"/>
+                                            </ContextMenu>
+                                        </StackPanel.ContextMenu>
+                                        <TextBlock Text="📅" Margin="0,0,6,0" FontSize="13"/>
+                                        <TextBlock Text="{Binding Header}" FontSize="12"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </HierarchicalDataTemplate.ItemTemplate>
+                            <StackPanel Orientation="Horizontal" Margin="2">
+                                <TextBlock Text="📆" FontWeight="Bold" Margin="0,0,6,0" FontSize="14"/>
+                                <TextBlock Text="{Binding Header}" FontWeight="Bold" FontSize="13"/>
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.Resources>
+                </TreeView>
+
+                <!-- 加载动画 -->
+                <Grid Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                      Background="White">
+                    <StackPanel HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
+                        <TextBlock Text="⏳"
+                                  FontSize="48"
+                                  HorizontalAlignment="Center"
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="正在加载历史影像列表..."
+                                  FontSize="12"
+                                  Foreground="Gray"
+                                  HorizontalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Grid>
+        </Border>
+
+        <!-- 底部元数据信息 -->
+        <Border Grid.Row="4"
+                BorderBrush="LightGray"
+                BorderThickness="1"
+                Background="#F5F5F5"
+                Margin="0,5,0,0"
+                Padding="5">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                
+                <!-- 帮助按钮 -->
+                <Button Grid.Row="0"
+                        Grid.Column="0"
+                        Content="?"
+                        Width="22"
+                        Height="22"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource HelpButtonStyle}"
+                        Command="{Binding ShowHelpCommand}"
+                        ToolTip="显示帮助信息"/>
+
+                <!-- 查询按钮 -->
+                <Button Grid.Row="0"
+                        Grid.Column="1"
+                        Command="{Binding QueryMetadataCommand}"
+                        HorizontalAlignment="Stretch"
+                        Height="24"
+                        Margin="0,0,0,3"
+                        Background="#E0E0E0"
+                        BorderThickness="1"
+                        BorderBrush="Gray">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="🔍" FontSize="12" Margin="0,0,5,0"/>
+                        <TextBlock Text="查询当前位置影像信息" FontSize="11"/>
+                    </StackPanel>
+                </Button>
+                
+                <!-- 元数据显示 -->
+                <TextBlock Grid.Row="1"
+                           Grid.Column="0"
+                           Grid.ColumnSpan="2"
+                           Text="{Binding MetadataDisplay}"
+                           FontSize="10"
+                           TextWrapping="Wrap"
+                           Foreground="#333333"/>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
